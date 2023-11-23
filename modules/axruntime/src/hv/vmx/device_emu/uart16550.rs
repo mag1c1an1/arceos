@@ -20,10 +20,12 @@ const UART_FIFO_CAPACITY: usize = 16;
 bitflags::bitflags! {
     /// Line status flags
     struct LineStsFlags: u8 {
-        const INPUT_FULL = 1;
-        // 1 to 4 unknown
+        const INPUT_FULL = 1 << 0;
+        // 1 to 3 is error flag
+        const BREAK_INTERRUPT = 1 << 4;
         const OUTPUT_EMPTY = 1 << 5;
-        // 6 and 7 unknown
+        const OUTPUT_EMPTY2 = 1 << 6;
+        // 7 is error flag
     }
 }
 
@@ -70,6 +72,7 @@ impl<const CAP: usize> Fifo<CAP> {
 pub struct Uart16550 {
     port_base: u16,
     fifo: Mutex<Fifo<UART_FIFO_CAPACITY>>,
+    line_control_reg: u8,
 }
 
 impl PortIoDevice for Uart16550 {
@@ -77,7 +80,8 @@ impl PortIoDevice for Uart16550 {
         self.port_base..self.port_base + 8
     }
 
-    fn read(&self, port: u16, access_size: u8) -> HyperResult<u32> {
+    fn read(&mut self, port: u16, access_size: u8) -> HyperResult<u32> {
+        // debug!("serial read: {:#x}", port);
         if access_size != 1 {
             error!("Invalid serial port I/O read size: {} != 1", access_size);
             return Err(HyperError::InvalidParam);
@@ -100,15 +104,18 @@ impl PortIoDevice for Uart16550 {
                         fifo.push(c);
                     }
                 }
-                let mut lsr = LineStsFlags::OUTPUT_EMPTY;
+                let mut lsr = LineStsFlags::OUTPUT_EMPTY | LineStsFlags::OUTPUT_EMPTY2;
                 if !fifo.is_empty() {
                     lsr |= LineStsFlags::INPUT_FULL;
                 }
                 lsr.bits()
             }
-            INT_EN_REG | FIFO_CTRL_REG | LINE_CTRL_REG | MODEM_CTRL_REG | MODEM_STATUS_REG
+            LINE_CTRL_REG => {
+                self.line_control_reg
+            }
+            INT_EN_REG | FIFO_CTRL_REG | MODEM_CTRL_REG | MODEM_STATUS_REG
             | SCRATCH_REG => {
-                info!("Unimplemented serial port I/O read: {:#x}", port); // unimplemented
+                trace!("Unimplemented serial port I/O read: {:#x}", port); // unimplemented
                 0
             }
             _ => unreachable!(),
@@ -116,15 +123,17 @@ impl PortIoDevice for Uart16550 {
         Ok(ret as u32)
     }
 
-    fn write(&self, port: u16, access_size: u8, value: u32) -> HyperResult {
+    fn write(&mut self, port: u16, access_size: u8, value: u32) -> HyperResult {
+        // debug!("serial write: {:#x} <- {:#x}", port, value);
         if access_size != 1 {
             error!("Invalid serial port I/O write size: {} != 1", access_size);
             return Err(HyperError::InvalidParam);
         }
         match port - self.port_base {
             DATA_REG => uart::putchar(value as u8),
-            INT_EN_REG | FIFO_CTRL_REG | LINE_CTRL_REG | MODEM_CTRL_REG | SCRATCH_REG => {
-                info!("Unimplemented serial port I/O write: {:#x}", port); // unimplemented
+            LINE_CTRL_REG => self.line_control_reg = value as u8,
+            INT_EN_REG | FIFO_CTRL_REG | MODEM_CTRL_REG | SCRATCH_REG => {
+                trace!("Unimplemented serial port I/O write: {:#x}", port); // unimplemented
             }
             LINE_STATUS_REG => {} // ignore
             _ => unreachable!(),
@@ -138,6 +147,7 @@ impl Uart16550 {
         Self {
             port_base,
             fifo: Mutex::new(Fifo::new()),
+            line_control_reg: 0,
         }
     }
 }

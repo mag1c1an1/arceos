@@ -11,9 +11,17 @@ ifeq ($(ARCH), riscv64)
   GUEST_BIN ?= apps/hv/guest/$(GUEST)/$(GUEST).bin
   GUEST_BIOS ?=
 else ifeq ($(ARCH), x86_64)
-  GUEST_DTB ?= 
-  GUEST_BIN ?= apps/hv/guest/nimbos/nimbos.bin
-  GUEST_BIOS ?= apps/hv/guest/nimbos/rvm-bios.bin
+  ifeq ($(GUEST), nimbos)
+    GUEST_DTB ?= 
+    GUEST_BIN ?= apps/hv/guest/nimbos/nimbos.bin
+    GUEST_BIOS ?= apps/hv/guest/nimbos/rvm-bios.bin
+  else ifeq ($(GUEST), linux)
+    GUEST_DTB ?= apps/hv/guest/linux/linux.dtb
+    GUEST_BIN ?= apps/hv/guest/linux/bzImage.bin
+    GUEST_BIOS ?= apps/hv/guest/vlbl/out/vlbl.bin
+  else
+    $(error "GUEST" must be one of "nimbos" or "linux")
+  endif
 else ifeq ($(ARCH), aarch64)
   ROOTFS = apps/hv/guest/$(GUEST)/rootfs-aarch64.img
   GUEST_DTB = apps/hv/guest/$(GUEST)/$(GUEST)-aarch64.dtb
@@ -57,10 +65,20 @@ ifeq ($(HV), y)
         -device loader,file=$(GUEST_BIN),addr=0x70200000,force-raw=on \
         -machine virtualization=on,gic-version=2
   else ifeq ($(ARCH), x86_64)
-    qemu_args-y := \
+    ifeq ($(GUEST), nimbos)
+      qemu_args-y := \
         -m 3G -smp $(SMP) $(qemu_args-$(ARCH)) \
         -device loader,addr=0x4000000,file=$(GUEST_BIOS),force-raw=on \
         -device loader,addr=0x4001000,file=$(GUEST_BIN),force-raw=on
+    else ifeq ($(GUEST), linux)
+      qemu_args-y := \
+        -m 3G -smp $(SMP) $(qemu_args-$(ARCH)) \
+        -device loader,addr=0x4000000,file=$(GUEST_BIOS),force-raw=on \
+        -device loader,addr=0x70000000,file=$(GUEST_DTB),force-raw=on \
+        -device loader,addr=0x70200000,file=$(GUEST_BIN),force-raw=on
+    else
+      $(error "GUEST" must be one of "nimbos" or "linux")
+    endif
   endif
 else
   qemu_args-y := -m 128M -smp $(SMP) $(qemu_args-$(ARCH))
@@ -95,10 +113,9 @@ ifeq ($(GUEST), linux)
 	    -append "root=/dev/vda rw console=ttyAMA0"
   else ifeq ($(ARCH), x86_64)
     qemu_args-$(HV) += \
-      -drive file=$(ROOTFS),format=raw,id=hd0 \
-	    -append "root=/dev/vda rw console=ttyS0" 
-    # qemu_args-$(HV) += \
-    #   -device virtio-blk-pci,drive=hd0
+      -device virtio-blk-pci,drive=hd0 \
+      -drive file=$(ROOTFS),format=raw,id=hd0,if=none \
+	    -append "root=/dev/vda rw console=ttyS0"
   endif
 else ifeq ($(GUEST), rCore-Tutorial)
   qemu_args-$(HV) += \
@@ -131,6 +148,7 @@ endif
 
 define run_qemu
   @printf "    $(CYAN_C)Running$(END_C) $(QEMU) $(qemu_args-y) $(1)\n"
+  echo $(qemu_args-y)
   @$(QEMU) $(qemu_args-y)
 endef
 

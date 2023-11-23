@@ -7,7 +7,7 @@ use page_table_entry::MappingFlags;
 
 // about guests
 pub const BIOS_PADDR: HostPhysAddr = 0x4000000;
-pub const BIOS_SIZE: usize = 0x1000;
+pub const BIOS_SIZE: usize = 0x2000;
 
 pub const GUEST_IMAGE_PADDR: HostPhysAddr = 0x4001000;
 pub const GUEST_IMAGE_SIZE: usize = 0x10_0000; // 1M
@@ -214,18 +214,62 @@ pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
     // copy BIOS and guest images
 
     use libax::hv::HostVirtAddr;
-    load_guest_image(BIOS_PADDR, BIOS_ENTRY, BIOS_SIZE);
-    load_guest_image(GUEST_IMAGE_PADDR, GUEST_ENTRY, GUEST_IMAGE_SIZE);
+    // load_guest_image(BIOS_PADDR, BIOS_ENTRY, BIOS_SIZE);
+    load_guest_image(BIOS_PADDR, 0x7c00, BIOS_SIZE);
+    // load_guest_image(GUEST_IMAGE_PADDR, GUEST_ENTRY, GUEST_IMAGE_SIZE);
 
+    /*
+    load_guest_image(GUEST_IMAGE_PADDR, 0x1_0000, 0x3a00);
+    load_guest_image(GUEST_IMAGE_PADDR + 0x3a00, 0x10_0000, GUEST_IMAGE_SIZE);
+
+    let G: HostVirtAddr = phys_to_virt(GUEST_IMAGE_PADDR.into()).into(); 
+*/
+    unsafe { 
+        // panic!("{:#x}", *(gpa_as_mut_ptr(0x8b20 ) as *mut u8));
+    }
+    
     // create nested page table and add mapping
     let mut gpm = GuestPhysMemorySet::new()?;
     let guest_memory_regions = [
         GuestMemoryRegion {
-            // RAM
+            // Low RAM
             gpa: GUEST_PHYS_MEMORY_BASE,
             hpa: virt_to_phys((gpa_as_mut_ptr(GUEST_PHYS_MEMORY_BASE) as HostVirtAddr).into()).into(),
             size: GUEST_PHYS_MEMORY_SIZE,
             flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
+        },
+        GuestMemoryRegion {
+            // Low RAM2
+            gpa: 0x100_0000,
+            hpa: 0x6100_0000,
+            size: 0xf00_0000,
+            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
+        },
+        GuestMemoryRegion {
+            // RAM
+            gpa: 0x7000_0000,
+            hpa: 0x7000_0000,
+            size: 0x1000_0000,
+            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
+        },
+        GuestMemoryRegion {
+            // PCI
+            gpa: 0x8000_0000,
+            hpa: 0x8000_0000,
+            size: 0x1000_0000,
+            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
+        },
+        GuestMemoryRegion {
+            gpa: 0xfe00_0000,
+            hpa: 0xfe00_0000,
+            size: 0x1_0000,
+            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
+        },
+        GuestMemoryRegion {
+            gpa: 0xfeb0_0000,
+            hpa: 0xfeb0_0000,
+            size: 0x10_0000,
+            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
         },
         GuestMemoryRegion {
             // IO APIC

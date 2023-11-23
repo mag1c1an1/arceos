@@ -1,5 +1,6 @@
 mod device_emu;
 
+use bit_field::BitField;
 use hypercraft::{VmxExitReason, VCpu as HVCpu, HyperResult, HyperError, VmxExitInfo};
 use device_emu::VirtLocalApic;
 
@@ -28,6 +29,7 @@ fn handle_cpuid(vcpu: &mut VCpu) -> HyperResult {
     use raw_cpuid::{cpuid, CpuIdResult};
 
     const LEAF_FEATURE_INFO: u32 = 0x1;
+    const LEAF_STRUCTURED_EXTENDED_FEATURE_FLAGS_ENUMERATION: u32 = 0x7;
     const LEAF_HYPERVISOR_INFO: u32 = 0x4000_0000;
     const LEAF_HYPERVISOR_FEATURE: u32 = 0x4000_0001;
     const VENDOR_STR: &[u8; 12] = b"RVMRVMRVMRVM";
@@ -43,7 +45,15 @@ fn handle_cpuid(vcpu: &mut VCpu) -> HyperResult {
             res.ecx &= !FEATURE_VMX;
             res.ecx |= FEATURE_HYPERVISOR;
             res
-        }
+        },
+        LEAF_STRUCTURED_EXTENDED_FEATURE_FLAGS_ENUMERATION => {
+            let mut res = cpuid!(regs.rax, regs.rcx);
+            if regs.rcx == 0 {
+                res.ecx.set_bit(0x5, false); // clear waitpkg
+            }
+
+            res
+        },
         LEAF_HYPERVISOR_INFO => CpuIdResult {
             eax: LEAF_HYPERVISOR_FEATURE,
             ebx: vendor_regs[0],
@@ -59,7 +69,7 @@ fn handle_cpuid(vcpu: &mut VCpu) -> HyperResult {
         _ => cpuid!(regs.rax, regs.rcx),
     };
 
-    debug!(
+    trace!(
         "VM exit: CPUID({:#x}, {:#x}): {:?}",
         regs.rax, regs.rcx, res
     );
@@ -68,6 +78,18 @@ fn handle_cpuid(vcpu: &mut VCpu) -> HyperResult {
     regs.rcx = res.ecx as _;
     regs.rdx = res.edx as _;
     vcpu.advance_rip(VM_EXIT_INSTR_LEN_CPUID)?;
+
+    unsafe {
+        static mut times: u32 = 0;
+        times += 1;
+
+        if times >= 1024 {
+            panic!("too many cpuid's");
+        }
+
+        // debug!("{:#x?}", vcpu);
+    }
+
     Ok(())
 }
 
@@ -89,7 +111,7 @@ fn handle_io_instruction(vcpu: &mut VCpu, exit_info: &VmxExitInfo) -> HyperResul
 
     if let Some(dev) = device_emu::all_virt_devices().find_port_io_device(io_info.port) {
         if io_info.is_in {
-            let value = dev.read(io_info.port, io_info.access_size)?;
+            let value = dev.lock().read(io_info.port, io_info.access_size)?;
             let rax = &mut vcpu.regs_mut().rax;
             // SDM Vol. 1, Section 3.4.1.1:
             // * 32-bit operands generate a 32-bit result, zero-extended to a 64-bit result in the
@@ -111,12 +133,12 @@ fn handle_io_instruction(vcpu: &mut VCpu, exit_info: &VmxExitInfo) -> HyperResul
                 4 => rax,
                 _ => unreachable!(),
             } as u32;
-            dev.write(io_info.port, io_info.access_size, value)?;
+            dev.lock().write(io_info.port, io_info.access_size, value)?;
         }
     } else {
         panic!(
-            "Unsupported I/O port {:#x} access: {:#x?}",
-            io_info.port, io_info
+            "Unsupported I/O port {:#x} access: {:#x?}\n, vcpu: {:#x?}",
+            io_info.port, io_info, vcpu
         )
     }
     vcpu.advance_rip(exit_info.exit_instruction_length as _)?;
@@ -133,6 +155,10 @@ fn handle_msr_read(vcpu: &mut VCpu) -> HyperResult {
         Ok(apic_base)
     } else if VirtLocalApic::msr_range().contains(&msr) {
         VirtLocalApic::rdmsr(vcpu, msr)
+    } else if msr == 0xc0011029 {
+        // linux read this amd-related msr on my intel cpu for some unknown reason... make it happy
+        debug!("msr read 0xc0011029!");
+        Ok(0)
     } else {
         Err(HyperError::NotSupported)
     };
@@ -151,7 +177,7 @@ fn handle_msr_read(vcpu: &mut VCpu) -> HyperResult {
 fn handle_msr_write(vcpu: &mut VCpu) -> HyperResult {
     let msr = vcpu.regs().rcx as u32;
     let value = (vcpu.regs().rax & 0xffff_ffff) | (vcpu.regs().rdx << 32);
-    trace!("VM exit: WRMSR({:#x}) <- {:#x}", msr, value);
+    info!("VM exit: WRMSR({:#x}) <- {:#x}", msr, value);
 
     use x86::msr::*;
     let res = if msr == IA32_APIC_BASE {
@@ -172,15 +198,29 @@ fn handle_msr_write(vcpu: &mut VCpu) -> HyperResult {
     Ok(())
 }
 
+pub fn handle_io_instruction_wrapped(vcpu: &mut VCpu, exit_info: &VmxExitInfo) -> HyperResult {
+    handle_io_instruction(vcpu, exit_info).or_else(|e| {
+        panic!("virt pmio error ({e:?}): {:#x?}, {:#x?}", vcpu, vcpu.io_exit_info().unwrap())
+    })
+}
+
 pub fn vmexit_handler(vcpu: &mut VCpu) -> HyperResult {
     let exit_info = vcpu.exit_info()?;
-    
+
     match exit_info.exit_reason {
         VmxExitReason::EXTERNAL_INTERRUPT => handle_external_interrupt(vcpu),
         VmxExitReason::CPUID => handle_cpuid(vcpu),
-        VmxExitReason::IO_INSTRUCTION => handle_io_instruction(vcpu, &exit_info),
+        VmxExitReason::IO_INSTRUCTION => handle_io_instruction_wrapped(vcpu, &exit_info),
         VmxExitReason::MSR_READ => handle_msr_read(vcpu),
         VmxExitReason::MSR_WRITE => handle_msr_write(vcpu),
-        _ => panic!("vmexit reason not supported {:?}:\n{:?}", exit_info.exit_reason, vcpu)
+        VmxExitReason::EPT_VIOLATION => {
+            let fault_info = vcpu.nested_page_fault_info()?;
+            panic!(
+                "VM exit: EPT violation @ {:#x}, fault_paddr={:#x}, access_flags=({:?}), vcpu: {:#x?}",
+                exit_info.guest_rip, fault_info.fault_guest_paddr, fault_info.access_flags, vcpu
+            );
+            Ok(())
+        }
+        _ => panic!("vmexit reason not supported {:#x?}:\n{:#x?}", exit_info.exit_reason, vcpu)
     }
 }

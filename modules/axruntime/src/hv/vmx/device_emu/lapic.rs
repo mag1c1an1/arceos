@@ -9,12 +9,48 @@ type VCpu = HVCpu<crate::hv::HyperCraftHalImpl>;
 const APICID: u32 = 0x2;
 /// Version register.
 const VERSION: u32 = 0x3;
+/// Task priority register.
+const TPR: u32 = 0x8;
 /// EOI register.
 const EOI: u32 = 0xB;
 /// Logical Destination Register.
 const LDR: u32 = 0xD;
 /// Spurious Interrupt Vector register.
 const SIVR: u32 = 0xF;
+/// In-Service Register 0
+const ISR0: u32 = 0x10;
+/// In-Service Register 1
+const ISR1: u32 = 0x11;
+/// In-Service Register 2
+const ISR2: u32 = 0x12;
+/// In-Service Register 3
+const ISR3: u32 = 0x13;
+/// In-Service Register 4
+const ISR4: u32 = 0x14;
+/// In-Service Register 5
+const ISR5: u32 = 0x15;
+/// In-Service Register 6
+const ISR6: u32 = 0x16;
+/// In-Service Register 7
+const ISR7: u32 = 0x17;
+/// Interrupt Request Register 0
+const IRR0: u32 = 0x20;
+/// Interrupt Request Register 1
+const IRR1: u32 = 0x21;
+/// Interrupt Request Register 2
+const IRR2: u32 = 0x22;
+/// Interrupt Request Register 3
+const IRR3: u32 = 0x23;
+/// Interrupt Request Register 4
+const IRR4: u32 = 0x24;
+/// Interrupt Request Register 5
+const IRR5: u32 = 0x25;
+/// Interrupt Request Register 6
+const IRR6: u32 = 0x26;
+/// Interrupt Request Register 7
+const IRR7: u32 = 0x27;
+/// Error Status Register.
+const ESR: u32 = 0x28;
 /// Interrupt Command register.
 const ICR: u32 = 0x30;
 /// LVT Timer Interrupt register.
@@ -59,11 +95,18 @@ impl VirtLocalApic {
             SIVR => Ok(0x1ff), // SDM Vol. 3A, Section 10.9, Figure 10-23 (with Software Enable bit)
             LVT_THERMAL | LVT_PMI | LVT_LINT0 | LVT_LINT1 | LVT_ERR => {
                 Ok(0x1_0000) // SDM Vol. 3A, Section 10.5.1, Figure 10-8 (with Mask bit)
-            }
+            },
+            IRR0 ..= IRR7 => Ok(0),
+            ISR0 ..= ISR7 => Ok(0),
             LVT_TIMER => Ok(apic_timer.lvt_timer() as u64),
             INIT_COUNT => Ok(apic_timer.initial_count() as u64),
             DIV_CONF => Ok(apic_timer.divide() as u64),
             CUR_COUNT => Ok(apic_timer.current_counter() as u64),
+            LDR => Ok(0),
+            TPR => Ok(apic_timer.tpr() as u64),
+            VERSION => Ok(0b0000000_0_00000000_00000110_00010101), // Suppress EOI-broadcasts: false, Max LVT Entry: 6, Version: 0x15
+            ESR => Ok(0),
+            APICID => Ok(0),
             _ => Err(HyperError::NotSupported),
         }
     }
@@ -87,6 +130,8 @@ impl VirtLocalApic {
             LVT_TIMER => apic_timer.set_lvt_timer(value as u32),
             INIT_COUNT => apic_timer.set_initial_count(value as u32),
             DIV_CONF => apic_timer.set_divide(value as u32),
+            TPR => Ok(apic_timer.set_tpr(value as u32)),
+            ESR => if value == 0 { Ok(()) } else { Err(HyperError::InvalidParam) },
             _ => Err(HyperError::NotSupported),
         }
     }

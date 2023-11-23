@@ -99,7 +99,7 @@ fn main(hart_id: usize) {
         info!("{:#x?}", gpm);
 
         let mut vcpu = p
-            .create_vcpu(x64::BIOS_ENTRY, gpm.nest_page_table_root())
+            .create_vcpu(0x7c00, gpm.nest_page_table_root())
             .unwrap();
 
         println!("Running guest...");
