@@ -40,3 +40,8 @@ impl Instant {
         Instant::now().0 - self.0
     }
 }
+
+/// Returns the current clock time in nanoseconds.
+pub fn current_time_nanos() -> u64 {
+    axhal::time::current_time_nanos()
+}

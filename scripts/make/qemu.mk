@@ -16,6 +16,7 @@ else ifeq ($(ARCH), x86_64)
     GUEST_BIN ?= apps/hv/guest/nimbos/nimbos.bin
     GUEST_BIOS ?= apps/hv/guest/nimbos/rvm-bios.bin
   else ifeq ($(GUEST), linux)
+    ROOTFS = apps/hv/guest/$(GUEST)/rootfs-x86.img
     GUEST_DTB ?= apps/hv/guest/linux/linux.dtb
     GUEST_BIN ?= apps/hv/guest/linux/bzImage.bin
     GUEST_BIOS ?= apps/hv/guest/vlbl/out/vlbl.bin

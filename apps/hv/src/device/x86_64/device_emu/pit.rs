@@ -1,9 +1,10 @@
-use axhal::time;
 use bit_field::BitField;
-use hypercraft::{HyperResult, HyperError};
+use libax::hv::{Result as HyperResult, Error as HyperError, HyperCraftHal, HyperCraftHalImpl};
+use libax::time::current_time_nanos;
 
 pub const PIT_FREQ: u32 = 1_193182;
 pub const PIT_CHANNEL_COUNT: usize = 3;
+pub const NANOS_PER_SEC: u64 = 1_000_000_000;
 
 enum PITChannelAccessMode {
     LowOnly,
@@ -113,7 +114,7 @@ impl PITChannel {
 
     fn restart(&mut self) {
         self.started = true;
-        self.start_nanos = time::current_time_nanos();
+        self.start_nanos = current_time_nanos();
     }
 
     fn write(&mut self, value: u8) -> HyperResult {
@@ -150,8 +151,8 @@ impl PITChannel {
 
     fn eclipsed_periods(&self) -> u64 {
         if self.started {
-            let eclipsed_nanos = time::current_time_nanos() - self.start_nanos;
-            ((eclipsed_nanos as u128 * PIT_FREQ as u128) / (time::NANOS_PER_SEC as u128)) as u64
+            let eclipsed_nanos = current_time_nanos() - self.start_nanos;
+            ((eclipsed_nanos as u128 * PIT_FREQ as u128) / (NANOS_PER_SEC as u128)) as u64
         } else {
             0
         }
@@ -177,7 +178,7 @@ impl PITChannel {
 }
 
 /// Intel 8253/8254 Programmable Interval Timer (PIT) emulation
-pub(super) struct PIT {
+pub struct PIT {
     channels: [PITChannel; PIT_CHANNEL_COUNT],
 }
 

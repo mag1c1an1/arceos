@@ -30,6 +30,9 @@ use libax::{
 
 use page_table_entry::MappingFlags;
 
+#[cfg(target_arch = "x86_64")]
+use device::{X64VcpuDevices, X64VmDevices};
+
 #[cfg(target_arch = "riscv64")]
 mod dtb_riscv64;
 #[cfg(target_arch = "aarch64")]
@@ -39,6 +42,14 @@ mod aarch64_config;
 
 #[cfg(target_arch = "x86_64")]
 mod x64;
+
+#[cfg(target_arch = "x86_64")]
+#[path = "device/x86_64/mod.rs"]
+mod device;
+
+#[cfg(not(target_arch = "x86_64"))]
+#[path = "device/dummy.rs"]
+mod device;
 
 #[no_mangle]
 fn main(hart_id: usize) {
@@ -95,17 +106,27 @@ fn main(hart_id: usize) {
         let mut p = PerCpu::<HyperCraftHalImpl>::new(hart_id);
         p.hardware_enable().unwrap();
 
-        let gpm = x64::setup_gpm().unwrap();
+        let gpm = x64::setup_gpm(hart_id).unwrap();
+        let npt = gpm.nest_page_table_root();
         info!("{:#x?}", gpm);
 
-        let mut vcpu = p
-            .create_vcpu(0x7c00, gpm.nest_page_table_root())
-            .unwrap();
+        let mut vcpus = VmCpus::<HyperCraftHalImpl, X64VcpuDevices<HyperCraftHalImpl>>::new();
+        vcpus.add_vcpu(VCpu::new(0, p.vmcs_revision_id(), 0x7c00, npt).unwrap());
+        
+        let mut vm = VM::<HyperCraftHalImpl, X64VcpuDevices<HyperCraftHalImpl>, X64VmDevices<HyperCraftHalImpl>>::new(vcpus);
+        vm.bind_vcpu(0);
+
+        if hart_id == 0 {
+            let (_, dev) = vm.get_vcpu_and_device(0).unwrap();
+            *(dev.console.lock().backend()) = device::device_emu::MultiplexConsoleBackend::Primary;
+        }
 
         println!("Running guest...");
-        vcpu.run();
+        println!("{:?}", vm.run_vcpu(0));
 
         p.hardware_disable().unwrap();
+
+        panic!("done");
 
         return;
     }
@@ -113,6 +134,20 @@ fn main(hart_id: usize) {
     {
         panic!("Other arch is not supported yet!")
     }
+}
+
+#[cfg(target_arch = "x86_64")]
+#[no_mangle]
+pub fn main_secondary(hart_id: usize) {
+    println!("secondary into main {}", hart_id);
+
+    main(1);
+
+    /*
+    loop {
+        libax::thread::sleep(libax::time::Duration::from_secs(5));
+        println!("secondary tick");
+    } */
 }
 
 #[cfg(target_arch = "riscv64")]

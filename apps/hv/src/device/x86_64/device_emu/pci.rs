@@ -1,6 +1,6 @@
 use super::PortIoDevice;
 use bit_field::BitField;
-use hypercraft::{HyperResult, HyperError};
+use libax::hv::{Result as HyperResult, Error as HyperError};
 
 pub struct PCIConfigurationSpace {
     port_base: u16,

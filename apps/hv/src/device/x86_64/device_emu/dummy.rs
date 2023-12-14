@@ -1,5 +1,7 @@
 use super::PortIoDevice;
 
+use libax::hv::Result as HyperResult;
+
 pub struct Dummy {
     port_base: u16,
     port_count: u16,
@@ -16,11 +18,11 @@ impl PortIoDevice for Dummy {
         self.port_base..self.port_base + self.port_count
     }
 
-    fn read(&mut self, port: u16, access_size: u8) -> hypercraft::HyperResult<u32> {
+    fn read(&mut self, port: u16, access_size: u8) -> HyperResult<u32> {
         Ok(0)
     }
 
-    fn write(&mut self, port: u16, access_size: u8, value: u32) -> hypercraft::HyperResult {
+    fn write(&mut self, port: u16, access_size: u8, value: u32) -> HyperResult {
         Ok(())
     }
 }

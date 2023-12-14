@@ -1,20 +1,37 @@
 use alloc::collections::BTreeMap;
-use core::fmt::{Debug, Formatter, Result};
+use core::{fmt::{Debug, Formatter, Result}, marker::PhantomData};
 
-use libax::hv::{HyperCraftHal, HyperCraftHalImpl, GuestPhysAddr, HostPhysAddr, phys_to_virt, virt_to_phys, Result as HyperResult, Error, GuestPageTable, GuestPageTableTrait};
+use libax::hv::{HyperCraftHal, HyperCraftHalImpl, GuestPhysAddr, HostPhysAddr, HostVirtAddr, phys_to_virt, virt_to_phys, Result as HyperResult, Error, GuestPageTable, GuestPageTableTrait, PerCpuDevices, VCpu, VmExitInfo, PerVmDevices};
 
 use page_table_entry::MappingFlags;
 
+macro_rules! cfg_block {
+    ($( #[$meta:meta] {$($item:item)*} )*) => {
+        $($(
+            #[$meta]
+            $item
+        )*)*
+    }
+}
+
 // about guests
-pub const BIOS_PADDR: HostPhysAddr = 0x4000000;
+pub const BIOS_PADDR: HostPhysAddr = 0x400_0000;
 pub const BIOS_SIZE: usize = 0x2000;
+cfg_block! {
+    #[cfg(feature = "guest_nimbos")]
+    {
+        pub const BIOS_ENTRY: GuestPhysAddr = 0x8000;
+        pub const GUEST_ENTRY: GuestPhysAddr = 0x20_0000;
 
-pub const GUEST_IMAGE_PADDR: HostPhysAddr = 0x4001000;
-pub const GUEST_IMAGE_SIZE: usize = 0x10_0000; // 1M
-
+        pub const GUEST_IMAGE_PADDR: HostPhysAddr = 0x400_1000;
+        pub const GUEST_IMAGE_SIZE: usize = 0x10_0000; // 1M
+    }
+    #[cfg(feature = "guest_linux")]
+    {
+        pub const BIOS_ENTRY: GuestPhysAddr = 0x7c00;
+    }
+}
 pub const GUEST_PHYS_MEMORY_BASE: GuestPhysAddr = 0;
-pub const BIOS_ENTRY: GuestPhysAddr = 0x8000;
-pub const GUEST_ENTRY: GuestPhysAddr = 0x20_0000;
 pub const GUEST_PHYS_MEMORY_SIZE: usize = 0x100_0000; // 16M
 
 pub const fn is_aligned(addr: usize) -> bool {
@@ -188,44 +205,35 @@ impl Debug for GuestPhysMemorySet {
 #[repr(align(4096))]
 pub(super) struct AlignedMemory<const LEN: usize>([u8; LEN]);
 
-pub(super) static mut GUEST_PHYS_MEMORY: AlignedMemory<GUEST_PHYS_MEMORY_SIZE> =
-    AlignedMemory([0; GUEST_PHYS_MEMORY_SIZE]);
+pub(super) static mut GUEST_PHYS_MEMORY: [AlignedMemory<GUEST_PHYS_MEMORY_SIZE>; 2] =
+    [AlignedMemory([0; GUEST_PHYS_MEMORY_SIZE]), AlignedMemory([0; GUEST_PHYS_MEMORY_SIZE])];
 
-fn gpa_as_mut_ptr(guest_paddr: GuestPhysAddr) -> *mut u8 {
-    let offset = unsafe { &GUEST_PHYS_MEMORY as *const _ as usize };
+fn gpa_as_mut_ptr(id: usize, guest_paddr: GuestPhysAddr) -> *mut u8 {
+    let offset = unsafe { &(GUEST_PHYS_MEMORY[id]) as *const _ as usize };
     let host_vaddr = guest_paddr + offset;
     host_vaddr as *mut u8
 }
 
 #[cfg(target_arch = "x86_64")]
-fn load_guest_image(hpa: HostPhysAddr, load_gpa: GuestPhysAddr, size: usize) {
+fn load_guest_image(id: usize, hpa: HostPhysAddr, load_gpa: GuestPhysAddr, size: usize) {
     let image_ptr = usize::from(phys_to_virt(hpa.into())) as *const u8;
     let image = unsafe { core::slice::from_raw_parts(image_ptr, size) };
 
     trace!("loading to guest memory: host {:#x} to guest {:#x}, size {:#x}", image_ptr as usize, load_gpa, size);
 
     unsafe {
-        core::slice::from_raw_parts_mut(gpa_as_mut_ptr(load_gpa), size).copy_from_slice(image)
+        core::slice::from_raw_parts_mut(gpa_as_mut_ptr(id, load_gpa), size).copy_from_slice(image)
     }
 }
 
 #[cfg(target_arch = "x86_64")]
-pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
+pub fn setup_gpm(id: usize) -> HyperResult<GuestPhysMemorySet> {
     // copy BIOS and guest images
 
-    use libax::hv::HostVirtAddr;
-    // load_guest_image(BIOS_PADDR, BIOS_ENTRY, BIOS_SIZE);
-    load_guest_image(BIOS_PADDR, 0x7c00, BIOS_SIZE);
-    // load_guest_image(GUEST_IMAGE_PADDR, GUEST_ENTRY, GUEST_IMAGE_SIZE);
-
-    /*
-    load_guest_image(GUEST_IMAGE_PADDR, 0x1_0000, 0x3a00);
-    load_guest_image(GUEST_IMAGE_PADDR + 0x3a00, 0x10_0000, GUEST_IMAGE_SIZE);
-
-    let G: HostVirtAddr = phys_to_virt(GUEST_IMAGE_PADDR.into()).into(); 
-*/
-    unsafe { 
-        // panic!("{:#x}", *(gpa_as_mut_ptr(0x8b20 ) as *mut u8));
+    load_guest_image(id, BIOS_PADDR, BIOS_ENTRY, BIOS_SIZE);
+    #[cfg(feature = "guest_nimbos")]
+    {
+        load_guest_image(id, GUEST_IMAGE_PADDR, GUEST_ENTRY, GUEST_IMAGE_SIZE);
     }
     
     // create nested page table and add mapping
@@ -234,10 +242,11 @@ pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
         GuestMemoryRegion {
             // Low RAM
             gpa: GUEST_PHYS_MEMORY_BASE,
-            hpa: virt_to_phys((gpa_as_mut_ptr(GUEST_PHYS_MEMORY_BASE) as HostVirtAddr).into()).into(),
+            hpa: virt_to_phys((gpa_as_mut_ptr(id, GUEST_PHYS_MEMORY_BASE) as HostVirtAddr).into()).into(),
             size: GUEST_PHYS_MEMORY_SIZE,
             flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
         },
+        #[cfg(feature = "guest_linux")]
         GuestMemoryRegion {
             // Low RAM2
             gpa: 0x100_0000,
@@ -245,6 +254,7 @@ pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
             size: 0xf00_0000,
             flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
         },
+        #[cfg(feature = "guest_linux")]
         GuestMemoryRegion {
             // RAM
             gpa: 0x7000_0000,

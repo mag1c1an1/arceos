@@ -2,9 +2,6 @@ use axalloc::global_allocator;
 use axhal::mem::{PAGE_SIZE_4K, phys_to_virt, virt_to_phys};
 use hypercraft::{HostPhysAddr, HostVirtAddr, HyperCraftHal, HyperResult, VCpu};
 
-#[cfg(target_arch = "x86_64")]
-mod vmx;
-
 /// An empty struct to implementate of `HyperCraftHal`
 pub struct HyperCraftHalImpl;
 
@@ -28,11 +25,6 @@ impl HyperCraftHal for HyperCraftHalImpl {
     #[cfg(target_arch = "x86_64")]
     fn virt_to_phys(va: HostVirtAddr) -> HostPhysAddr {
         virt_to_phys(va.into()).into()
-    }
-
-    #[cfg(target_arch = "x86_64")]
-    fn vmexit_handler(vcpu: &mut VCpu<Self>) -> HyperResult {
-        vmx::vmexit_handler(vcpu)
     }
 
     #[cfg(target_arch = "x86_64")]

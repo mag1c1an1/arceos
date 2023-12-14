@@ -11,3 +11,18 @@ pub use hypercraft::HyperCraftHal;
 pub use hypercraft::{PerCpu, VCpu, VmCpus, VM};
 #[cfg(not(target_arch = "aarch64"))]
 pub use hypercraft::{HyperCallMsg, VmExitInfo, GuestPhysAddr, GuestVirtAddr, HostPhysAddr, HostVirtAddr};
+#[cfg(target_arch = "x86_64")]
+pub use hypercraft::{PerCpuDevices, PerVmDevices, VmxExitReason};
+
+#[cfg(target_arch = "x86_64")]
+pub fn dispatch_host_irq(vector: usize) -> Result {
+    #[cfg(feature = "irq")] 
+    {
+        axhal::irq::dispatch_irq(vector);
+        Ok(())
+    }
+    #[cfg(not(feature = "irq"))] 
+    {
+        panic!("cannot handle EXTERNAL_INTERRUPT vmexit because \"irq\" is not enabled")
+    }
+}

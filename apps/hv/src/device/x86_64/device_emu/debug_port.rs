@@ -1,4 +1,5 @@
 use super::PortIoDevice;
+use libax::hv::{Result as HyperResult, Error as HyperError};
 
 pub struct DebugPort {
     port: u16
@@ -15,12 +16,12 @@ impl PortIoDevice for DebugPort {
         self.port..self.port + 1
     }
 
-    fn read(&mut self, port: u16, access_size: u8) -> hypercraft::HyperResult<u32> {
+    fn read(&mut self, port: u16, access_size: u8) -> HyperResult<u32> {
         debug!("a byte read from debug port {:#x}", port);
         Ok(0)
     }
 
-    fn write(&mut self, port: u16, access_size: u8, value: u32) -> hypercraft::HyperResult {
+    fn write(&mut self, port: u16, access_size: u8, value: u32) -> HyperResult {
         debug!("a byte written to debug port {:#x}: {:#4x}", port, value as u8);
         Ok(())
     }

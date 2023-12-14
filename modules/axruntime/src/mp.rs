@@ -2,6 +2,11 @@ use axconfig::{SMP, TASK_STACK_SIZE};
 use axhal::mem::{virt_to_phys, VirtAddr};
 use core::sync::atomic::{AtomicUsize, Ordering};
 
+extern "C" {
+    #[cfg(all(feature = "hv", feature = "smp", target_arch = "x86_64"))]
+    fn main_secondary(hart_id: usize);
+}
+
 #[link_section = ".bss.stack"]
 static mut SECONDARY_BOOT_STACK: [[u8; TASK_STACK_SIZE]; SMP - 1] = [[0; TASK_STACK_SIZE]; SMP - 1];
 
@@ -62,6 +67,10 @@ pub extern "C" fn rust_main_secondary(cpu_id: usize) -> ! {
 
     #[cfg(feature = "multitask")]
     axtask::run_idle();
+    
+    #[cfg(all(feature = "hv", feature = "smp", target_arch = "x86_64"))]
+    unsafe { main_secondary(cpu_id); }
+    
     #[cfg(not(feature = "multitask"))]
     loop {
         axhal::arch::wait_for_irqs();

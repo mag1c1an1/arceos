@@ -3,10 +3,11 @@
 extern crate alloc;
 use alloc::sync::Arc;
 use bit_field::BitField;
-use hypercraft::{HyperResult, HyperError};
+use libax::hv::{Result as HyperResult, Error as HyperError};
 use spin::Mutex;
 use x86::task::tr;
 use super::{PortIoDevice, pit::PIT};
+use super::{pmio_proxy_factory, pmio_proxy_struct};
 
 pub const PORT_SYSTEM_CONTROL_A: u16 = 0x92;
 pub const PORT_SYSTEM_CONTROL_B: u16 = 0x61;
@@ -18,6 +19,7 @@ pub const PORT_PIT_CHANNEL_DATA_BASE: u16 = 0x40;
 pub const PORT_PIT_COMMAND: u16 = 0x43;
 
 bitflags::bitflags! {
+    #[derive(Clone, Copy, Debug)]
     pub struct SystemControlPortB: u8 {
         const TIMER2_ENABLED = 1 << 0;
         const SPEAKER_ENABLED = 1 << 1;
@@ -141,44 +143,15 @@ impl Bundle {
 
 // following are proxies
 
-macro_rules! bundle_proxy_struct {
-    ($port_begin:expr, $port_end:expr, $name:ident, $bundle_reader:ident, $bundle_writer:ident) => {
-        pub struct $name {
-            bundle: Arc<Mutex<Bundle>>,
-        }
 
-        impl PortIoDevice for $name {
-            fn port_range(&self) -> core::ops::Range<u16> {
-                ($port_begin)..(($port_end) + 1)
-            }
-        
-            fn read(&mut self, port: u16, access_size: u8) -> HyperResult<u32> {
-                self.bundle.lock().$bundle_reader(port, access_size)
-            }
-        
-            fn write(&mut self, port: u16, access_size: u8, value: u32) -> HyperResult {
-                self.bundle.lock().$bundle_writer(port, access_size, value)
-            }
-        }
-    };
-}
-
-macro_rules! bundle_proxy_factory {
-    ($fn:ident, $type:ident) => {
-        pub fn $fn(some: &Arc<Mutex<Bundle>>) -> $type {
-            $type { bundle: some.clone() }
-        }
-    };
-}
-
-bundle_proxy_struct!(PORT_SYSTEM_CONTROL_A, PORT_SYSTEM_CONTROL_A, BundleSystemControlPortAProxy, read_system_control_a, write_system_control_a);
-bundle_proxy_struct!(PORT_SYSTEM_CONTROL_B, PORT_SYSTEM_CONTROL_B, BundleSystemControlPortBProxy, read_system_control_b, write_system_control_b);
-bundle_proxy_struct!(PORT_CMOS_ADDRESS, PORT_CMOS_DATA, BundleCMOSProxy, read_cmos, write_cmos);
-bundle_proxy_struct!(PORT_PIT_CHANNEL_DATA_BASE, PORT_PIT_COMMAND, BundlePITProxy, read_pit, write_pit);
+pmio_proxy_struct!(PORT_SYSTEM_CONTROL_A, PORT_SYSTEM_CONTROL_A, BundleSystemControlPortAProxy, Bundle, read_system_control_a, write_system_control_a);
+pmio_proxy_struct!(PORT_SYSTEM_CONTROL_B, PORT_SYSTEM_CONTROL_B, BundleSystemControlPortBProxy, Bundle, read_system_control_b, write_system_control_b);
+pmio_proxy_struct!(PORT_CMOS_ADDRESS, PORT_CMOS_DATA, BundleCMOSProxy, Bundle, read_cmos, write_cmos);
+pmio_proxy_struct!(PORT_PIT_CHANNEL_DATA_BASE, PORT_PIT_COMMAND, BundlePITProxy, Bundle, read_pit, write_pit);
 
 impl Bundle {
-    bundle_proxy_factory!(proxy_system_control_a, BundleSystemControlPortAProxy);
-    bundle_proxy_factory!(proxy_system_control_b, BundleSystemControlPortBProxy);
-    bundle_proxy_factory!(proxy_cmos, BundleCMOSProxy);
-    bundle_proxy_factory!(proxy_pit, BundlePITProxy);
+    pmio_proxy_factory!(proxy_system_control_a, BundleSystemControlPortAProxy);
+    pmio_proxy_factory!(proxy_system_control_b, BundleSystemControlPortBProxy);
+    pmio_proxy_factory!(proxy_cmos, BundleCMOSProxy);
+    pmio_proxy_factory!(proxy_pit, BundlePITProxy);
 }
