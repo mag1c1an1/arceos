@@ -119,6 +119,10 @@ fn main(hart_id: usize) {
         if hart_id == 0 {
             let (_, dev) = vm.get_vcpu_and_device(0).unwrap();
             *(dev.console.lock().backend()) = device::device_emu::MultiplexConsoleBackend::Primary;
+
+            for v in 0..256 {
+                libax::hv::set_host_irq_enabled(v, true);
+            }
         }
 
         println!("Running guest...");

@@ -21,7 +21,7 @@ impl PortIoDevice for I8259Pic {
     }
 
     fn read(&mut self, port: u16, _access_size: u8) -> HyperResult<u32> {
-        debug!("reading from pic port {port:#x}");
+        // debug!("reading from pic port {port:#x}");
         match port - self.port_base {
             1 => Ok(self.mask as u32),
             _ => Err(HyperError::NotSupported),
@@ -29,14 +29,18 @@ impl PortIoDevice for I8259Pic {
     }
 
     fn write(&mut self, port: u16, _access_size: u8, value: u32) -> HyperResult {
-        debug!("writing to pic port {port:#x}: {value:#x}");
+        // debug!("writing to pic port {port:#x}: {value:#x}");
         
         let value = value as u8;
         match port - self.port_base {
             0 => {
-                self.icw1 = value;
-                self.icw_left = true;
-                self.icw_written = 1;
+                if value.get_bit(4) {
+                    self.icw1 = value;
+                    self.icw_left = true;
+                    self.icw_written = 1;
+                } else {
+                    // debug!("pit ocw ignored");
+                }
             },
             1 => {
                 if !self.icw_left {
@@ -76,5 +80,9 @@ impl I8259Pic {
             icw_written: 0,
             mask: 0,
         }
+    }
+
+    pub const fn mask(&self) -> u8 {
+        self.mask
     }
 }

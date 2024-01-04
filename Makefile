@@ -106,6 +106,15 @@ debug: build
 	  -ex 'continue' \
 	  -ex 'disp /16i $$pc'
 
+debug_linux: build
+	$(call run_qemu_debug)
+
+debug_linux_gdb:
+	$(GDB) $(VMLINUX) \
+	  -ex 'target remote localhost:1234' \
+	  -ex 'hb start_kernel' \
+	  -ex 'disp /16i $$rip'
+
 clippy:
 	$(call cargo_clippy)
 

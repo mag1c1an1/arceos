@@ -26,3 +26,16 @@ pub fn dispatch_host_irq(vector: usize) -> Result {
         panic!("cannot handle EXTERNAL_INTERRUPT vmexit because \"irq\" is not enabled")
     }
 }
+
+#[cfg(target_arch = "x86_64")]
+pub fn set_host_irq_enabled(vector: usize, enabled: bool) -> Result {
+    #[cfg(feature = "irq")] 
+    {
+        axhal::irq::set_enable(vector, enabled);
+        Ok(())
+    }
+    #[cfg(not(feature = "irq"))] 
+    {
+        panic!("cannot call set_host_irq_enabled because \"irq\" is not enabled")
+    }
+}

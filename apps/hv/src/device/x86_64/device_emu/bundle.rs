@@ -123,6 +123,8 @@ impl Bundle {
     }
 
     fn read_pit(&mut self, port: u16, access_size: u8) -> HyperResult<u32> {
+        debug!("pit read, port {port:#x}");
+
         if port == PORT_PIT_COMMAND {
             Ok(0)
         } else {
@@ -132,6 +134,8 @@ impl Bundle {
 
     fn write_pit(&mut self, port: u16, access_size: u8, value: u32) -> HyperResult {
         let value = value as u8;
+
+        debug!("pit write, port {port:#x}, value {value:#x}");
 
         if port == PORT_PIT_COMMAND {
             self.pit.command(value.get_bits(6..8), value.get_bits(4..6), value.get_bits(1..4), value.get_bit(0))

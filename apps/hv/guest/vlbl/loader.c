@@ -58,9 +58,18 @@ void cpy4(void *dst, const void *src, uint32_t size) {
     }
 }
 
-const char cmd[256] = "console=uart8250,io,0x3f8,115200n8 debug root=/dev/vda\0";
+const char cmd[256] = "console=uart8250,io,0x3f8,115200n8 debug\0";
 
-int load_kernel(void *kernel_image, void *loc_real, void *stack_end, void *loc_prot) {
+/*
+ * load linux kernel image from <void *kernel_image> to <void *loc_real> (for real-mode part) and <void *loc_prot> (for protected-mode part) and fill kernel header
+ * 
+ * stack_end: end of boot stack
+ * 
+ * 
+ **/
+int load_kernel(void *kernel_image, void *loc_real, void *stack_end, void *loc_prot, void *initramfs, uint32_t initramfs_size) {
+    puts("[vlbl] loading kernel...");
+
     kernel_header_ptr orig_header = kernel_image + 0x1f0;
 
     uint32_t kernel_lower_size = ((orig_header->setup_sects ? orig_header->setup_sects : 4) + 1) * 512;
@@ -81,12 +90,24 @@ int load_kernel(void *kernel_image, void *loc_real, void *stack_end, void *loc_p
     header->type_of_loader = 0xff;
     header->loadflags = (header->loadflags & 0x1f) | 0x80;
     header->code32_start = (uint32_t)(loc_prot);
-    header->ramdisk_image = 0;
-    header->ramdisk_size = 0;
     header->heap_end_ptr = (uint16_t)(stack_end - loc_real - 0x200);
     header->cmd_line_ptr = (uint32_t)cmd_base;
     header->setup_data_l = 0;
     header->setup_data_h = 0;
+
+    if (header->initrd_addr_max < (uint32_t)initramfs + initramfs_size) {
+        putsi("[vlbl] cannot load initrd because of a too small initrd_addr_max: ");
+        putux(header->initrd_addr_max, true, 8);
+        putchar('\n');
+
+        header->ramdisk_image = 0;
+        header->ramdisk_size = 0;
+    } else {
+        header->ramdisk_image = (uint32_t)initramfs;
+        header->ramdisk_size = initramfs_size;
+    }
+
+    puts("[vlbl] kernel loaded.");
 
     return 0;
 }

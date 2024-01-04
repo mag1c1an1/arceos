@@ -36,6 +36,8 @@ entry32:
     mov     esp, 0x7b00
 
     # 加载内核
+    push    0x00140e5a # initramfs 大小
+    push    0x72000000 # initramfs 地址
     push    0x00100000 # 32-bit 加载地址
     push    0x0001e000 # 栈顶地址
     push    0x00010000 # 16-bit 加载地址

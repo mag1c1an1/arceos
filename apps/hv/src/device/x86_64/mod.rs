@@ -3,7 +3,6 @@ pub mod device_emu;
 extern crate alloc;
 use bit_field::BitField;
 use alloc::{sync::Arc, vec, vec::Vec};
-// use libax::sync::Mutex;
 use spin::Mutex;
 use core::marker::PhantomData;
 use libax::hv::{Result as HyperResult, VmExitInfo, VCpu, HyperCraftHal, PerCpuDevices, PerVmDevices, VmxExitReason};
@@ -11,7 +10,6 @@ use libax::hv::{Error as HyperError, VmExitInfo as VmxExitInfo, HyperCraftHalImp
 
 use device_emu::{VirtMsrDevice, PortIoDevice, Bundle, VirtLocalApic, ApicBaseMsrHandler};
 
-const VM_EXIT_INSTR_LEN_CPUID: u8 = 2;
 const VM_EXIT_INSTR_LEN_RDMSR: u8 = 2;
 const VM_EXIT_INSTR_LEN_WRMSR: u8 = 2;
 const VM_EXIT_INSTR_LEN_VMCALL: u8 = 3;
@@ -164,6 +162,8 @@ pub struct X64VcpuDevices<H: HyperCraftHal> {
     pub(crate) bundle: Arc<Mutex<Bundle>>,
     pub(crate) devices: DeviceList<H>,
     pub(crate) console: Arc<Mutex<device_emu::Uart16550<device_emu::MultiplexConsoleBackend>>>,
+    pub(crate) pic: [Arc<Mutex<device_emu::I8259Pic>>; 2],
+    last: Option<u64>,
     marker: PhantomData<H>,
 }
 
@@ -172,6 +172,10 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         let mut apic_timer = Arc::new(Mutex::new(VirtLocalApic::new()));
         let mut bundle = Arc::new(Mutex::new(Bundle::new()));
         let mut console = Arc::new(Mutex::new(device_emu::Uart16550::<device_emu::MultiplexConsoleBackend>::new(0x3f8)));
+        let mut pic: [Arc<Mutex<device_emu::I8259Pic>>; 2]  = [
+            Arc::new(Mutex::new(device_emu::I8259Pic::new(0x20))),
+            Arc::new(Mutex::new(device_emu::I8259Pic::new(0xA0))),
+        ];
 
         *console.lock().backend() = device_emu::MultiplexConsoleBackend::new_secondary(1, "sleep\n");
 
@@ -182,8 +186,8 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2f8))), // COM2
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x3e8))), // COM3
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2e8))), // COM4
-            Arc::new(Mutex::new(device_emu::I8259Pic::new(0x20))), // PIC1
-            Arc::new(Mutex::new(device_emu::I8259Pic::new(0xA0))), // PIC2
+            pic[0].clone(), // PIC1
+            pic[1].clone(), // PIC2
             Arc::new(Mutex::new(device_emu::DebugPort::new(0x80))), // Debug Port
             /*
                 the complexity:
@@ -199,8 +203,8 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
             Arc::new(Mutex::new(device_emu::Dummy::new(0x87, 1))), // 0x87 is a port about dma
             Arc::new(Mutex::new(device_emu::Dummy::new(0x60, 1))), // 0x60 and 0x64 are ports about ps/2 controller
             Arc::new(Mutex::new(device_emu::Dummy::new(0x64, 1))), // 
-            // Arc::new(Mutex::new(device_emu::PCIConfigurationSpace::new(0xcf8))),
-            Arc::new(Mutex::new(device_emu::PCIPassthrough::new(0xcf8))),
+            Arc::new(Mutex::new(device_emu::PCIConfigurationSpace::new(0xcf8))),
+            // Arc::new(Mutex::new(device_emu::PCIPassthrough::new(0xcf8))),
         ];
 
         devices.add_port_io_devices(&mut pmio_devices);
@@ -214,6 +218,8 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
             bundle,
             console,
             devices,
+            pic,
+            last: None,
             marker: PhantomData,
         })
     }
@@ -232,6 +238,25 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
             vcpu.queue_event(self.apic_timer.lock().inner.vector(), None);
         }
 
+        // it's naive but it works.
+        // inject 0x30(irq 0) every 1 ms after 10 seconds after booting.
+        match self.last {
+            Some(last) => {
+                let now = libax::time::current_time_nanos();
+                if now > 1_000_000 + last {
+                    if !self.pic[0].lock().mask().get_bit(0) {
+                        vcpu.queue_event(0x30, None);
+                        let mask = self.pic[0].lock().mask();
+                        // debug!("0x30 queued, mask {mask:#x}");
+                    }
+                    self.last = Some(now);
+                }
+            },
+            None => {
+                self.last = Some(libax::time::current_time_nanos() + 10_000_000_000);
+            },
+        }
+
         Ok(())
     }
 }
@@ -245,77 +270,14 @@ impl<H: HyperCraftHal> X64VmDevices<H> {
     fn handle_external_interrupt(vcpu: &VCpu<H>) -> HyperResult {
         let int_info = vcpu.interrupt_exit_info()?;
         trace!("VM-exit: external interrupt: {:#x?}", int_info);
+
+        if int_info.vector != 0xf0 {
+            panic!("VM-exit: external interrupt: {:#x?}", int_info);
+        }
+
         assert!(int_info.valid);
 
         libax::hv::dispatch_host_irq(int_info.vector as usize)
-    }
-
-    fn handle_cpuid(vcpu: &mut VCpu<H>) -> HyperResult {
-        use raw_cpuid::{cpuid, CpuIdResult};
-
-        const LEAF_FEATURE_INFO: u32 = 0x1;
-        const LEAF_STRUCTURED_EXTENDED_FEATURE_FLAGS_ENUMERATION: u32 = 0x7;
-        const LEAF_HYPERVISOR_INFO: u32 = 0x4000_0000;
-        const LEAF_HYPERVISOR_FEATURE: u32 = 0x4000_0001;
-        const VENDOR_STR: &[u8; 12] = b"RVMRVMRVMRVM";
-        let vendor_regs = unsafe { &*(VENDOR_STR.as_ptr() as *const [u32; 3]) };
-
-        let regs = vcpu.regs_mut();
-        let function = regs.rax as u32;
-        let res = match function {
-            LEAF_FEATURE_INFO => {
-                const FEATURE_VMX: u32 = 1 << 5;
-                const FEATURE_HYPERVISOR: u32 = 1 << 31;
-                let mut res = cpuid!(regs.rax, regs.rcx);
-                res.ecx &= !FEATURE_VMX;
-                res.ecx |= FEATURE_HYPERVISOR;
-                res
-            },
-            LEAF_STRUCTURED_EXTENDED_FEATURE_FLAGS_ENUMERATION => {
-                let mut res = cpuid!(regs.rax, regs.rcx);
-                if regs.rcx == 0 {
-                    res.ecx.set_bit(0x5, false); // clear waitpkg
-                }
-
-                res
-            },
-            LEAF_HYPERVISOR_INFO => CpuIdResult {
-                eax: LEAF_HYPERVISOR_FEATURE,
-                ebx: vendor_regs[0],
-                ecx: vendor_regs[1],
-                edx: vendor_regs[2],
-            },
-            LEAF_HYPERVISOR_FEATURE => CpuIdResult {
-                eax: 0,
-                ebx: 0,
-                ecx: 0,
-                edx: 0,
-            },
-            _ => cpuid!(regs.rax, regs.rcx),
-        };
-
-        trace!(
-            "VM exit: CPUID({:#x}, {:#x}): {:?}",
-            regs.rax, regs.rcx, res
-        );
-        regs.rax = res.eax as _;
-        regs.rbx = res.ebx as _;
-        regs.rcx = res.ecx as _;
-        regs.rdx = res.edx as _;
-        vcpu.advance_rip(VM_EXIT_INSTR_LEN_CPUID)?;
-
-        unsafe {
-            static mut times: u32 = 0;
-            times += 1;
-
-            if times >= 1024 {
-                panic!("too many cpuid's");
-            }
-
-            // debug!("{:#x?}", vcpu);
-        }
-
-        Ok(())
     }
 }
 
@@ -328,7 +290,6 @@ impl<H: HyperCraftHal> PerVmDevices<H> for X64VmDevices<H> {
     fn vmexit_handler(&mut self, vcpu: &mut VCpu<H>, exit_info: &VmExitInfo) -> Option<HyperResult> {
         match exit_info.exit_reason {
             VmxExitReason::EXTERNAL_INTERRUPT => Some(Self::handle_external_interrupt(vcpu)),
-            VmxExitReason::CPUID => Some(Self::handle_cpuid(vcpu)),
             VmxExitReason::EPT_VIOLATION => {
                 match vcpu.nested_page_fault_info() {
                     Ok(fault_info) => panic!(

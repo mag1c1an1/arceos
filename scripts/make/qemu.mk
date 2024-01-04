@@ -1,6 +1,6 @@
 # QEMU arguments
 
-QEMU := qemu-system-$(ARCH)
+QEMU ?= qemu-system-$(ARCH)
 
 GUEST ?= linux
 
@@ -20,6 +20,7 @@ else ifeq ($(ARCH), x86_64)
     GUEST_DTB ?= apps/hv/guest/linux/linux.dtb
     GUEST_BIN ?= apps/hv/guest/linux/bzImage.bin
     GUEST_BIOS ?= apps/hv/guest/vlbl/out/vlbl.bin
+    GUEST_INITRAMFS ?= apps/hv/guest/linux/initramfs.cpio.gz
   else
     $(error "GUEST" must be one of "nimbos" or "linux")
   endif
@@ -76,7 +77,8 @@ ifeq ($(HV), y)
         -m 3G -smp $(SMP) $(qemu_args-$(ARCH)) \
         -device loader,addr=0x4000000,file=$(GUEST_BIOS),force-raw=on \
         -device loader,addr=0x70000000,file=$(GUEST_DTB),force-raw=on \
-        -device loader,addr=0x70200000,file=$(GUEST_BIN),force-raw=on
+        -device loader,addr=0x70200000,file=$(GUEST_BIN),force-raw=on \
+        -device loader,addr=0x72000000,file=$(GUEST_INITRAMFS),force-raw=on
     else
       $(error "GUEST" must be one of "nimbos" or "linux")
     endif
@@ -144,8 +146,10 @@ qemu_args-debug := $(qemu_args-y) -s -S
 ifeq ($(shell uname), Darwin)
   qemu_args-$(ACCEL) += -cpu host -accel hvf
 else
-  qemu_args-$(ACCEL) += -cpu host -accel kvm
+  qemu_args-$(ACCEL) += -cpu host,+x2apic -accel kvm
 endif
+
+qemu_args-debug += -cpu host,+x2apic -accel kvm -monitor unix:qemu-monitor-socket,server,nowait
 
 define run_qemu
   @printf "    $(CYAN_C)Running$(END_C) $(QEMU) $(qemu_args-y) $(1)\n"
