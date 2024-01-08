@@ -207,7 +207,7 @@ impl PIT {
             Err(HyperError::InvalidParam)
         } else {
             self.channels[channel].read().or_else(|err| {
-                warn!("PIT read (channel: {channel}) error: {err:?}, skipped");
+                // warn!("PIT read (channel: {channel}) error: {err:?}, skipped");
                 Ok(0)
             })
         }
@@ -219,7 +219,7 @@ impl PIT {
             Err(HyperError::InvalidParam)
         } else {
             self.channels[channel].write(value).or_else(|err| {
-                warn!("PIT write (channel: {channel}, value: {value}) error: {err:?}, skipped");
+                // warn!("PIT write (channel: {channel}, value: {value}) error: {err:?}, skipped");
                 Ok(())
             })
         }

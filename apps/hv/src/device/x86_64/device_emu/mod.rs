@@ -6,6 +6,7 @@ mod i8259_pic;
 mod pci;
 mod pcip;
 mod pit;
+mod port_passthrough;
 mod uart16550;
 
 extern crate alloc;
@@ -21,6 +22,7 @@ pub use i8259_pic::I8259Pic;
 pub use pci::PCIConfigurationSpace;
 pub use pcip::PCIPassthrough;
 pub use pit::PIT;
+pub use port_passthrough::PortPassthrough;
 pub use uart16550::{Uart16550, DefaultConsoleBackend, MultiplexConsoleBackend, VirtualConsoleBackend};
 
 pub trait PortIoDevice: Send + Sync {

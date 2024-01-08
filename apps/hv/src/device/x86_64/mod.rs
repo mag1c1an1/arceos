@@ -182,7 +182,8 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         let mut devices = DeviceList::new();
 
         let mut pmio_devices: Vec<Arc<Mutex<dyn PortIoDevice>>> = vec![
-            console.clone(), // COM1
+            // console.clone(), // COM1
+            Arc::new(Mutex::new(<device_emu::PortPassthrough>::new(0x3f8, 8))),
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2f8))), // COM2
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x3e8))), // COM3
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2e8))), // COM4

@@ -58,7 +58,9 @@ void cpy4(void *dst, const void *src, uint32_t size) {
     }
 }
 
+
 const char cmd[256] = "console=uart8250,io,0x3f8,115200n8 debug\0";
+// const char cmd[256] = "console=uart8250,io,0x3f8,115200n8 debug\0";
 
 /*
  * load linux kernel image from <void *kernel_image> to <void *loc_real> (for real-mode part) and <void *loc_prot> (for protected-mode part) and fill kernel header
@@ -83,6 +85,8 @@ int load_kernel(void *kernel_image, void *loc_real, void *stack_end, void *loc_p
     void *setup_data_base = cmd_base + 256;
 
     cpy4(cmd_base, cmd, 256);
+    putsi("[vlbl] cmdline: ");
+    puts(cmd_base);
 
     kernel_header_ptr header = loc_real + 0x1f0;
 
