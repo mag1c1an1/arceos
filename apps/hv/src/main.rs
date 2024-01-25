@@ -57,25 +57,21 @@ mod linux;
 #[no_mangle]
 fn main() {
     println!("Hello, hv!");
-    let hart_id = 0 as usize;
-
-    linux::boot_linux(hart_id);
-
-	process::hello();
+    println!("Currently Linux inside VM is pinned on Core 0");
+    linux::boot_linux(0);
 }
 
 #[cfg(target_arch = "x86_64")]
 #[no_mangle]
 pub fn main_secondary(hart_id: usize) {
-    println!("secondary into main {}", hart_id);
+    println!("Hello, processs on core {}!", hart_id);
 
-    main();
+    process::hello();
 
-    /*
     loop {
-        libax::thread::sleep(libax::time::Duration::from_secs(5));
+        libax::thread::sleep(libax::time::Duration::from_secs(1));
         println!("secondary tick");
-    } */
+    }
 }
 
 #[cfg(target_arch = "riscv64")]

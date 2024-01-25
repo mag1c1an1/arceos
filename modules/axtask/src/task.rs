@@ -574,6 +574,7 @@ extern "C" fn task_entry() -> ! {
         TaskType::Vcpu { vcpu } => {
             // vcpu::run
             // vcpu.run();
+            let _ = vcpu;
             unimplemented!("Enter Vcpu")
         }
     }

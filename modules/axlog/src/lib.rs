@@ -28,6 +28,8 @@ use core::str::FromStr;
 
 use log::{Level, LevelFilter, Log, Metadata, Record};
 
+use spin::Mutex;
+
 #[cfg(not(feature = "std"))]
 use crate_interface::call_interface;
 
@@ -115,6 +117,8 @@ impl Write for Logger {
     }
 }
 
+static LOCK: Mutex<()> = Mutex::new(());
+
 impl Log for Logger {
     #[inline]
     fn enabled(&self, _metadata: &Metadata) -> bool {
@@ -122,6 +126,7 @@ impl Log for Logger {
     }
 
     fn log(&self, record: &Record) {
+        // let lock = LOCK.lock();
         if !self.enabled(record.metadata()) {
             return;
         }
@@ -192,6 +197,7 @@ impl Log for Logger {
                 }
             }
         }
+        // drop(lock);
     }
 
     fn flush(&self) {}

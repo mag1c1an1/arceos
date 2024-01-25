@@ -9,7 +9,7 @@ use super::device::{self, X64VcpuDevices, X64VmDevices};
 
 use axhal::hv::HyperCraftHalImpl;
 
-pub fn config_linux(hart_id: usize) {
+pub fn config_boot_linux(hart_id: usize) {
     info!("into main {}", hart_id);
 
     // Fix: this function shoule be moved to somewhere like vm_entry.

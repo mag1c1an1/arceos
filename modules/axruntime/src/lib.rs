@@ -157,10 +157,10 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
     info!("Initialize platform devices...");
     axhal::platform_init();
 
-	cfg_if::cfg_if! {
+    cfg_if::cfg_if! {
         if #[cfg(feature = "monolithic")] {
             axprocess::init_kernel_process();
-			info!("Kernel process init ok!!");
+            info!("Kernel process init ok!!");
 
         }
         else {
@@ -200,9 +200,7 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
         core::hint::spin_loop();
     }
 
-    unsafe {
-        main()
-    };
+    unsafe { main() };
 
     #[cfg(feature = "multitask")]
     axtask::exit(0);

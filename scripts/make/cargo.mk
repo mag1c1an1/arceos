@@ -24,7 +24,7 @@ endif
 
 ifeq ($(GUEST), nimbos)
   features-$(HV) += guest_nimbos
-else ifeq($(GUEST), linux)
+else ifeq ($(GUEST), linux)
   features-$(HV) += guest_linux
 endif
 
@@ -78,6 +78,7 @@ ifeq ($(HV), y)
 endif 
 
 define cargo_build
+  echo "$(features-y)"
   cargo rustc $(build_args) $(1) -- $(rustc_flags)
 endef
 
