@@ -1,4 +1,4 @@
-use syscalls::Sysno;
+pub use syscalls::Sysno;
 
 struct SyscallHandlerImpl;
 

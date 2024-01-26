@@ -423,6 +423,7 @@ dependencies = [
 name = "axprocess"
 version = "0.1.0"
 dependencies = [
+ "allocator",
  "axalloc",
  "axconfig",
  "axerrno",
@@ -436,6 +437,8 @@ dependencies = [
  "bitflags 2.4.1",
  "cfg-if",
  "crate_interface 0.1.1",
+ "kernel_guard",
+ "lazy_init",
  "lazy_static",
  "log",
  "riscv 0.10.1",

@@ -11,6 +11,8 @@ fs = ["axfs"]
 
 monolithic = ["fs", "axfs/monolithic"]
 
+hv = ["dep:lazy_init", "dep:kernel_guard", "dep:allocator"]
+
 # Futex support
 futex = []
 
@@ -37,3 +39,6 @@ bitflags = "2.0"
 lazy_static = { version = "1.4", features = ["spin_no_std"] }
 xmas-elf = "0.9.1"
 crate_interface = { path = "../../crates/crate_interface" }
+lazy_init = { path = "../../crates/lazy_init", optional = true }
+kernel_guard = { path = "../../crates/kernel_guard", optional = true }
+allocator = { path = "../../crates/allocator", features = ["buddy"], optional = true }

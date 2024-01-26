@@ -7,6 +7,8 @@ pub use process::{Process, PID2PC, TID2TASK};
 #[macro_use]
 extern crate log;
 
+extern crate alloc;
+
 pub mod flags;
 pub mod futex;
 pub mod link;
@@ -16,5 +18,8 @@ mod stdio;
 mod fd_manager;
 
 mod syscall;
+
+#[cfg(feature = "hv")]
+mod scf;
 // #[cfg(feature = "signal")]
 // pub mod signal;

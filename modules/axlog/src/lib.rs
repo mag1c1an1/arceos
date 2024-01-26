@@ -117,8 +117,6 @@ impl Write for Logger {
     }
 }
 
-static LOCK: Mutex<()> = Mutex::new(());
-
 impl Log for Logger {
     #[inline]
     fn enabled(&self, _metadata: &Metadata) -> bool {

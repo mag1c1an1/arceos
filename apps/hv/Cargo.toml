@@ -18,7 +18,7 @@ bit_field = "0.10"
 bitflags = "2.2"
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 spin = "0.9"
-axprocess = { path = "../../modules/axprocess"}
+axprocess = { path = "../../modules/axprocess", features = ["hv"]}
 axvm = { path = "../../modules/axvm"}
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]

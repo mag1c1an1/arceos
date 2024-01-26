@@ -52,6 +52,19 @@ pub fn register_handler(vector: usize, handler: crate::irq::IrqHandler) -> bool 
     crate::irq::register_handler_common(vector, handler)
 }
 
+pub fn send_ipi(irq_num: usize) {
+    let mut io_apic = IO_APIC.lock();
+
+    let entry = unsafe { io_apic.table_entry(irq_num as _) };
+    let vector = entry.vector();
+    let dest = entry.dest();
+
+    if vector >= 0x20 {
+        debug!("send_ipi {} {}", vector, dest);
+        unsafe { local_apic().send_ipi(vector, dest as _) };
+    }
+}
+
 /// Dispatches the IRQ.
 ///
 /// This function is called by the common interrupt handler. It looks
