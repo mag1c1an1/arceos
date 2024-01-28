@@ -32,6 +32,8 @@ pub fn config_boot_linux(hart_id: usize) {
         X64VcpuDevices<HyperCraftHalImpl>,
         X64VmDevices<HyperCraftHalImpl>,
     >::new(vcpus);
+	
+	// The bind_vcpu method should be decoupled with vm struct.
     vm.bind_vcpu(0).expect("bind vcpu failed");
 
     if hart_id == 0 {

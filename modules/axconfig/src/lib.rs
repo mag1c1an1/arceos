@@ -60,8 +60,14 @@ cfg_if::cfg_if! {
 
 pub use config::*;
 
+cfg_if::cfg_if! {
+    if #[cfg(feature="hv")] {
+pub const PHYS_MEMORY_END: usize = PHYS_MEMORY_BASE + PHYS_MEMORY_SIZE - SYSCALL_DATA_BUF_SIZE - SYSCALL_QUEUE_BUF_SIZE;
+    } else {
 /// End address of the whole physical memory.
 pub const PHYS_MEMORY_END: usize = PHYS_MEMORY_BASE + PHYS_MEMORY_SIZE;
+    }
+}
 
 /// user memory
 pub const USER_MEMORY_START: usize = 0x1000;

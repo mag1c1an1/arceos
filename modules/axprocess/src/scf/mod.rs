@@ -11,8 +11,8 @@ pub mod syscall_proxy;
 mod cfg {
     pub const SYSCALL_IPI_IRQ_NUM: usize = 13;
 
-    pub const SYSCALL_DATA_BUF_SIZE: usize = 0x10_0000; // 1M
-    pub const SYSCALL_QUEUE_BUF_SIZE: usize = 4096; // 4K
+    pub const SYSCALL_DATA_BUF_SIZE: usize = axconfig::SYSCALL_DATA_BUF_SIZE;
+    pub const SYSCALL_QUEUE_BUF_SIZE: usize = axconfig::SYSCALL_QUEUE_BUF_SIZE;
 
     pub const SYSCALL_DATA_BUF_PADDR: usize = axconfig::PHYS_MEMORY_END;
     pub const SYSCALL_QUEUE_BUF_PADDR: usize = SYSCALL_DATA_BUF_PADDR + SYSCALL_DATA_BUF_SIZE;

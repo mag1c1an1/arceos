@@ -58,7 +58,12 @@ mod linux;
 fn main() {
     println!("Hello, hv!");
     println!("Currently Linux inside VM is pinned on Core 0");
-    linux::boot_linux(0);
+    // linux::boot_linux(0);
+
+	loop {
+        libax::thread::sleep(libax::time::Duration::from_secs(1));
+        println!("main tick");
+    }
 }
 
 #[cfg(target_arch = "x86_64")]

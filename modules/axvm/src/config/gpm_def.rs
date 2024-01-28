@@ -113,6 +113,7 @@ pub fn setup_gpm(id: usize) -> HyperResult<GuestPhysMemorySet> {
             size: 0x1000,
             flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
         },
+		// SCF: memory region for shared memory should be configged here.
     ];
     for r in guest_memory_regions.into_iter() {
         gpm.map_region(r.into())?;

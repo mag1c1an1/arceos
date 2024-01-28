@@ -7,6 +7,12 @@ platform = "pc-x86"
 phys-memory-base = "0"
 # Size of the whole physical memory.
 phys-memory-size = "0x800_0000"     # 128M
+# Size of the shared memory data region for syscall forward.
+syscall-data-buf-size = "0x10_0000" # 1M
+# Size of the shared memory queue region for syscall forward.
+syscall-queue-buf-size = "0x1000" # 4K
+# Irq Num of ipi for syscall forward, registered by Linux driver.
+syscall-ipi-irq-num = "13" # irq for ipi
 # Base physical address of the kernel image.
 kernel-base-paddr = "0x20_0000"
 # Base virtual address of the kernel image.
