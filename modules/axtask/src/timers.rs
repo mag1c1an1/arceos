@@ -9,6 +9,20 @@ use crate::{AxTaskRef, RUN_QUEUE};
 // TODO: per-CPU
 static TIMER_LIST: LazyInit<SpinNoIrq<TimerList<TaskWakeupEvent>>> = LazyInit::new();
 
+cfg_if::cfg_if! {
+    if #[cfg(feature = "hv")] {
+        use alloc::vec::Vec;
+
+        type TimerCallback = fn();
+
+        static TIMER_EVENTS: SpinNoIrq<Vec<TimerCallback>> = SpinNoIrq::new(Vec::new());
+
+        pub fn add_timer_event(callback: TimerCallback) {
+            TIMER_EVENTS.lock().push(callback);
+        }
+    }
+}
+
 struct TaskWakeupEvent(AxTaskRef);
 
 impl TimerEvent for TaskWakeupEvent {
@@ -40,6 +54,10 @@ pub fn check_events() {
         } else {
             break;
         }
+    }
+    #[cfg(feature = "hv")]
+    for callback in TIMER_EVENTS.lock().iter() {
+        callback();
     }
 }
 

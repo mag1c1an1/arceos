@@ -42,6 +42,9 @@ cfg_if::cfg_if! {
 
         #[cfg(feature = "irq")]
         mod timers;
+
+		#[cfg(all(feature = "irq", feature = "hv"))]
+		pub use timers::add_timer_event;
     }
 }
 

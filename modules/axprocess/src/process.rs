@@ -239,6 +239,9 @@ impl Process {
 
     /// TMP: Create simple hello process
     pub fn init_hello() -> AxResult<AxTaskRef> {
+		// Init syscall forward mechanism.
+		super::scf::init();
+
         let mut memory_set = MemorySet::new_with_kernel_mapped();
         let page_table_token = memory_set.page_table_token();
         // if page_table_token != 0 {

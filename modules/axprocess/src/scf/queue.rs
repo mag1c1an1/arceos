@@ -270,7 +270,7 @@ pub fn init() {
         SYSCALL_QUEUE_BUF_SIZE,
     ));
 
-    // Todo: add a IPI handler which calls `handle_irq`.
-    let _ = handle_irq();
-    // crate::drivers::timer::add_timer_event(handle_irq);
+    // This `handle_irq` can be called inside a IPI handler.
+	// Which is better??
+    axtask::add_timer_event(handle_irq);
 }
