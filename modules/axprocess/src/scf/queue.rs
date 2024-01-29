@@ -7,6 +7,8 @@ use crate::syscall::Sysno;
 
 use super::cfg::*;
 use super::syscall_forward::SyscallCondVar;
+use super::spin::*;
+
 use axhal::mem::{phys_to_virt, PhysAddr, VirtAddr};
 use axhal::paging::PageSize;
 use lazy_init::LazyInit;
@@ -79,36 +81,16 @@ impl SyscallQueueBuffer {
     }
 
     pub fn send(&mut self, opcode: Sysno, args_offset: u64, token: ScfRequestToken) -> bool {
-        // let flag = spin_lock_irqsave(&self.meta.lock);
-        let kernel_guard = kernel_guard::NoPreemptIrqSave::new();
-        let lock = &self.meta.lock;
-        while lock
-            .compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed)
-            .is_err()
-        {
-            while lock.load(Ordering::Relaxed) {
-                core::hint::spin_loop();
-            }
-        }
+        let flag = spin_lock_irqsave(&self.meta.lock);
         let ret = self.send_locked(opcode, args_offset, token);
-        // spin_unlock_irqrestore(&self.meta.lock, flag);
+        spin_unlock_irqrestore(&self.meta.lock, flag);
         ret
     }
 
     fn pop_response(&mut self) -> Option<ScfResponse> {
-        let kernel_guard = kernel_guard::NoPreemptIrqSave::new();
-        // let flag = spin_lock_irqsave(&self.meta.lock);
-        let lock = &self.meta.lock;
-        while lock
-            .compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed)
-            .is_err()
-        {
-            while lock.load(Ordering::Relaxed) {
-                core::hint::spin_loop();
-            }
-        }
+        let flag = spin_lock_irqsave(&self.meta.lock);
         let ret = self.pop_response_locked();
-        // spin_unlock_irqrestore(&self.meta.lock, flag);
+        spin_unlock_irqrestore(&self.meta.lock, flag);
         ret
     }
 }

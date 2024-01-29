@@ -105,13 +105,14 @@ justrun:
 	$(call run_qemu)
 
 debug: build
-	$(call run_qemu_debug) &
-	sleep 1
+	$(call run_qemu_debug) 
+	# sleep 1
+	
+gdb:
 	$(GDB) $(OUT_ELF) \
 	  -ex 'target remote localhost:1234' \
 	  -ex 'b rust_entry' \
 	  	  -ex 'add-symbol-file /home/hky/projects/arceos/arceos-hypervisor/testcases/libc-static/hello' \
-	  -ex 'b __set_thread_area' \
 	  -ex 'continue' \
 	  -ex 'disp /16i $$pc'
 

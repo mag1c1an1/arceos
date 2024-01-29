@@ -8,6 +8,9 @@ const FD_STDERR: usize = 2;
 const CHUNK_SIZE: usize = 256;
 
 pub fn sys_write(fd: usize, buf: UserInPtr<u8>, len: usize) -> isize {
+    #[cfg(feature = "hv")]
+    return crate::scf::syscall_forward::scf_write(fd, buf, len);
+
     match fd {
         FD_STDOUT | FD_STDERR => {
             let mut count = 0;
@@ -44,7 +47,8 @@ pub fn sys_write(fd: usize, buf: UserInPtr<u8>, len: usize) -> isize {
 //     }
 // }
 
-/// readv/writev使用的结构体
+/// iovec - Vector I/O data structure
+/// Ref: https://man7.org/linux/man-pages/man3/iovec.3type.html
 #[repr(C)]
 pub struct IoVec {
     pub base: *mut u8,

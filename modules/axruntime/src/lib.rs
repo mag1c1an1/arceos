@@ -125,8 +125,8 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
     info!("Logging is enabled.");
     info!("Primary CPU {} started, dtb = {:#x}.", cpu_id, dtb);
 
-    #[cfg(all(feature = "hv", target_arch = "riscv64"))]
-    hypercraft::init_hv_runtime();
+    // #[cfg(all(feature = "hv", target_arch = "riscv64"))]
+    // hypercraft::init_hv_runtime();
 
     info!("Found physcial memory regions:");
     for r in axhal::mem::memory_regions() {

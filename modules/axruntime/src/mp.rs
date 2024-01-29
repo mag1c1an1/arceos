@@ -39,8 +39,8 @@ pub extern "C" fn rust_main_secondary(cpu_id: usize) -> ! {
     ENTERED_CPUS.fetch_add(1, Ordering::Relaxed);
     info!("Secondary CPU {} started.", cpu_id);
 
-    #[cfg(feature = "hv")]
-    hypercraft::init_hv_runtime();
+    // #[cfg(feature = "hv")]
+    // hypercraft::init_hv_runtime();
 
     #[cfg(not(feature = "hv"))]
     {

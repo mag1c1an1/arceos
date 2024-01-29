@@ -2,6 +2,7 @@
 
 mod allocator;
 mod queue;
+mod spin;
 
 pub mod syscall_forward;
 

@@ -50,6 +50,7 @@ fn send_request(opcode: Sysno, args_offset: u64, token: ScfRequestToken) {
 }
 
 pub fn scf_write(fd: usize, buf: UserInPtr<u8>, len: usize) -> isize {
+    debug!("scf write fd {} len {:#x}", fd, len);
     assert!(len < CHUNK_SIZE);
     let pool = SyscallDataBuffer::get();
     let chunk_ptr = unsafe { pool.alloc_array_uninit::<u8>(len) };
