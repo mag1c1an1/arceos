@@ -6,6 +6,9 @@ pub use area::MapArea;
 use axerrno::{AxError, AxResult};
 pub use backend::MemBackend;
 
+mod uaccess;
+pub use uaccess::*;
+
 extern crate alloc;
 use alloc::{collections::BTreeMap, sync::Arc, vec::Vec};
 use core::{

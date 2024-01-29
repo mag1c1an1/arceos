@@ -3,7 +3,7 @@
 mod allocator;
 mod queue;
 
-pub mod syscall_proxy;
+pub mod syscall_forward;
 
 /// Configuration for syscall forward in arceos.
 ///

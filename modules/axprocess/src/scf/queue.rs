@@ -6,7 +6,7 @@ use core::sync::atomic::{fence, AtomicBool, Ordering};
 use crate::syscall::Sysno;
 
 use super::cfg::*;
-use super::syscall_proxy::SyscallCondVar;
+use super::syscall_forward::SyscallCondVar;
 use axhal::mem::{phys_to_virt, PhysAddr, VirtAddr};
 use axhal::paging::PageSize;
 use lazy_init::LazyInit;
@@ -33,7 +33,7 @@ struct SyscallQueueBufferMetadata {
 struct ScfDescriptor {
     valid: bool,
     opcode: u8,
-    args: u64,
+    args_offset: u64,
     ret_val: u64,
 }
 
@@ -78,7 +78,7 @@ impl SyscallQueueBuffer {
         unsafe { &mut QUEUE_BUFFER }
     }
 
-    pub fn send(&mut self, opcode: Sysno, args: u64, token: ScfRequestToken) -> bool {
+    pub fn send(&mut self, opcode: Sysno, args_offset: u64, token: ScfRequestToken) -> bool {
         // let flag = spin_lock_irqsave(&self.meta.lock);
         let kernel_guard = kernel_guard::NoPreemptIrqSave::new();
         let lock = &self.meta.lock;
@@ -90,7 +90,7 @@ impl SyscallQueueBuffer {
                 core::hint::spin_loop();
             }
         }
-        let ret = self.send_locked(opcode, args, token);
+        let ret = self.send_locked(opcode, args_offset, token);
         // spin_unlock_irqrestore(&self.meta.lock, flag);
         ret
     }
@@ -217,7 +217,7 @@ impl SyscallQueueBuffer {
         }
     }
 
-    fn send_locked(&mut self, opcode: Sysno, args: u64, token: ScfRequestToken) -> bool {
+    fn send_locked(&mut self, opcode: Sysno, args_offset: u64, token: ScfRequestToken) -> bool {
         if self.is_full() {
             return false;
         }
@@ -227,7 +227,7 @@ impl SyscallQueueBuffer {
         self.desc[entry_idx as usize] = ScfDescriptor {
             valid: true,
             opcode: opcode as u8,
-            args,
+            args_offset,
             ret_val: 0,
         };
         self.free_count -= 1;
