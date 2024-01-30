@@ -240,7 +240,9 @@ impl Process {
     /// TMP: Create simple hello process
     pub fn init_hello() -> AxResult<AxTaskRef> {
 		// Init syscall forward mechanism.
+        info!("initializing scf...");
 		super::scf::init();
+        info!("scf initialized.");
 
         let mut memory_set = MemorySet::new_with_kernel_mapped();
         let page_table_token = memory_set.page_table_token();

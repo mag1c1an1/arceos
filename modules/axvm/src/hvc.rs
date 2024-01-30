@@ -7,7 +7,7 @@ pub const HVC_SHADOW_PROCESS_RDY: usize = 0x52647921;
 
 pub fn handle_hvc<H: HyperCraftHal>(vcpu: &mut VCpu<H>, id: usize, args: (u32, u32)) -> Result<u32> {
     info!(
-        "hypercall_handler vcpu {} id {} args {} {}",
+        "hypercall_handler vcpu: {}, id: {:#x?}, args: {:#x?}, {:#x?}",
         vcpu.vcpu_id(),
         id,
         args.0,
@@ -19,7 +19,7 @@ pub fn handle_hvc<H: HyperCraftHal>(vcpu: &mut VCpu<H>, id: usize, args: (u32, u
             axtask::notify_all_process();
         }
         _ => {
-            warn!("Unhandled hypercall {}", id);
+            warn!("Unhandled hypercall {}. vcpu: {:#x?}", id, vcpu);
         }
     }
     Ok(0)
