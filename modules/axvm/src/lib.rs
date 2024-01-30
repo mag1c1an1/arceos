@@ -25,6 +25,7 @@ mod arch;
 
 mod page_table;
 mod irq;
+mod hvc;
 
 // mod vm;
 // pub use vm::*;

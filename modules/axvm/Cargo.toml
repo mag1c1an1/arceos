@@ -24,6 +24,7 @@ axhal = { path = "../axhal" }
 axlog = { path = "../axlog" }
 axruntime = { path = "../axruntime", default-features = false }
 axalloc = { path = "../axalloc" }
+axtask = { path = "../axtask",  features = ["hv", "monolithic"]}
 
 # ax crates
 percpu = { path = "../../crates/percpu" }

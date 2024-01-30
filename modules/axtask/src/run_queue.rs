@@ -15,6 +15,8 @@ pub static EXITED_TASKS: SpinNoIrq<VecDeque<AxTaskRef>> = SpinNoIrq::new(VecDequ
 
 static WAIT_FOR_EXIT: WaitQueue = WaitQueue::new();
 
+static WAITING_TASKS: WaitQueue = WaitQueue::new();
+
 #[percpu::def_percpu]
 pub static IDLE_TASK: LazyInit<AxTaskRef> = LazyInit::new();
 

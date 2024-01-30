@@ -548,7 +548,19 @@ impl Deref for CurrentTask {
     }
 }
 
+static WAIT_FOR_LINUX: WaitQueue = WaitQueue::new();
+static LINUX_IS_BOOTED: AtomicBool = AtomicBool::new(false);
 // Todo: use `Enum` to distinguish `task_entry``.
+
+/// When Linux have configured the syscall forward mechanism.
+/// It will call this API through hypercall.
+///
+/// Todo: this should be removed!!!
+pub fn notify_all_process() {
+    info!("Linux configured success, notify all wait task",);
+    WAIT_FOR_LINUX.notify_all(true);
+    LINUX_IS_BOOTED.store(true, Ordering::Release);
+}
 
 extern "C" fn task_entry() -> ! {
     // release the lock that was implicitly held across the reschedule
@@ -568,6 +580,16 @@ extern "C" fn task_entry() -> ! {
             crate::exit(0)
         }
         TaskType::Process { trap_frame } => {
+            if !LINUX_IS_BOOTED.load(Ordering::Acquire) {
+                info!("Task {:?} of process waiting for Linux", task.id());
+                WAIT_FOR_LINUX.wait();
+            }
+
+            info!(
+                "Linux configured success, task {:?} of process start to exec",
+                task.id()
+            );
+
             let kernel_sp = task.get_kernel_stack_top().unwrap();
             unsafe { trap_frame.exec(kernel_sp) }
         }

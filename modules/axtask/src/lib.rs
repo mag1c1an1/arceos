@@ -45,6 +45,8 @@ cfg_if::cfg_if! {
 
 		#[cfg(all(feature = "irq", feature = "hv"))]
 		pub use timers::add_timer_event;
+        #[cfg(feature = "hv")]
+		pub use task::notify_all_process;
     }
 }
 
