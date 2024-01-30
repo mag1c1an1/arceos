@@ -36,7 +36,7 @@ entry32:
     mov     esp, 0x7b00
 
     # 加载内核
-    push    0x00199bef # initramfs 大小
+    push    0x00400000 # initramfs 大小（4M）大于initramfs的实际大小即可，过大不会有问题但过小会导致initramfs加载失败
     push    0x72000000 # initramfs 地址
     push    0x00100000 # 32-bit 加载地址
     push    0x0001e000 # 栈顶地址

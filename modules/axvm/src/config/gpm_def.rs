@@ -61,8 +61,23 @@ pub fn setup_gpm(id: usize) -> HyperResult<GuestPhysMemorySet> {
         GuestMemoryRegion {
             // Low RAM2
             gpa: 0x100_0000,
-            hpa: 0x6100_0000,
-            size: 0xf00_0000,
+            hpa: 0x6000_0000,
+            size: 0x700_0000,
+            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
+        },
+        #[cfg(feature = "guest_linux")]
+        GuestMemoryRegion {
+            // Low RAM3
+            gpa: 0x800_0000,
+            hpa: 0x6800_0000,
+            size: 0x800_0000,
+            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
+        },
+        GuestMemoryRegion {
+            // syscall forwarder region
+            gpa: 0x6700_0000,
+            hpa: 0x700_0000,
+            size: 0x0100_0000,
             flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
         },
         #[cfg(feature = "guest_linux")]
