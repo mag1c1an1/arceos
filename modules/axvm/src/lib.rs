@@ -40,6 +40,8 @@ pub use linux::config_boot_linux;
 pub use axhal::mem::{phys_to_virt, virt_to_phys, PhysAddr};
 pub use page_table::GuestPageTable;
 
+#[cfg(feature = "type1_5")]
+pub use hypercraft::LinuxContext;
 pub use hypercraft::GuestPageTableTrait;
 pub use hypercraft::HyperCraftHal;
 pub use hypercraft::HyperError as Error;

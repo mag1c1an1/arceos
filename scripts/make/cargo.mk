@@ -28,6 +28,10 @@ else ifeq ($(GUEST), linux)
   features-$(HV) += guest_linux
 endif
 
+ifeq ($(TYPE1_5), y)
+  features-$(HV) += type1_5
+endif
+
 ifeq ($(ARCH), x86_64)
   features-$(HV) += libax/irq
 endif

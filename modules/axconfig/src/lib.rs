@@ -18,6 +18,13 @@ cfg_if::cfg_if! {
     // add `not(target_os = "none")` check to use in `build.rs`
     if #[cfg(all(
         any(target_arch = "x86_64", not(target_os = "none")),
+        feature = "platform-pc-x86", feature = "hv", feature = "type1_5"
+    ))] {
+        #[rustfmt::skip]
+        #[path = "config_pc_x86_hv_type15.rs"]
+        mod config;
+    } else if #[cfg(all(
+        any(target_arch = "x86_64", not(target_os = "none")),
         feature = "platform-pc-x86"
     ))] {
         #[rustfmt::skip]

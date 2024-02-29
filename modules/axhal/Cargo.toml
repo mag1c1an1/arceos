@@ -27,6 +27,7 @@ platform-raspi4-aarch64 = [
 ]
 default = []
 hv = ["paging", "platform-qemu-virt-aarch64", "axconfig/hv"]
+type1_5 = ["axconfig/type1_5"]
 
 [dependencies]
 log = "0.4"

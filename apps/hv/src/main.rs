@@ -29,6 +29,7 @@ use libax::{
 // };
 
 use page_table_entry::MappingFlags;
+use axvm::LinuxContext;
 
 // #[cfg(target_arch = "x86_64")]
 // use device::{X64VcpuDevices, X64VmDevices};
@@ -54,6 +55,21 @@ mod aarch64_config;
 mod process;
 mod linux;
 
+#[cfg(feature = "type1_5")]
+#[no_mangle]
+fn main(linux_context: &LinuxContext) {
+    println!("Hello, hv!");
+    println!("Currently Linux inside VM is pinned on Core 0");
+    linux::boot_linux(0, linux_context);
+/* 
+	loop {
+        libax::thread::sleep(libax::time::Duration::from_secs(1));
+        println!("main tick");
+    }
+*/    
+}
+
+#[cfg(not(feature = "type1_5"))]
 #[no_mangle]
 fn main() {
     println!("Hello, hv!");

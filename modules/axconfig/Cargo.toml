@@ -15,6 +15,7 @@ platform-qemu-virt-riscv = []
 platform-qemu-virt-aarch64 = []
 platform-raspi4-aarch64 = []
 hv = []
+type1_5 = []
 default = []
 
 [dependencies]

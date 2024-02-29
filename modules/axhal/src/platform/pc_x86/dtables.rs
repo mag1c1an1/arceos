@@ -2,6 +2,8 @@
 use crate::arch::{GdtStruct, IdtStruct, TaskStateSegment};
 use crate::mem::VirtAddr;
 use lazy_init::LazyInit;
+#[cfg(feature = "type1_5")]
+use x86::{segmentation, segmentation::SegmentSelector, Ring};
 
 use memoffset::offset_of;
 
@@ -17,6 +19,7 @@ static GDT: LazyInit<GdtStruct> = LazyInit::new();
 #[allow(dead_code)]
 pub const TSS_KERNEL_RSP_OFFSET: usize = offset_of!(TaskStateSegment, privilege_stack_table);
 
+#[cfg(not(feature = "type1_5"))]
 fn init_percpu() {
     unsafe {
         IDT.load();
@@ -27,6 +30,26 @@ fn init_percpu() {
         gdt.load();
         gdt.load_tss();
         crate::arch::syscall::init_percpu();
+    }
+}
+
+#[cfg(feature = "type1_5")]
+fn init_percpu() {
+    unsafe {
+        let tss = TSS.current_ref_mut_raw();
+        let gdt = GDT.current_ref_mut_raw();
+        tss.init_by(TaskStateSegment::new());
+        gdt.init_by(GdtStruct::new(tss));
+        gdt.load();
+        segmentation::load_es(SegmentSelector::from_raw(0));
+        // segmentation::load_cs(SegmentSelector::from_raw((GdtStruct::KCODE64_SELECTOR).0));
+        segmentation::load_ss(SegmentSelector::from_raw(0));
+        segmentation::load_ds(SegmentSelector::from_raw(0));
+        IDT.load();
+        gdt.load_tss();
+
+        // PAT0: WB, PAT1: WC, PAT2: UC
+        x86::msr::wrmsr(x86::msr::IA32_PAT, 0x070106);
     }
 }
 

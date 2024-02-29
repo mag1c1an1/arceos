@@ -21,6 +21,8 @@
 
 #[macro_use]
 extern crate axlog;
+#[macro_use]
+extern crate alloc;
 
 #[cfg(all(target_os = "none", not(test)))]
 mod lang_items;
@@ -43,9 +45,14 @@ const LOGO: &str = r#"
  d8888888888 888     Y88b.    Y8b.     Y88b. .d88P Y88b  d88P
 d88P     888 888      "Y8888P  "Y8888   "Y88888P"   "Y8888P"
 "#;
+#[cfg(feature = "type1_5")]
+use hypercraft::LinuxContext;
 
 extern "C" {
+    #[cfg(not(feature = "type1_5"))]
     fn main();
+    #[cfg(feature = "type1_5")]
+    fn main(linux_context: &LinuxContext);
 }
 
 struct LogIfImpl;
@@ -102,6 +109,7 @@ fn is_init_ok() -> bool {
 ///
 /// In multi-core environment, this function is called on the primary CPU,
 /// and the secondary CPUs call [`rust_main_secondary`].
+#[cfg(not(feature = "type1_5"))]
 #[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
     ax_println!("{}", LOGO);
@@ -209,6 +217,74 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
         debug!("main task exited: exit_code={}", 0);
         axhal::misc::terminate();
     }
+}
+
+#[cfg(feature = "type1_5")]
+pub mod type1_5;
+#[cfg(feature = "type1_5")]
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
+    let is_primary = cpu_id == 0;  
+    if is_primary {
+        ax_println!("{}", LOGO);
+        ax_println!(
+            "\
+            arch = {}\n\
+            platform = {}\n\
+            smp = {}\n\
+            build_mode = {}\n\
+            log_level = {}\n\
+            ",
+            option_env!("ARCH").unwrap_or(""),
+            option_env!("PLATFORM").unwrap_or(""),
+            option_env!("SMP").unwrap_or(""),
+            option_env!("MODE").unwrap_or(""),
+            option_env!("LOG").unwrap_or(""),
+        );
+    
+        axlog::init();
+        axlog::set_max_level(option_env!("LOG").unwrap_or("")); // no effect if set `log-level-*` features
+        info!("Logging is enabled.");
+        info!("Primary CPU {} started, linux_sp = {:#x}.", cpu_id, linux_sp);
+        info!("rust_main_type1_5\n");
+        /* 
+        unsafe {
+            let sysconfig = type1_5::HvSystemConfig::get();
+            debug!("sysconfig: {:#x?}", sysconfig);
+            axhal::mem::PHYS_VIRT_TYPE15_OFFSET = type1_5::consts::HV_BASE - sysconfig.hypervisor_memory.phys_start as usize;
+            debug!("type1.5 hv offset: {:#x}", axhal::mem::PHYS_VIRT_TYPE15_OFFSET);
+        };
+        */
+        #[cfg(feature = "alloc")]
+        {
+            type1_5::init_type15_allocator();
+        }
+
+        let linux_context = LinuxContext::load_from(linux_sp);
+        debug!("Linux: {:#x?}", linux_context);
+
+        info!("Initialize platform devices...");
+        axhal::platform_init();
+
+        info!("activate_hv_pt");
+        type1_5::activate_hv_pt();
+        /* 
+        #[cfg(feature = "irq")]
+        {
+            info!("Initialize interrupt handlers...");
+            init_interrupt();
+        }
+        */
+        unsafe {
+            main(&linux_context);
+        };
+    }else {
+        loop {
+            ;
+        }
+    }
+    // one core for arceos, one core for linux
+    0
 }
 
 #[cfg(feature = "alloc")]

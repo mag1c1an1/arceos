@@ -8,6 +8,7 @@ edition = "2021"
 [features]
 guest_nimbos = []
 guest_linux = []
+type1_5 = []
 
 [dependencies]
 # third-party deps
@@ -30,6 +31,7 @@ axtask = { path = "../axtask",  features = ["hv", "monolithic"]}
 percpu = { path = "../../crates/percpu" }
 lazy_init = { path = "../../crates/lazy_init" }
 hypercraft = { path = "../../crates/hypercraft" }
+memory_addr = { path = "../../crates/memory_addr" }
 page_table_entry = { path = "../../crates/page_table_entry", features = ["hv"] }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]

@@ -8,6 +8,7 @@ edition = "2021"
 [features]
 guest_nimbos = ["axvm/guest_nimbos"]
 guest_linux = ["axvm/guest_linux"]
+type1_5 = ["libax/type1_5", "axvm/type1_5"]
 
 [dependencies]
 libax = { path = "../../ulib/libax", features = ["alloc", "multitask","smp", "hv"] }

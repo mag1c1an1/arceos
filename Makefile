@@ -14,6 +14,7 @@ NET ?= n
 GRAPHIC ?= n
 BUS ?= mmio
 HV ?= n
+TYPE1_5 ?= n
 # Unikernel | Monolithic | Hypervisor | Combination
 STRUCT ?= Unikernel
 

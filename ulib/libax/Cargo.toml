@@ -54,6 +54,9 @@ monolithic = ["axruntime/monolithic"]
 # Hypervisor
 hv = ["dep:hypercraft", "axruntime/hv"]
 
+# type1.5
+type1_5 = ["axhal/type1_5","axruntime/type1_5"]
+
 # Display
 display = ["axruntime/display", "dep:axdriver", "dep:axdisplay"]
 

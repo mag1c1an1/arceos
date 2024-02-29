@@ -1,0 +1,41 @@
+# Architecture identifier.
+arch = "x86_64"
+# Platform identifier.
+platform = "pc-x86-hv-type15"
+
+# Base address of the whole physical memory.
+phys-memory-base = "0x3a00_0000"
+# Size of the whole physical memory.
+phys-memory-size = "0x1000_0000"     # 256M
+# Size of the shared memory data region for syscall forward.
+syscall-data-buf-size = "0x10_0000" # 1M
+# Size of the shared memory queue region for syscall forward.
+syscall-queue-buf-size = "0x1000" # 4K
+# Irq Num of ipi for syscall forward, registered by Linux driver.
+syscall-ipi-irq-num = "13" # irq for ipi
+# Base physical address of the kernel image.
+kernel-base-paddr = "0x3a00_0000"
+# Base virtual address of the kernel image.
+kernel-base-vaddr = "0xffff_ff00_0000_0000"
+# Linear mapping offset, for quick conversions between physical and virtual
+# addresses.
+phys-virt-offset = "0xffff_feff_c600_0000"
+# MMIO regions with format (`base_paddr`, `size`).
+mmio-regions = [
+    ["0xb000_0000", "0x1000_0000"], # PCI config space
+    ["0xfe00_0000", "0xc0_0000"],   # PCI devices
+    ["0xfec0_0000", "0x1000"],      # IO APIC
+    ["0xfed0_0000", "0x1000"],      # HPET
+    ["0xfee0_0000", "0x1000"],      # Local APIC
+]
+# VirtIO MMIO regions with format (`base_paddr`, `size`).
+virtio-mmio-regions = []
+# Base physical address of the PCIe ECAM space (should read from ACPI 'MCFG' table).
+pci-ecam-base = "0xb000_0000"
+# End PCI bus number.
+pci-bus-end = "0xff"
+# PCI device memory ranges (not used on x86).
+pci-ranges = []
+
+# Timer interrupt frequencyin Hz.
+timer-frequency = "4_000_000_000"   # 4.0GHz

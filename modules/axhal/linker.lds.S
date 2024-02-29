@@ -8,6 +8,13 @@ SECTIONS
     . = BASE_ADDRESS;
     skernel = .;
 
+    .header : {
+		sheader = .;
+		KEEP(*(.header))
+        . = ALIGN(4K);
+        eheader = .;
+	}
+
     .text : ALIGN(4K) {
         stext = .;
         *(.text.boot)
@@ -71,6 +78,9 @@ SECTIONS
     
     ekernel = .;
 
+    __entry_offset = _start - BASE_ADDRESS;
+	__core_size = ekernel - BASE_ADDRESS;
+    
 	/DISCARD/ : {
         *(.comment) *(.gnu*) *(.note*) *(.eh_frame*)
     }

@@ -9,3 +9,4 @@ qemu*.log
 /*.log
 /*.sh
 \[ignore\]*
+scripts/host/user*

@@ -3,12 +3,40 @@
 /// To be removed...
 // use hypercraft::GuestPageTableTrait;
 use hypercraft::{PerCpu, VCpu, VmCpus, VM};
+#[cfg(feature = "type1_5")]
+use hypercraft::LinuxContext;
 
 #[cfg(target_arch = "x86_64")]
 use super::device::{self, X64VcpuDevices, X64VmDevices};
-
+use super::arch::new_vcpu;
 use axhal::hv::HyperCraftHalImpl;
 
+// use super::type1_5::cell;
+
+#[cfg(feature = "type1_5")]
+pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
+    info!("into main {}", hart_id);
+    crate::arch::cpu_hv_hardware_enable(hart_id, linux_context);
+    info!("hardware_enable done");
+    let gpm = super::config::setup_gpm().unwrap();
+    info!("type 1.5 gpm: {:#x?}", gpm);
+    let vcpu = new_vcpu(0, crate::arch::cpu_vmcs_revision_id(), gpm.nest_page_table_root(), &linux_context).unwrap();
+    let mut vcpus = VmCpus::<HyperCraftHalImpl, X64VcpuDevices<HyperCraftHalImpl>>::new();
+    vcpus.add_vcpu(vcpu).expect("add vcpu failed");
+    let mut vm = VM::<
+        HyperCraftHalImpl,
+        X64VcpuDevices<HyperCraftHalImpl>,
+        X64VmDevices<HyperCraftHalImpl>,
+    >::new(vcpus);
+    // The bind_vcpu method should be decoupled with vm struct.
+    vm.bind_vcpu(0).expect("bind vcpu failed");
+    // debug!("after bind vcpu to vm");
+    info!("{:?}", vm.run_type15_vcpu(0, &linux_context));
+
+    // disable hardware virtualization todo
+}
+
+#[cfg(not(feature = "type1_5"))]
 pub fn config_boot_linux(hart_id: usize) {
     info!("into main {}", hart_id);
 

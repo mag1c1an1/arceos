@@ -5,6 +5,8 @@ use core::fmt;
 #[doc(no_inline)]
 pub use memory_addr::{PhysAddr, VirtAddr, PAGE_SIZE_4K};
 
+// pub static mut PHYS_VIRT_TYPE15_OFFSET: usize = 0;
+
 bitflags::bitflags! {
     /// The flags of a physical memory region.
     pub struct MemRegionFlags: usize {
@@ -165,6 +167,8 @@ pub(crate) fn clear_bss() {
 }
 
 extern "C" {
+    fn sheader();
+    fn eheader();
     fn stext();
     fn etext();
     fn srodata();

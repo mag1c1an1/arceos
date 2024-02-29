@@ -1,6 +1,14 @@
 use axvm;
 use axprocess;
 
+use axvm::LinuxContext;
+
+#[cfg(feature = "type1_5")]
+pub fn boot_linux(hart_id: usize, linux_context: &LinuxContext) {
+    axvm::config_boot_linux(hart_id, linux_context);
+}
+
+#[cfg(not(feature = "type1_5"))]
 pub fn boot_linux(hart_id: usize) {
     axvm::config_boot_linux(hart_id);
 

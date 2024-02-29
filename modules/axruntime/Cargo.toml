@@ -24,6 +24,7 @@ default = ["axtask?/default"]
 
 monolithic = ["axprocess/monolithic", "axhal/monolithic", "axtask/monolithic", "axmem/monolithic"]
 hv = ["alloc", "dep:hypercraft", "axhal/hv", "axtask/hv", "dep:page_table"]
+type1_5 = ["dep:page_table_entry", "hypercraft/type1_5"]
 
 [dependencies]
 spin = "0.9"
@@ -32,6 +33,8 @@ bit_field = "0.10"
 cfg-if = "1.0"
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 percpu = { path = "../../crates/percpu" }
+page_table_entry = { path = "../../crates/page_table_entry", features = ["hv"], optional = true }
+memory_addr = { path = "../../crates/memory_addr" }
 kernel_guard = { path = "../../crates/kernel_guard" }
 spinlock = { path = "../../crates/spinlock" }
 lazy_init = { path = "../../crates/lazy_init", optional = true }

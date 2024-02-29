@@ -30,5 +30,10 @@ cfg_block! {
 pub const GUEST_PHYS_MEMORY_BASE: GuestPhysAddr = 0;
 pub const GUEST_PHYS_MEMORY_SIZE: usize = 0x100_0000; // 16M
 
+#[cfg(not(feature = "type1_5"))]
+#[path = "gpm_def.rs"]
+mod gpm_def;
+#[cfg(feature = "type1_5")]
+#[path = "gpm_def_type15.rs"]
 mod gpm_def;
 pub use gpm_def::setup_gpm;

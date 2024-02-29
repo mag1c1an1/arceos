@@ -22,6 +22,8 @@ pub fn handle_hvc<H: HyperCraftHal>(vcpu: &mut VCpu<H>, id: usize, args: (u32, u
             warn!("Unhandled hypercall {}. vcpu: {:#x?}", id, vcpu);
         }
     }
-    Ok(0)
+    // Ok(0)
+    // to compatible with jailhouse hypervisor test
+    Ok(args.0)
     // Err(HyperError::NotSupported)
 }
