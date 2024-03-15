@@ -16,12 +16,16 @@ bitflags::bitflags! {
         const WRITE         = 1 << 1;
         /// Executable.
         const EXECUTE       = 1 << 2;
+        /// DMA
+        const DMA           = 1 << 3;
         /// Device memory.
         const DEVICE        = 1 << 4;
         /// Reserved memory, do not use for allocation.
         const RESERVED      = 1 << 5;
         /// Free memory for allocation.
         const FREE          = 1 << 6;
+        /// USER
+        const USER          = 1 << 9;
     }
 }
 

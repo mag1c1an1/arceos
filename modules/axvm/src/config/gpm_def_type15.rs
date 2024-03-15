@@ -1,4 +1,4 @@
-use axruntime::type1_5::{CellConfig, HvSystemConfig};
+use axhal::config::{CellConfig, HvSystemConfig};
 use hypercraft::{GuestPageTableTrait, GuestPhysAddr, HostPhysAddr, HostVirtAddr, HyperCraftHal};
 use memory_addr::align_down_4k;
 use page_table_entry::MappingFlags;

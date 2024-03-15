@@ -73,6 +73,13 @@ pub fn platform_init() {
     self::time::init_primary();
 }
 
+#[cfg(feature = "type1_5")]
+pub mod consts;
+#[cfg(feature = "type1_5")]
+pub mod config;
+#[cfg(feature = "type1_5")]
+pub mod header;
+
 /// Initializes the platform devices for the primary CPU.
 #[cfg(feature = "type1_5")]
 pub fn platform_init() {
@@ -112,6 +119,7 @@ fn primary_init_early(cpu_id: u32) {
     crate::cpu::init_primary(cpu_id as usize);
     self::uart16550::init();
     self::time::init_early();
+    self::mem::init_mmio_num();
     axlog::ax_println!("primary_init_early OK!!!");
     INIT_EARLY_OK.store(1, Ordering::Release);
 }

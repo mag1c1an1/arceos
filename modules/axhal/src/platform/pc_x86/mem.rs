@@ -2,19 +2,31 @@
 
 use crate::mem::*;
 
+#[cfg(feature = "type1_5")]
+use lazy_init::LazyInit;
+#[cfg(feature = "type1_5")]
+use crate::platform::header::HvHeader;
+#[cfg(feature = "type1_5")]
+use crate::platform::config::HvSystemConfig;
+#[cfg(feature = "type1_5")]
+static mmio_num: LazyInit<usize> = LazyInit::new();
+
 /// Number of physical memory regions.
 pub(crate) fn memory_regions_num() -> usize {
     cfg_if::cfg_if! {
-        if #[cfg(feature="hv")] {
-    common_memory_regions_num() + 3
+        if #[cfg(feature="type1_5")] {
+            *mmio_num.try_get().unwrap()
+        } else if #[cfg(feature="hv")] {
+            common_memory_regions_num() + 3
         } else {
-    common_memory_regions_num() + 2
+            common_memory_regions_num() + 2
         }
     }
 }
 
 /// Returns the physical memory region at the given index, or [`None`] if the
 /// index is out of bounds.
+#[cfg(not(feature = "type1_5"))]
 pub(crate) fn memory_region_at(idx: usize) -> Option<MemRegion> {
     let num = common_memory_regions_num();
     if idx == 0 {
@@ -54,4 +66,56 @@ pub(crate) fn memory_region_at(idx: usize) -> Option<MemRegion> {
     } else {
         None
     }
+}
+
+
+/// Returns the physical memory region at the given index, or [`None`] if the
+/// index is out of bounds.
+#[cfg(feature = "type1_5")]
+pub(crate) fn memory_region_at(idx: usize) -> Option<MemRegion> {
+    let num = memory_regions_num();
+    let header = HvHeader::get();
+    let sys_config = HvSystemConfig::get();
+    let cell_config = sys_config.root_cell.config();
+    let hv_phys_start = sys_config.hypervisor_memory.phys_start as usize;
+    let hv_phys_size = sys_config.hypervisor_memory.size as usize;
+
+    if idx == 0 {
+        Some(MemRegion {
+            paddr: PhysAddr::from(hv_phys_start),
+            size: header.core_size,
+            flags: MemRegionFlags::READ | MemRegionFlags::WRITE | MemRegionFlags::EXECUTE,
+            name: "core size",
+        })
+    } else if idx == 1 {
+        Some(MemRegion {
+            paddr: PhysAddr::from(hv_phys_start + header.core_size),
+            size: hv_phys_size - header.core_size,
+            flags: MemRegionFlags::READ | MemRegionFlags::WRITE,
+            name: "hv phys size",
+        })
+    } else if idx < num {
+        let mem_regions = cell_config.mem_regions();
+        let region = mem_regions[idx - 2];
+        let region_paddr = region.phys_start as usize;
+        let region_size = region.size as usize;
+        let region_flag = region.flags.into();
+        Some(MemRegion {
+            paddr: PhysAddr::from(region_paddr),
+            size: region_size,
+            flags: region_flag,
+            name: "mmio",
+        })
+    } else {
+        None
+    }
+}
+/// init mmio_num
+#[cfg(feature = "type1_5")]
+pub(crate) fn init_mmio_num() {
+    let sys_config = HvSystemConfig::get();
+    let cell_config = sys_config.root_cell.config();
+    let num = cell_config.mem_regions().len() + 2;
+    info!("mmio_num = {}", num);
+    mmio_num.init_by(num);
 }

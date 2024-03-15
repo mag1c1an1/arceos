@@ -1,8 +1,8 @@
 QEMU ?= qemu-system-x86_64
 PORT ?= 2333
-WORKSPACE ?= /home/tang/server
+WORKSPACE ?= /home/wark/arceos/qpz
 target_bin := $(WORKSPACE)/arceos/apps/hv/hv_pc-x86.bin 
-jailhouse := $(WORKSPACE)/jailhouse
+jailhouse := /home/wark/arceos/jailhouse
 # jailhouse := /home/tang/server/jailhouse
 guest := $(WORKSPACE)/arceos/scripts/guest/*
 
@@ -28,10 +28,10 @@ image: $(qemu_image)
 	EOF
 	cloud-localds user-data.img user-data
 	qemu-img resize $(qemu_image) +64G
-	$(QEMU) $(qemu_args) -drive file=user-data.img,format=raw
+	sudo $(QEMU) $(qemu_args) -drive file=user-data.img,format=raw
 
 qemu: $(qemu_image)
-	$(QEMU) $(qemu_args)
+	sudo $(QEMU) $(qemu_args)
 
 ssh:
 	ssh -p $(PORT) ubuntu@localhost

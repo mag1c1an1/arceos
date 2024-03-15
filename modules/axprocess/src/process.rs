@@ -284,6 +284,8 @@ impl Process {
                 })),
             ],
         ));
+        info!("new process!");
+
         let mut new_trap_frame = TrapFrame::new_user(entry, user_stack_bottom, 0);
         new_trap_frame.app_init_args();
         let new_task = TaskInner::new_process(
@@ -293,17 +295,19 @@ impl Process {
             page_table_token,
             new_trap_frame,
         );
+        info!("new process init 1!");
         TID2TASK
             .lock()
             .insert(new_task.id().as_u64(), Arc::clone(&new_task));
         new_task.set_leader(true);
-
+        info!("new process init 2!");
         new_process.tasks.lock().push(Arc::clone(&new_task));
         #[cfg(feature = "signal")]
         new_process
             .signal_modules
             .lock()
             .insert(new_task.id().as_u64(), SignalModule::init_signal(None));
+        info!("new process init 3!");
         new_process
             .robust_list
             .lock()
@@ -311,6 +315,7 @@ impl Process {
         PID2PC
             .lock()
             .insert(new_process.pid(), Arc::clone(&new_process));
+        info!("new process init!");
         // 将其作为内核进程的子进程
         match PID2PC.lock().get(&KERNEL_PROCESS_ID) {
             Some(kernel_process) => {

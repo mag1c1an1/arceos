@@ -81,3 +81,18 @@ pub use self::platform::platform_init;
 
 #[cfg(feature = "smp")]
 pub use self::platform::platform_init_secondary;
+
+
+#[cfg(feature = "type1_5")]
+pub mod header {
+    pub use super::platform::header::*;
+}
+
+#[cfg(feature = "type1_5")]
+pub mod config {
+    pub use super::platform::config::*;
+}
+#[cfg(feature = "type1_5")]
+pub mod consts {
+    pub use super::platform::consts::*;
+}

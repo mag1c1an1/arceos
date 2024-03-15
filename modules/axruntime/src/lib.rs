@@ -275,6 +275,17 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
             init_interrupt();
         }
         */
+        // cfg_if::cfg_if! {
+        //     if #[cfg(feature = "monolithic")] {
+        //         axprocess::init_kernel_process();
+        //         info!("Kernel process init ok!!");
+    
+        //     }
+        //     else {
+        //         #[cfg(feature = "multitask")]
+        //         axtask::init_scheduler();
+        //     }
+        // }
         unsafe {
             main(&linux_context);
         };

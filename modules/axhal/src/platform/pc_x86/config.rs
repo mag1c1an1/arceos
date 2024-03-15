@@ -2,8 +2,9 @@ use core::fmt::{Debug, Formatter, Result};
 use core::{mem::size_of, slice};
 use bitflags::bitflags;
 use page_table_entry::MappingFlags;
-use alloc::string::String;
-use super::HvHeader;
+use crate::mem::MemRegionFlags;
+// use alloc::string::String;
+use super::header::HvHeader;
 // use super::error::{HvError, HvErrorNum, HvResult};
 
 const CONFIG_SIGNATURE: [u8; 6] = *b"AOSSYS";
@@ -14,6 +15,7 @@ const HV_CELL_NAME_MAXLEN: usize = 31;
 const HV_MAX_IOMMU_UNITS: usize = 8;
 
 bitflags! {
+    #[derive(Debug, Copy, Clone)]
     pub struct MemFlags: u64 {
         const READ          = 1 << 0;
         const WRITE         = 1 << 1;
@@ -22,6 +24,31 @@ bitflags! {
         const IO            = 1 << 4;
         const NO_HUGEPAGES  = 1 << 8;
         const USER          = 1 << 9;
+    }
+}
+
+impl From<MemFlags> for MemRegionFlags {
+    fn from(f: MemFlags) -> Self {
+        let mut ret = MemRegionFlags::empty();
+        if f.contains(MemFlags::READ) {
+            ret |= Self::READ;
+        }
+        if f.contains(MemFlags::WRITE) {
+            ret |= Self::WRITE;
+        }
+        if f.contains(MemFlags::EXECUTE) {
+            ret |= Self::EXECUTE;
+        }
+        if f.contains(MemFlags::EXECUTE) {
+            ret |= Self::EXECUTE;
+        }
+        if f.contains(MemFlags::DMA) {
+            ret |= Self::DMA;
+        }
+        if f.contains(MemFlags::USER) {
+            ret |= Self::USER;
+        }
+        ret
     }
 }
 
@@ -46,7 +73,6 @@ impl From<MemFlags> for MappingFlags {
         ret
     }
 }
-
 extern "C" {
     fn __core_end();
 }
