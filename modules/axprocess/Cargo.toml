@@ -42,3 +42,4 @@ crate_interface = { path = "../../crates/crate_interface" }
 lazy_init = { path = "../../crates/lazy_init", optional = true }
 kernel_guard = { path = "../../crates/kernel_guard", optional = true }
 allocator = { path = "../../crates/allocator", features = ["buddy"], optional = true }
+x86_64 = "0.14"

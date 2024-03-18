@@ -58,17 +58,17 @@ mod linux;
 #[cfg(feature = "type1_5")]
 #[no_mangle]
 fn main(linux_context: &LinuxContext) {
-    println!("Hello, hv!");
-    println!("Currently Linux inside VM is pinned on Core 0");
-    linux::boot_linux(0, linux_context);
-    // println!("Hello, processs on core {}!", 0);
+    // println!("Hello, hv!");
+    // println!("Currently Linux inside VM is pinned on Core 0");
+    // linux::boot_linux(0, linux_context);
+    println!("Hello, processs on core {}!", 0);
 
-    // process::hello();
+    process::hello();
 
-    // loop {
-    //     libax::thread::sleep(libax::time::Duration::from_secs(1));
-    //     println!("main tick");
-    // }
+    loop {
+        libax::thread::sleep(libax::time::Duration::from_secs(1));
+        println!("main tick");
+    }
 /* 
 	loop {
         libax::thread::sleep(libax::time::Duration::from_secs(1));

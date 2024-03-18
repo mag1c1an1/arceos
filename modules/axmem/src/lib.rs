@@ -28,7 +28,7 @@ use axhal::{
     paging::{MappingFlags, PageSize, PageTable},
 };
 use xmas_elf::symbol_table::Entry;
-
+use axhal::mem::MemRegionFlags;
 pub(crate) const REL_GOT: u32 = 6;
 pub(crate) const REL_PLT: u32 = 7;
 pub(crate) const REL_RELATIVE: u32 = 8;
@@ -96,7 +96,9 @@ impl MemorySet {
                 .map_region(phys_to_virt(r.paddr), r.paddr, r.size, r.flags.into(), true)
                 .expect("Error mapping kernel memory");
         }
-
+        // page_table
+        // .map_region(VirtAddr::from(0x3FA0_0000), PhysAddr::from(0x3FA0_0000), 0x40_0000, (MemRegionFlags::RESERVED | MemRegionFlags::READ | MemRegionFlags::WRITE).into(), true)
+        // .expect("Error mapping kernel memory");
         Self {
             page_table,
             owned_mem: BTreeMap::new(),

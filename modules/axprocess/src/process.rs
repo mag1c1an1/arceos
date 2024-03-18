@@ -13,6 +13,9 @@ use axmem::MemorySet;
 use axsync::Mutex;
 use axtask::{current, AxTaskRef, TaskId, TaskInner, RUN_QUEUE};
 use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU64, Ordering};
+use x86_64::registers::control::{Cr0, Cr0Flags, Cr3, Cr4, Cr4Flags};
+use core::arch::x86_64::__readeflags;
+use core::arch::x86_64::__writeeflags;
 
 use crate::fd_manager::FdManager;
 use crate::flags::CloneFlags;
@@ -246,12 +249,19 @@ impl Process {
 
         let mut memory_set = MemorySet::new_with_kernel_mapped();
         let page_table_token = memory_set.page_table_token();
-        // if page_table_token != 0 {
-        //     unsafe {
-        //         write_page_table_root(page_table_token.into());
-        //         riscv::register::sstatus::set_sum();
-        //     };
-        // }
+        if page_table_token != 0 {
+            unsafe {
+                let cr0 = Cr0::read_raw();
+                let cr4 = Cr4::read_raw();
+                let eflags = __readeflags();
+                info!("CR0 :{:x}, CR4 :{:x}, eflags: {:x}", cr0, cr4, eflags);
+                let eflags = eflags | (1 << 18);
+                __writeeflags(eflags);
+                write_page_table_root(page_table_token.into());
+        
+                // riscv::register::sstatus::set_sum();
+            };
+        }
         let (entry, user_stack_bottom, heap_bottom) =
             if let Ok(ans) = crate::load_hello_app(&mut memory_set) {
                 ans

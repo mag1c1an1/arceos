@@ -3,7 +3,6 @@ use core::{mem::size_of, slice};
 use bitflags::bitflags;
 use page_table_entry::MappingFlags;
 use crate::mem::MemRegionFlags;
-// use alloc::string::String;
 use super::header::HvHeader;
 // use super::error::{HvError, HvErrorNum, HvResult};
 

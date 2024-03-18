@@ -1,14 +1,11 @@
 use axhal::consts::{
     free_memory_start, hv_end
 };
-// use axhal::config::{HvSystemConfig, MemFlags};
-// use axhal::header::HvHeader;
 
 use axhal::mem::{memory_regions, phys_to_virt, MemRegionFlags};
 use axhal::paging::PageTable;
 use hypercraft::HyperResult;
 use memory_addr::{PhysAddr, VirtAddr};
-// use page_table_entry::MappingFlags;
 
 use spin::{Once, RwLock};
 

@@ -80,7 +80,6 @@ impl TrapFrame {
     /// 用于第一次进入应用程序时的初始化
     pub fn app_init_args(&mut self) {
         let user_sp = self.user_rsp;
-
         unsafe {
             // a0为参数个数
             // a1存储的是用户栈底，即argv
