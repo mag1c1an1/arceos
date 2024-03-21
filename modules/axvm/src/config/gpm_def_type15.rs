@@ -6,10 +6,16 @@ use page_table_entry::MappingFlags;
 use crate::mm::{GuestMemoryRegion, GuestPhysMemorySet};
 use crate::{Error, GuestPageTable, Result as HyperResult};
 
+static ROOT_GPM: spin::Once<GuestPhysMemorySet> = spin::Once::new();
+
+pub fn root_gpm() -> &'static GuestPhysMemorySet {
+    ROOT_GPM.get().expect("Uninitialized root gpm!")
+}
+
 pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
     let sys_config = HvSystemConfig::get();
     let cell_config = sys_config.root_cell.config();
-    debug!("cell_config:\n{:#x?}", cell_config);
+    trace!("cell_config:\n{:#x?}", cell_config);
 
     let mut gpm = GuestPhysMemorySet::new()?;
     debug!("create a new gpm");
@@ -17,7 +23,7 @@ pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
     let hv_phys_start = sys_config.hypervisor_memory.phys_start as usize;
     let hv_phys_size = sys_config.hypervisor_memory.size as usize;
     let offset = hv_phys_start - hv_phys_start;
-    debug!(
+    trace!(
         "gpm mapped gpa:{:#x} hpa: {:#x} offset:{:#x} size: {:#x}",
         hv_phys_start, hv_phys_start, offset, hv_phys_size
     );
@@ -28,13 +34,12 @@ pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
         size: hv_phys_size,
         flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
     }.into())?;
-    debug!("after gpm mapped gpa:{:#x} hpa: {:#x} offset:{:#x}", hv_phys_start, hv_phys_start, offset);
     for region in cell_config.mem_regions() {
         let start_gpa = region.virt_start as usize;
         let start_hpa = region.phys_start as usize;
         let region_size = region.size as usize;
         let offset = start_gpa - start_hpa;
-        debug!("gpm mapped gpa:{:#x} hpa: {:#x} offset:{:#x} size:{:#x}", start_gpa, start_hpa, offset, region_size);
+        trace!("gpm mapped gpa:{:#x} hpa: {:#x} offset:{:#x} size:{:#x}", start_gpa, start_hpa, offset, region_size);
         gpm.map_region(GuestMemoryRegion {
             gpa: start_gpa as GuestPhysAddr,
             hpa: start_hpa as HostPhysAddr,
@@ -43,4 +48,10 @@ pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
         }.into())?;
     }
     Ok(gpm)
+}
+
+pub fn init_gpm() -> HyperResult {
+    let gpm = setup_gpm()?;
+    ROOT_GPM.call_once(|| gpm);
+    Ok(())
 }

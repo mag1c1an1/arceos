@@ -4,6 +4,7 @@ use crate::mem::VirtAddr;
 use lazy_init::LazyInit;
 #[cfg(feature = "type1_5")]
 use x86::{segmentation, segmentation::SegmentSelector, Ring};
+use super::current_cpu_id;
 
 use memoffset::offset_of;
 
@@ -36,6 +37,7 @@ fn init_percpu() {
 #[cfg(feature = "type1_5")]
 fn init_percpu() {
     unsafe {
+        debug!("CPU{} init_percpu", current_cpu_id());
         let tss = TSS.current_ref_mut_raw();
         let gdt = GDT.current_ref_mut_raw();
         tss.init_by(TaskStateSegment::new());
@@ -50,6 +52,7 @@ fn init_percpu() {
 
         // PAT0: WB, PAT1: WC, PAT2: UC
         x86::msr::wrmsr(x86::msr::IA32_PAT, 0x070106);
+        debug!("CPU{} finish init percpu", current_cpu_id());
     }
 }
 

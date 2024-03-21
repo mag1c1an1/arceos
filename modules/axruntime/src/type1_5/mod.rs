@@ -20,4 +20,4 @@ mod memory;
 pub use consts::HV_BASE;
 pub use config::{HvSystemConfig, CellConfig, MemFlags};
 pub use header::HvHeader;
-pub use memory::{init_type15_allocator, activate_hv_pt};
+pub use memory::{init_type15_allocator, activate_hv_pt, init_hv_page_table};

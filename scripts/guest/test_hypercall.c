@@ -27,14 +27,37 @@ static inline long hypercall(int num) {
 	return ret;
 }
 
+static inline long hypercall1(unsigned int nr, unsigned long p1)
+{
+    long ret;
+    asm volatile(HYPERCALL
+             : "=a"(ret)
+             : "a"(nr), "b"(p1)
+             : "memory");
+    return ret;
+}
+
+static inline long hypercall2(unsigned int nr, unsigned long p1,
+                  unsigned long p2)
+{
+    long ret;
+    asm volatile(HYPERCALL
+             : "=a"(ret)
+             : "a"(nr), "b"(p1), "c"(p2)
+             : "memory");
+    return ret;
+}
+
 int main () {
 	signal(SIGSEGV, sig_handler);
 	signal(SIGILL, sig_handler);
-	int ret = hypercall(2333);
+	// int ret = hypercall(2333);
+	int ret = hypercall1(9, 0b10);
 	if (ret == 2333) {
 		in_guest();
 	} else {
 		in_host();
 	}
+
 	return 0;
 }

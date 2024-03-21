@@ -81,3 +81,5 @@ pub use self::platform::platform_init;
 
 #[cfg(feature = "smp")]
 pub use self::platform::platform_init_secondary;
+
+pub use platform::current_cpu_id;

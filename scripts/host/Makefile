@@ -8,7 +8,7 @@ guest := $(WORKSPACE)/arceos/scripts/guest/*
 
 qemu_image := ubuntu-20.04-server-cloudimg-amd64.img
 qemu_args := \
-  -smp 1 -m 4G -accel kvm -nographic \
+  -smp 2 -m 4G -accel kvm -nographic \
   -machine q35,kernel_irqchip=split \
   -cpu host,-kvm-asyncpf,-kvm-pv-eoi,-kvm-pv-ipi,-kvm-pv-sched-yield,-kvm-pv-unhalt,-kvm-steal-time,-kvmclock \
   -drive file=$(qemu_image) \

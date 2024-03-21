@@ -5,23 +5,40 @@
 use hypercraft::{PerCpu, VCpu, VmCpus, VM};
 #[cfg(feature = "type1_5")]
 use hypercraft::LinuxContext;
+#[cfg(feature = "type1_5")]
+use crate::config::{root_gpm, init_gpm};
 
 #[cfg(target_arch = "x86_64")]
 use super::device::{self, X64VcpuDevices, X64VmDevices};
 use super::arch::new_vcpu;
 use axhal::hv::HyperCraftHalImpl;
 
+use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 // use super::type1_5::cell;
+static INIT_GPM_OK: AtomicU32 = AtomicU32::new(0);
+static INITED_CPUS: AtomicUsize = AtomicUsize::new(0);
 
 #[cfg(feature = "type1_5")]
 pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
-    info!("into main {}", hart_id);
+    info!("CPU{} into config_boot_linux", hart_id);
     crate::arch::cpu_hv_hardware_enable(hart_id, linux_context);
-    info!("hardware_enable done");
-    let gpm = super::config::setup_gpm().unwrap();
-    info!("type 1.5 gpm: {:#x?}", gpm);
-    let vcpu = new_vcpu(0, crate::arch::cpu_vmcs_revision_id(), gpm.nest_page_table_root(), &linux_context).unwrap();
+    info!("CPU{} hardware_enable done", hart_id);
+    if hart_id == 0 {
+        super::config::init_gpm();
+        INIT_GPM_OK.store(1, Ordering::Release);
+    }else {
+        while INIT_GPM_OK.load(Ordering::Acquire) < 1 {
+            core::hint::spin_loop();
+        }
+    }
+    info!("CPU{} after init_gpm", hart_id);
+    
+    // let gpm = super::config::setup_gpm().unwrap();
+    let gpm = super::config::root_gpm();
+    debug!("CPU{} type 1.5 gpm: {:#x?}", hart_id, gpm);
+    let vcpu = new_vcpu(hart_id, crate::arch::cpu_vmcs_revision_id(), gpm.nest_page_table_root(), &linux_context).unwrap();
     let mut vcpus = VmCpus::<HyperCraftHalImpl, X64VcpuDevices<HyperCraftHalImpl>>::new();
+    info!("CPU{} add vcpu to vm...", hart_id);
     vcpus.add_vcpu(vcpu).expect("add vcpu failed");
     let mut vm = VM::<
         HyperCraftHalImpl,
@@ -29,9 +46,15 @@ pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
         X64VmDevices<HyperCraftHalImpl>,
     >::new(vcpus);
     // The bind_vcpu method should be decoupled with vm struct.
-    vm.bind_vcpu(0).expect("bind vcpu failed");
-    // debug!("after bind vcpu to vm");
-    info!("{:?}", vm.run_type15_vcpu(0, &linux_context));
+    vm.bind_vcpu(hart_id).expect("bind vcpu failed");
+    
+    INITED_CPUS.fetch_add(1, Ordering::SeqCst);
+    while INITED_CPUS.load(Ordering::Acquire) < axconfig::SMP {
+        core::hint::spin_loop();
+    }
+
+    debug!("CPU{} before run vcpu", hart_id);
+    info!("{:?}", vm.run_type15_vcpu(hart_id, &linux_context));
 
     // disable hardware virtualization todo
 }
