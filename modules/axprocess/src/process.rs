@@ -255,6 +255,7 @@ impl Process {
                 let cr4 = Cr4::read_raw();
                 let eflags = __readeflags();
                 info!("CR0 :{:x}, CR4 :{:x}, eflags: {:x}", cr0, cr4, eflags);
+                // EFLAGS.AC = 1 
                 let eflags = eflags | (1 << 18);
                 __writeeflags(eflags);
                 write_page_table_root(page_table_token.into());
@@ -294,7 +295,6 @@ impl Process {
                 })),
             ],
         ));
-        info!("new process!");
 
         let mut new_trap_frame = TrapFrame::new_user(entry, user_stack_bottom, 0);
         new_trap_frame.app_init_args();
@@ -305,19 +305,16 @@ impl Process {
             page_table_token,
             new_trap_frame,
         );
-        info!("new process init 1!");
         TID2TASK
             .lock()
             .insert(new_task.id().as_u64(), Arc::clone(&new_task));
         new_task.set_leader(true);
-        info!("new process init 2!");
         new_process.tasks.lock().push(Arc::clone(&new_task));
         #[cfg(feature = "signal")]
         new_process
             .signal_modules
             .lock()
             .insert(new_task.id().as_u64(), SignalModule::init_signal(None));
-        info!("new process init 3!");
         new_process
             .robust_list
             .lock()
