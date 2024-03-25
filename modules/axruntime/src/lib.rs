@@ -222,45 +222,30 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
 
 #[cfg(feature = "type1_5")]
 pub mod type1_5;
+// #[cfg(feature = "type1_5")]
+// pub use axhal::{paging::PageTable, mem::memory_regions, mem::phys_to_virt};
 #[cfg(feature = "type1_5")]
 #[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
     let is_primary = cpu_id == 0;  
     
-<<<<<<< HEAD
-        axlog::init();
-        axlog::set_max_level(option_env!("LOG").unwrap_or("")); // no effect if set `log-level-*` features
-        info!("Logging is enabled.");
-        info!("Primary CPU {} started, linux_sp = {:#x}.", cpu_id, linux_sp);
-        info!("rust_main_type1_5\n");
-        /* 
-        unsafe {
-            let sysconfig = type1_5::HvSystemConfig::get();
-            debug!("sysconfig: {:#x?}", sysconfig);
-            axhal::mem::PHYS_VIRT_TYPE15_OFFSET = type1_5::consts::HV_BASE - sysconfig.hypervisor_memory.phys_start as usize;
-            debug!("type1.5 hv offset: {:#x}", axhal::mem::PHYS_VIRT_TYPE15_OFFSET);
-        };
-        */
-        #[cfg(feature = "alloc")]
-        {
-            type1_5::init_type15_allocator();
+    if is_primary {
+        runtime_init_early().expect("runtime init early failed");
+    } else {
+        while INIT_EARLY_OK.load(Ordering::Acquire) < 1 {
+            core::hint::spin_loop();
         }
+        debug!("CPU{} after primary early init ok", cpu_id);
+    }
+    info!("CPU {} init finished, linux_sp = {:#x}. rust_main_type1_5", cpu_id, linux_sp);
+    let linux_context = LinuxContext::load_from(linux_sp);
+    trace!("CPU{} Linux: {:#x?}", cpu_id, linux_context);
+    type1_5::activate_hv_pt(); 
 
-        let linux_context = LinuxContext::load_from(linux_sp);
-        debug!("Linux: {:#x?}", linux_context);
-
-        info!("Initialize platform devices...");
+    if is_primary {
+        info!("Primary Initialize platform devices...");
         axhal::platform_init();
-
-        info!("activate_hv_pt");
-        type1_5::activate_hv_pt();
-        /* 
-        #[cfg(feature = "irq")]
-        {
-            info!("Initialize interrupt handlers...");
-            init_interrupt();
-        }
-        */
+        
         cfg_if::cfg_if! {
             if #[cfg(feature = "monolithic")] {
                 axprocess::init_kernel_process();
@@ -272,43 +257,69 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
                 axtask::init_scheduler();
             }
         }
-        unsafe {
-            main(&linux_context);
-        };
-    }else {
-        loop {
-            ;
-=======
-    if is_primary {
-        runtime_init_early().expect("runtime init early failed");
-    } else {
-        while INIT_EARLY_OK.load(Ordering::Acquire) < 1 {
-            core::hint::spin_loop();
->>>>>>> e88271977df5c0dea418060c78754f6931a04134
-        }
-        debug!("CPU{} after primary early init ok", cpu_id);
-    }
-    info!("CPU {} init finished, linux_sp = {:#x}. rust_main_type1_5", cpu_id, linux_sp);
-    let linux_context = LinuxContext::load_from(linux_sp);
-    trace!("CPU{} Linux: {:#x?}", cpu_id, linux_context);
-    if is_primary {
-        info!("Primary Initialize platform devices...");
-        axhal::platform_init();
-        // INIT_SYNC.fetch_add(1, Ordering::Release);
+        // let mut page_table = PageTable::try_new().expect("Error allocating page table.");
+
+        // for r in memory_regions() {
+        //     debug!("4");
+        //     page_table
+        //         .map_region(phys_to_virt(r.paddr), r.paddr, r.size, r.flags.into(), true)
+        //         .expect("Error mapping kernel memory");
+        // }
+        INIT_SYNC.fetch_add(1, Ordering::Release);
     }else {
         info!("Secondary Initialize platform devices...");
-        /* 
         while INIT_SYNC.load(Ordering::Acquire) < 1{
             core::hint::spin_loop();
-        }*/
+        }
+        // let mut page_table = PageTable::try_new().expect("Error allocating page table.");
+
+        // for r in memory_regions() {
+        //     debug!("1");
+        //     page_table
+        //         .map_region(phys_to_virt(r.paddr), r.paddr, r.size, r.flags.into(), true)
+        //         .expect("Error mapping kernel memory");
+        // }
         axhal::platform_init_secondary();
-        // INIT_SYNC.fetch_add(1, Ordering::Release);
+        // loop{};
+        // let mut page_table = PageTable::try_new().expect("Error allocating page table.");
+
+        // for r in memory_regions() {
+        //     debug!("2");
+        //     page_table
+        //         .map_region(phys_to_virt(r.paddr), r.paddr, r.size, r.flags.into(), true)
+        //         .expect("Error mapping kernel memory");
+        // }
+        #[cfg(feature = "multitask")]
+        axtask::init_scheduler_secondary();
+
+        INIT_SYNC.fetch_add(1, Ordering::Release);
     }
-    /* 
+    // let mut page_table = PageTable::try_new().expect("Error allocating page table.");
+
+    // for r in memory_regions() {
+    //     debug!("3");
+    //     page_table
+    //         .map_region(phys_to_virt(r.paddr), r.paddr, r.size, r.flags.into(), true)
+    //         .expect("Error mapping kernel memory");
+    // }
+
+    
     while INIT_SYNC.load(Ordering::Acquire) < 2 {
         core::hint::spin_loop();
     }
-    */
+    info!("Found physcial memory regions:");
+    // let mut page_table = PageTable::try_new().expect("Error allocating page table.");
+
+    // for r in memory_regions() {
+    //     debug!(
+    //         "mapping kernel region [0x{:x}, 0x{:x})",
+    //         usize::from(phys_to_virt(r.paddr)),
+    //         usize::from(phys_to_virt(r.paddr)) + r.size,
+    //     );
+    //     page_table
+    //         .map_region(phys_to_virt(r.paddr), r.paddr, r.size, r.flags.into(), true)
+    //         .expect("Error mapping kernel memory");
+    // }
     debug!("CPU{} before into main", cpu_id);
     unsafe {
         main(cpu_id, &linux_context);
@@ -318,6 +329,7 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
 }
 
 static INIT_EARLY_OK: AtomicU32 = AtomicU32::new(0);
+static INIT_SYNC: AtomicU32 = AtomicU32::new(0);
 
 pub fn runtime_init_early() -> HyperResult {
     ax_println!("{}", LOGO);

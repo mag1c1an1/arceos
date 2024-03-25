@@ -68,7 +68,6 @@ pub(crate) fn memory_region_at(idx: usize) -> Option<MemRegion> {
     }
 }
 
-
 /// Returns the physical memory region at the given index, or [`None`] if the
 /// index is out of bounds.
 #[cfg(feature = "type1_5")]

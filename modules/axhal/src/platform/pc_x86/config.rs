@@ -4,7 +4,6 @@ use bitflags::bitflags;
 use page_table_entry::MappingFlags;
 use crate::mem::MemRegionFlags;
 use super::header::HvHeader;
-// use super::error::{HvError, HvErrorNum, HvResult};
 
 const CONFIG_SIGNATURE: [u8; 6] = *b"AOSSYS";
 const CONFIG_REVISION: u16 = 10;
@@ -13,9 +12,11 @@ pub const PER_CPU_ARRAY_PTR: *mut HvSystemConfig = __core_end as _;
 const HV_CELL_NAME_MAXLEN: usize = 31;
 const HV_MAX_IOMMU_UNITS: usize = 8;
 
+#[derive(Debug, Copy, Clone)]
+pub struct MemFlags(u64);
+
 bitflags! {
-    #[derive(Debug, Copy, Clone)]
-    pub struct MemFlags: u64 {
+    impl MemFlags: u64 {
         const READ          = 1 << 0;
         const WRITE         = 1 << 1;
         const EXECUTE       = 1 << 2;
@@ -38,8 +39,8 @@ impl From<MemFlags> for MemRegionFlags {
         if f.contains(MemFlags::EXECUTE) {
             ret |= Self::EXECUTE;
         }
-        if f.contains(MemFlags::EXECUTE) {
-            ret |= Self::EXECUTE;
+        if f.contains(MemFlags::IO) {
+            ret |= Self::DEVICE;
         }
         if f.contains(MemFlags::DMA) {
             ret |= Self::DMA;
@@ -72,9 +73,11 @@ impl From<MemFlags> for MappingFlags {
         ret
     }
 }
+
 extern "C" {
     fn __core_end();
 }
+
 #[derive(Debug, Copy, Clone)]
 #[repr(C, packed)]
 struct HvConsole {
@@ -226,19 +229,6 @@ pub struct HvSystemConfig {
     // CellConfigLayout placed here.
 }
 
-/// A dummy layout with all variant-size fields empty.
-// #[derive(Debug)]
-// #[repr(C, packed)]
-// struct CellConfigLayout {
-//     cpus: [u64; 0],
-//     mem_regions: [HvMemoryRegion; 0],
-//     cache_regions: [HvCacheRegion; 0],
-//     irqchips: [HvIrqChip; 0],
-//     pio_bitmap: [u8; 0],
-//     pci_devices: [HvPciDevice; 0],
-//     pci_caps: [HvPciCapability; 0],
-// }
-
 pub struct CellConfig<'a> {
     desc: &'a HvCellDesc,
 }
@@ -266,18 +256,7 @@ impl HvSystemConfig {
 
     pub const fn size(&self) -> usize {
         size_of::<Self>() + self.root_cell.config_size()
-    }
-/* 
-    pub fn check(&self) -> HvResult {
-        if self.signature != CONFIG_SIGNATURE {
-            return Err(HvError::new(HvErrorNum::EINVAL, file!(), line!(), column!(), Some(String::from("HvSystemConfig signature not matched!"))));
-        }
-        if self.revision != CONFIG_REVISION {
-            return Err(HvError::new(HvErrorNum::EINVAL, file!(), line!(), column!(), Some(String::from("HvSystemConfig revision not matched!"))));
-        }
-        Ok(())
-    }
-*/    
+    }  
 }
 
 impl<'a> CellConfig<'a> {
@@ -307,17 +286,17 @@ impl<'a> CellConfig<'a> {
     }
 }
 
-impl Debug for CellConfig<'_> {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        let name = self.desc.name;
-        let mut len = 0;
-        while name[len] != 0 {
-            len += 1;
-        }
-        f.debug_struct("CellConfig")
-            .field("name", &core::str::from_utf8(&name[..len]))
-            .field("size", &self.size())
-            .field("mem_regions", &self.mem_regions())
-            .finish()
-    }
-}
+// impl Debug for CellConfig<'_> {
+//     fn fmt(&self, f: &mut Formatter) -> Result {
+//         let name = self.desc.name;
+//         let mut len = 0;
+//         while name[len] != 0 {
+//             len += 1;
+//         }
+//         f.debug_struct("CellConfig")
+//             .field("name", &core::str::from_utf8(&name[..len]))
+//             .field("size", &self.size())
+//             .field("mem_regions", &self.mem_regions())
+//             .finish()
+//     }
+// }

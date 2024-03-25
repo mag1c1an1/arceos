@@ -15,7 +15,7 @@ pub fn root_gpm() -> &'static GuestPhysMemorySet {
 pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
     let sys_config = HvSystemConfig::get();
     let cell_config = sys_config.root_cell.config();
-    trace!("cell_config:\n{:#x?}", cell_config);
+    // trace!("cell_config:\n{:#x?}", cell_config);
 
     let mut gpm = GuestPhysMemorySet::new()?;
     debug!("create a new gpm");

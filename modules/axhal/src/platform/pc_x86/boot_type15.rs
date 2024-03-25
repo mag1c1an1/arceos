@@ -5,12 +5,7 @@ use super::consts::{PER_CPU_SIZE, PER_CPU_ARRAY_PTR};
 unsafe extern "sysv64" fn switch_stack(linux_sp: usize) -> i32 {
     let linux_tp = x86::msr::rdmsr(x86::msr::IA32_GS_BASE) as u64;
     let cpu_id = current_cpu_id();
-<<<<<<< HEAD
-    let cpu_id = 0; // bind the only cell to core 0
     let per_cpu_array_ptr: usize = PER_CPU_ARRAY_PTR as usize + cpu_id as usize * PER_CPU_SIZE;
-=======
-    let per_cpu_array_ptr: usize = ekernel as usize + cpu_id as usize * PER_CPU_SIZE;
->>>>>>> e88271977df5c0dea418060c78754f6931a04134
     let hv_sp = per_cpu_array_ptr + PER_CPU_SIZE - 8;
     let ret;
     core::arch::asm!("

@@ -2,7 +2,7 @@ QEMU ?= qemu-system-x86_64
 PORT ?= 2333
 WORKSPACE ?= /home/wark/arceos/qpz
 target_bin := $(WORKSPACE)/arceos/apps/hv/hv_pc-x86.bin 
-jailhouse := /home/wark/arceos/jailhouse
+jailhouse := $(WORKSPACE)/jailhouse
 # jailhouse := /home/tang/server/jailhouse
 guest := $(WORKSPACE)/arceos/scripts/guest/*
 
@@ -13,7 +13,8 @@ qemu_args := \
   -cpu host,-kvm-asyncpf,-kvm-pv-eoi,-kvm-pv-ipi,-kvm-pv-sched-yield,-kvm-pv-unhalt,-kvm-steal-time,-kvmclock \
   -drive file=$(qemu_image) \
   -net user,id=net,hostfwd=tcp::$(PORT)-:22 -net nic,model=e1000e \
-  -serial mon:stdio
+  -serial mon:stdio \
+  -D qemu.log -d in_asm,int,mmu,pcall,cpu_reset,guest_errors
 
 $(qemu_image):
 	wget https://cloud-images.ubuntu.com/releases/focal/release/$(qemu_image)
