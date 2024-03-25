@@ -82,6 +82,7 @@ pub use self::platform::platform_init;
 #[cfg(feature = "smp")]
 pub use self::platform::platform_init_secondary;
 
+<<<<<<< HEAD
 
 #[cfg(feature = "type1_5")]
 pub mod header {
@@ -96,3 +97,6 @@ pub mod config {
 pub mod consts {
     pub use super::platform::consts::*;
 }
+=======
+pub use platform::current_cpu_id;
+>>>>>>> e88271977df5c0dea418060c78754f6931a04134

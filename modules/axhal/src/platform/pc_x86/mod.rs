@@ -35,7 +35,7 @@ extern "C" {
     fn rust_main_secondary(cpu_id: usize) -> !;
 }
 
-pub(super) fn current_cpu_id() -> usize {
+pub fn current_cpu_id() -> usize {
     match raw_cpuid::CpuId::new().get_feature_info() {
         Some(finfo) => finfo.initial_local_apic_id() as usize,
         None => 0,
@@ -84,12 +84,19 @@ pub mod header;
 #[cfg(feature = "type1_5")]
 pub fn platform_init() {
     self::dtables::init_primary();
-    // self::apic::init_primary();
+    self::apic::init_primary();
+    // self::time::init_primary();
+}
+/// Initializes the platform devices for secondary CPUs.
+#[cfg(all(feature = "type1_5", feature = "smp"))]
+pub fn platform_init_secondary() {
+    self::dtables::init_secondary();
+    // self::apic::init_secondary();
     // self::time::init_primary();
 }
 
 /// Initializes the platform devices for secondary CPUs.
-#[cfg(feature = "smp")]
+#[cfg(all(not(feature = "type1_5"), feature = "smp"))]
 pub fn platform_init_secondary() {
     self::apic::init_secondary();
     self::time::init_secondary();
@@ -109,6 +116,7 @@ extern "sysv64" fn rust_entry_hv(cpu_id: u32, linux_sp: usize) -> i32 {
         while INIT_EARLY_OK.load(Ordering::Acquire) < 1 {
             core::hint::spin_loop();
         }
+        crate::cpu::init_secondary(cpu_id as _);
     }
     let ret = unsafe { rust_main(cpu_id, linux_sp) };
     ret

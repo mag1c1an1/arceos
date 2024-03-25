@@ -14,4 +14,11 @@ use core::sync::atomic::{AtomicI32, AtomicU32, Ordering};
 
 mod memory;
 
+<<<<<<< HEAD
 pub use memory::{init_type15_allocator, activate_hv_pt};
+=======
+pub use consts::HV_BASE;
+pub use config::{HvSystemConfig, CellConfig, MemFlags};
+pub use header::HvHeader;
+pub use memory::{init_type15_allocator, activate_hv_pt, init_hv_page_table};
+>>>>>>> e88271977df5c0dea418060c78754f6931a04134

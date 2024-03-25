@@ -65,6 +65,10 @@ pub fn send_ipi(irq_num: usize) {
     }
 }
 
+pub fn send_nmi_to(dest: usize) {
+    // unsafe{ local_apic().send_ipi(APIC_NMI_VECTOR as _, dest as _) };
+    unsafe { local_apic().send_nmi(dest as _) };
+}
 /// Dispatches the IRQ.
 ///
 /// This function is called by the common interrupt handler. It looks
@@ -96,6 +100,7 @@ fn cpu_has_x2apic() -> bool {
     }
 }
 
+#[cfg(not(feature = "type1_5"))]
 pub(super) fn init_primary() {
     info!("Initialize Local APIC...");
 
@@ -127,6 +132,34 @@ pub(super) fn init_primary() {
     }
 
     info!("Initialize IO APIC...");
+    let io_apic = unsafe { IoApic::new(phys_to_virt(IO_APIC_BASE).as_usize() as u64) };
+    IO_APIC.init_by(SpinNoIrq::new(io_apic));
+}
+
+#[cfg(feature = "type1_5")]
+pub(super) fn init_primary() {
+    info!("Type1.5 Initialize Local APIC...");
+
+    let mut builder = LocalApicBuilder::new();
+    builder
+        .timer_vector(APIC_TIMER_VECTOR as _)
+        .error_vector(APIC_ERROR_VECTOR as _)
+        .spurious_vector(APIC_SPURIOUS_VECTOR as _);
+
+    if cpu_has_x2apic() {
+        info!("Using x2APIC.");
+        unsafe { IS_X2APIC = true };
+    } else {
+        info!("Using xAPIC.");
+        let base_vaddr = phys_to_virt(PhysAddr::from(unsafe { xapic_base() } as usize));
+        builder.set_xapic_base(base_vaddr.as_usize() as u64);
+    }
+    let mut lapic = builder.build().unwrap();
+    unsafe {
+        LOCAL_APIC = Some(lapic);
+    }
+
+    info!("Type1.5 Initialize IO APIC...");
     let io_apic = unsafe { IoApic::new(phys_to_virt(IO_APIC_BASE).as_usize() as u64) };
     IO_APIC.init_by(SpinNoIrq::new(io_apic));
 }

@@ -22,6 +22,7 @@ arrayvec = { version = "0.7.2", default-features = false }
 
 # ax modules
 axhal = { path = "../axhal" }
+axconfig = { path = "../axconfig" }
 axlog = { path = "../axlog" }
 axruntime = { path = "../axruntime", default-features = false }
 axalloc = { path = "../axalloc" }

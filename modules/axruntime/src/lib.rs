@@ -45,6 +45,7 @@ const LOGO: &str = r#"
  d8888888888 888     Y88b.    Y8b.     Y88b. .d88P Y88b  d88P
 d88P     888 888      "Y8888P  "Y8888   "Y88888P"   "Y8888P"
 "#;
+use hypercraft::HyperResult;
 #[cfg(feature = "type1_5")]
 use hypercraft::LinuxContext;
 
@@ -52,7 +53,7 @@ extern "C" {
     #[cfg(not(feature = "type1_5"))]
     fn main();
     #[cfg(feature = "type1_5")]
-    fn main(linux_context: &LinuxContext);
+    fn main(cpu_id: u32, linux_context: &LinuxContext);
 }
 
 struct LogIfImpl;
@@ -92,7 +93,7 @@ impl axlog::LogIf for LogIfImpl {
     }
 }
 
-use core::sync::atomic::{AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicUsize, AtomicU32, Ordering};
 
 static INITED_CPUS: AtomicUsize = AtomicUsize::new(0);
 
@@ -225,23 +226,8 @@ pub mod type1_5;
 #[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
     let is_primary = cpu_id == 0;  
-    if is_primary {
-        ax_println!("{}", LOGO);
-        ax_println!(
-            "\
-            arch = {}\n\
-            platform = {}\n\
-            smp = {}\n\
-            build_mode = {}\n\
-            log_level = {}\n\
-            ",
-            option_env!("ARCH").unwrap_or(""),
-            option_env!("PLATFORM").unwrap_or(""),
-            option_env!("SMP").unwrap_or(""),
-            option_env!("MODE").unwrap_or(""),
-            option_env!("LOG").unwrap_or(""),
-        );
     
+<<<<<<< HEAD
         axlog::init();
         axlog::set_max_level(option_env!("LOG").unwrap_or("")); // no effect if set `log-level-*` features
         info!("Logging is enabled.");
@@ -292,10 +278,77 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
     }else {
         loop {
             ;
+=======
+    if is_primary {
+        runtime_init_early().expect("runtime init early failed");
+    } else {
+        while INIT_EARLY_OK.load(Ordering::Acquire) < 1 {
+            core::hint::spin_loop();
+>>>>>>> e88271977df5c0dea418060c78754f6931a04134
         }
+        debug!("CPU{} after primary early init ok", cpu_id);
     }
-    // one core for arceos, one core for linux
+    info!("CPU {} init finished, linux_sp = {:#x}. rust_main_type1_5", cpu_id, linux_sp);
+    let linux_context = LinuxContext::load_from(linux_sp);
+    trace!("CPU{} Linux: {:#x?}", cpu_id, linux_context);
+    if is_primary {
+        info!("Primary Initialize platform devices...");
+        axhal::platform_init();
+        // INIT_SYNC.fetch_add(1, Ordering::Release);
+    }else {
+        info!("Secondary Initialize platform devices...");
+        /* 
+        while INIT_SYNC.load(Ordering::Acquire) < 1{
+            core::hint::spin_loop();
+        }*/
+        axhal::platform_init_secondary();
+        // INIT_SYNC.fetch_add(1, Ordering::Release);
+    }
+    /* 
+    while INIT_SYNC.load(Ordering::Acquire) < 2 {
+        core::hint::spin_loop();
+    }
+    */
+    debug!("CPU{} before into main", cpu_id);
+    unsafe {
+        main(cpu_id, &linux_context);
+    };
+    
     0
+}
+
+static INIT_EARLY_OK: AtomicU32 = AtomicU32::new(0);
+
+pub fn runtime_init_early() -> HyperResult {
+    ax_println!("{}", LOGO);
+    ax_println!(
+        "\
+        arch = {}\n\
+        platform = {}\n\
+        smp = {}\n\
+        build_mode = {}\n\
+        log_level = {}\n\
+        ",
+        option_env!("ARCH").unwrap_or(""),
+        option_env!("PLATFORM").unwrap_or(""),
+        option_env!("SMP").unwrap_or(""),
+        option_env!("MODE").unwrap_or(""),
+        option_env!("LOG").unwrap_or(""),
+    );
+
+    axlog::init();
+    axlog::set_max_level(option_env!("LOG").unwrap_or("")); // no effect if set `log-level-*` features
+    info!("Logging is enabled.");
+
+    #[cfg(feature = "alloc")]
+    {
+        type1_5::init_type15_allocator();
+    }
+    type1_5::init_hv_page_table();
+
+    INIT_EARLY_OK.store(1, Ordering::Release);
+
+    Ok(())
 }
 
 #[cfg(feature = "alloc")]

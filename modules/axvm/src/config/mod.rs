@@ -37,3 +37,6 @@ mod gpm_def;
 #[path = "gpm_def_type15.rs"]
 mod gpm_def;
 pub use gpm_def::setup_gpm;
+
+#[cfg(feature = "type1_5")]
+pub use gpm_def::{init_gpm, root_gpm};
