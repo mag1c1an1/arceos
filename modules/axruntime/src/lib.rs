@@ -223,8 +223,6 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
 #[cfg(feature = "type1_5")]
 pub mod type1_5;
 #[cfg(feature = "type1_5")]
-pub use axhal::{paging::PageTable, mem::memory_regions, mem::phys_to_virt};
-#[cfg(feature = "type1_5")]
 #[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
     let is_primary = cpu_id == 0;  
@@ -272,14 +270,6 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
     
     while INIT_SYNC.load(Ordering::Acquire) < 2 {
         core::hint::spin_loop();
-    }
-    let mut page_table = PageTable::try_new().expect("Error allocating page table.");
-
-    for r in memory_regions() {
-        debug!("2");
-        page_table
-            .map_region(phys_to_virt(r.paddr), r.paddr, r.size, r.flags.into(), true)
-            .expect("Error mapping kernel memory");
     }
     debug!("CPU{} before into main", cpu_id);
     unsafe {

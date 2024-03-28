@@ -58,16 +58,16 @@ mod linux;
 #[cfg(feature = "type1_5")]
 #[no_mangle]
 fn main(cpu_id: u32, linux_context: &LinuxContext) {
-    // info!("Hello, hv!");
-    // info!("Currently Linux inside VM is on Core {}", cpu_id);
-    // linux::boot_linux(cpu_id as usize, linux_context);
+    info!("Hello, hv!");
+    info!("Currently Linux inside VM is on Core {}", cpu_id);
+    linux::boot_linux(cpu_id as usize, linux_context);
     
 
-    if cpu_id == 1 {
-        println!("Hello, processs on core {}!", cpu_id);
-        process::hello();
-    }
-    loop{};
+    // if cpu_id == 1 {
+    //     println!("Hello, processs on core {}!", cpu_id);
+    //     process::hello();
+    // }
+    // loop{};
 /* 
 	loop {
         libax::thread::sleep(libax::time::Duration::from_secs(1));
