@@ -15,7 +15,7 @@ static mmio_num: LazyInit<usize> = LazyInit::new();
 pub(crate) fn memory_regions_num() -> usize {
     cfg_if::cfg_if! {
         if #[cfg(feature="type1_5")] {
-            *mmio_num.try_get().unwrap()
+            *mmio_num
         } else if #[cfg(feature="hv")] {
             common_memory_regions_num() + 3
         } else {
@@ -112,9 +112,12 @@ pub(crate) fn memory_region_at(idx: usize) -> Option<MemRegion> {
 /// init mmio_num
 #[cfg(feature = "type1_5")]
 pub(crate) fn init_mmio_num() {
-    let sys_config = HvSystemConfig::get();
-    let cell_config = sys_config.root_cell.config();
-    let num = cell_config.mem_regions().len() + 2;
-    info!("mmio_num = {}", num);
-    mmio_num.init_by(num);
+    if !mmio_num.is_init() {
+        let sys_config = HvSystemConfig::get();
+        let cell_config = sys_config.root_cell.config();
+        let num = cell_config.mem_regions().len() + 2;
+        info!("mmio_num = {}", num);
+        mmio_num.init_by(num);
+    }
+    
 }

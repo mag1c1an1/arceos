@@ -91,6 +91,8 @@ pub fn platform_init() {
 #[cfg(all(feature = "type1_5", feature = "smp"))]
 pub fn platform_init_secondary() {
     self::dtables::init_secondary();
+    // after changing load_ds, some static values change back to initial value
+    self::mem::init_mmio_num();
     // self::apic::init_secondary();
     // self::time::init_primary();
 }
@@ -121,6 +123,7 @@ extern "sysv64" fn rust_entry_hv(cpu_id: u32, linux_sp: usize) -> i32 {
     let ret = unsafe { rust_main(cpu_id, linux_sp) };
     ret
 }
+
 #[cfg(feature = "type1_5")]
 fn primary_init_early(cpu_id: u32) {
     // crate::mem::clear_bss();
