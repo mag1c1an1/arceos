@@ -234,7 +234,7 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         }
     }
 
-    fn hypercall_handler(&mut self, vcpu: &mut VCpu<H>, id: u32, args: (u32, u32)) -> HyperResult<u32> {
+    fn hypercall_handler(&mut self, vcpu: &mut VCpu<H>, id: u32, args: (usize, usize, usize)) -> HyperResult<u32> {
         Err(HyperError::NotSupported)
     }
 

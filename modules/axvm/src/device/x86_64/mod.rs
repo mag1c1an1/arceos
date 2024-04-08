@@ -263,7 +263,7 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         &mut self,
         vcpu: &mut VCpu<H>,
         id: u32,
-        args: (u32, u32),
+        args: (usize, usize, usize),
     ) -> HyperResult<u32> {
         // debug!("hypercall #{id:#x?}, args: {args:#x?}");
         crate::hvc::handle_hvc(vcpu, id as usize, args)

@@ -162,6 +162,10 @@ impl GuestPhysMemorySet {
         }
         self.regions.clear();
     }
+
+    pub fn translate(&self, gpa: GuestPhysAddr) -> HyperResult<HostPhysAddr> {
+        self.npt.translate(gpa)
+    }
 }
 
 impl Drop for GuestPhysMemorySet {
