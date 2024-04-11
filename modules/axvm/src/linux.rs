@@ -145,7 +145,5 @@ pub fn boot_vm(vm_type: usize, entry: usize, phy_addr: usize) {
         info!("{:?}", vm.run_vcpu(0));
     } 
     
-    
-    
 
 }

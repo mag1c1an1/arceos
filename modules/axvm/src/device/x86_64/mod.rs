@@ -253,8 +253,11 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         //     device_emu::MultiplexConsoleBackend,
         // >::new(0x3f8)));
         let temp = device_emu::I8259Pic::new(0x20);
+        info!("1");
         let temp2 = Mutex::new(temp);
+        info!("1");
         let temp3 = Arc::new(temp2);
+        info!("1");
         // let pic: [Arc<Mutex<device_emu::I8259Pic>>; 2] = [
         //     Arc::new(Mutex::new(device_emu::I8259Pic::new(0x20))),
         //     Arc::new(Mutex::new(device_emu::I8259Pic::new(0xA0))),

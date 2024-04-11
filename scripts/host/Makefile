@@ -1,9 +1,8 @@
 QEMU ?= qemu-system-x86_64
 PORT ?= 2333
-WORKSPACE ?= /home/wark/arceos/qpz
+WORKSPACE ?= $(shell pwd)/../../..
 target_bin := $(WORKSPACE)/arceos/apps/hv/hv_pc-x86.bin 
 jailhouse := $(WORKSPACE)/jailhouse
-# jailhouse := /home/tang/server/jailhouse
 guest := $(WORKSPACE)/arceos/scripts/guest/*
 
 qemu_image := ubuntu-20.04-server-cloudimg-amd64.img
@@ -30,6 +29,9 @@ image: $(qemu_image)
 	cloud-localds user-data.img user-data
 	qemu-img resize $(qemu_image) +64G
 	sudo $(QEMU) $(qemu_args) -drive file=user-data.img,format=raw
+
+echo_workspace:
+	echo ${WORKSPACE}
 
 qemu: $(qemu_image)
 	sudo $(QEMU) $(qemu_args)
