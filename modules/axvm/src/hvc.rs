@@ -1,6 +1,7 @@
 use crate::{Result, VCpu, HyperCraftHal};
 use axhal::{current_cpu_id, mem::phys_to_virt};
 use axhal::mem::PhysAddr;
+use memory_addr::PAGE_SIZE_4K;
 // use axhal::hv::HyperCraftHalImpl;
 
 pub const HVC_SHADOW_PROCESS_INIT: usize = 0x53686477;
@@ -24,11 +25,12 @@ pub fn handle_hvc<H: HyperCraftHal>(vcpu: &mut VCpu<H>, id: usize, args: (usize,
         }
         HVC_AXTASK_UP => {
             let gpm = crate::config::root_gpm();
-            info!("{:#x?}", gpm);
+            // info!("{:#x?}", gpm);
             let phy_addr = gpm.translate(args.2)?;
             info!("{:#x?}", phy_addr);
-            let code = unsafe { core::slice::from_raw_parts(phys_to_virt(PhysAddr::from(phy_addr)).as_ptr(), 110)};
-            info!("content: {:?}: ", code);
+            
+            
+            crate::linux::boot_vm(args.1, 0x8000, phy_addr);
             axtask_up(args.0);
         }
         _ => {

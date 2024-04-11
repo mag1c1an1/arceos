@@ -12,7 +12,8 @@ use crate::config::{root_gpm, init_gpm};
 use super::device::{self, X64VcpuDevices, X64VmDevices};
 use super::arch::new_vcpu;
 use axhal::hv::HyperCraftHalImpl;
-
+use crate::{phys_to_virt, PhysAddr};
+use axhal::mem::PAGE_SIZE_4K;
 use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 // use super::type1_5::cell;
 static INIT_GPM_OK: AtomicU32 = AtomicU32::new(0);
@@ -102,4 +103,49 @@ pub fn config_boot_linux(hart_id: usize) {
     crate::arch::cpu_hv_hardware_disable();
 
     panic!("done");
+}
+
+#[cfg(feature = "type1_5")]
+pub fn boot_vm(vm_type: usize, entry: usize, phy_addr: usize) {
+    info!("boot_vm");
+    let size = unsafe { core::slice::from_raw_parts(phys_to_virt(PhysAddr::from(phy_addr)).as_ptr() as *const u64, 3)};
+    info!("size: {:x?}: ", size);
+    let code = unsafe { core::slice::from_raw_parts(phys_to_virt(PhysAddr::from(phy_addr)).as_ptr(), size[0] as usize)};
+    // info!("content: {:x?}: ", code);
+
+    
+    // Alloc guest memory set.
+    // Fix: this should be stored inside VM structure.
+    if vm_type == 1 {
+        info!("start nimbos vm");
+        let bios_paddr = phy_addr + PAGE_SIZE_4K;
+        let guest_image_paddr = phy_addr + PAGE_SIZE_4K + size[1] as usize;
+        let gpm = super::config::setup_nimbos_gpm(bios_paddr, size[1] as usize, guest_image_paddr, size[2] as usize).unwrap();
+        let npt = gpm.nest_page_table_root();
+        info!("{:#x?}", gpm);
+
+        // Main scheduling item, managed by `axtask`
+        let vcpu = VCpu::new(0, crate::arch::cpu_vmcs_revision_id(), entry, npt).unwrap();
+        info!("vcpu...");
+        let mut vcpus = VmCpus::<HyperCraftHalImpl, X64VcpuDevices<HyperCraftHalImpl>>::new();
+        info!("vcpus...");
+        vcpus.add_vcpu_nimbos(vcpu).expect("add vcpu failed");
+        info!("add vcpus...");
+        let mut vm = VM::<
+            HyperCraftHalImpl,
+            X64VcpuDevices<HyperCraftHalImpl>,
+            X64VmDevices<HyperCraftHalImpl>,
+        >::new(vcpus);
+        info!("vm...");
+        // The bind_vcpu method should be decoupled with vm struct.
+        vm.bind_vcpu(0).expect("bind vcpu failed");
+
+
+        info!("Running guest...");
+        info!("{:?}", vm.run_vcpu(0));
+    } 
+    
+    
+    
+
 }
