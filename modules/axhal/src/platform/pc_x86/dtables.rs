@@ -1,10 +1,10 @@
 //! Description tables (per-CPU GDT, per-CPU ISS, IDT)
+use super::current_cpu_id;
 use crate::arch::{GdtStruct, IdtStruct, TaskStateSegment};
 use crate::mem::VirtAddr;
 use lazy_init::LazyInit;
 #[cfg(feature = "type1_5")]
 use x86::{segmentation, segmentation::SegmentSelector, Ring};
-use super::current_cpu_id;
 
 use memoffset::offset_of;
 
@@ -15,7 +15,6 @@ static TSS: LazyInit<TaskStateSegment> = LazyInit::new();
 
 #[percpu::def_percpu]
 static GDT: LazyInit<GdtStruct> = LazyInit::new();
-
 
 #[allow(dead_code)]
 pub const TSS_KERNEL_RSP_OFFSET: usize = offset_of!(TaskStateSegment, privilege_stack_table);
@@ -83,6 +82,6 @@ pub fn set_kernel_stack_top(kstack_top: VirtAddr) {
         let tss = TSS.current_ref_mut_raw();
         tss.privilege_stack_table[0] = x86_64::VirtAddr::new(kstack_top.as_usize() as u64);
 
-		crate::arch::syscall::set_kernel_stack(kstack_top.as_usize())
+        crate::arch::syscall::set_kernel_stack(kstack_top.as_usize())
     }
 }

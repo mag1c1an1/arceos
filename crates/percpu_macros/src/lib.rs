@@ -101,6 +101,7 @@ pub fn def_percpu(attr: TokenStream, item: TokenStream) -> TokenStream {
     let current_ptr = arch::gen_current_ptr(inner_symbol_name, ty);
     quote! {
         #[cfg_attr(not(target_os = "macos"), link_section = ".percpu")] // unimplemented on macos
+        // #[no_mangle]
         #(#attrs)*
         static mut #inner_symbol_name: #ty = #init_expr;
 

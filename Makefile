@@ -22,6 +22,10 @@ ifeq ($(STRUCT),Combination)
 HV=y
 endif
 
+ifeq ($(STRUCT),Hypervisor)
+HV=y
+endif
+
 QEMU_LOG ?= n
 NET_DUMP ?= n
 

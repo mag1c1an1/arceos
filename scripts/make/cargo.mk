@@ -18,7 +18,11 @@ features-$(GRAPHIC) += libax/display
 features-$(HV) += libax/hv 
 
 ifeq ($(STRUCT), Combination)
-# features-$(HV) += libax/monolithic
+features-$(HV) += libax/monolithic
+features-$(HV) += libax/fp_simd
+endif
+
+ifeq ($(STRUCT), Hypervisor)
 features-$(HV) += libax/fp_simd
 endif
 
