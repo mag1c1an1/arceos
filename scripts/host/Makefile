@@ -5,6 +5,8 @@ target_bin := $(WORKSPACE)/arceos/apps/hv/hv_pc-x86.bin
 jailhouse := $(WORKSPACE)/jailhouse
 guest := $(WORKSPACE)/arceos/scripts/guest/*
 
+OUT_ELF ?= ../../apps/hv/hv_pc-x86.elf
+
 qemu_image := ubuntu-20.04-server-cloudimg-amd64.img
 qemu_args := \
   -smp 2 -m 4G -accel kvm -nographic \
@@ -35,6 +37,15 @@ echo_workspace:
 
 qemu: $(qemu_image)
 	sudo $(QEMU) $(qemu_args)
+
+qemu_debug: $(qemu_image)
+	$(QEMU) $(qemu_args) -s -S
+
+qemu_gdb:
+	gdb $(OUT_ELF) \
+	  -ex 'target remote localhost:1234' \
+	  -ex 'continue' \
+	  -ex 'disp /16i $$pc'
 
 ssh:
 	ssh -p $(PORT) ubuntu@localhost

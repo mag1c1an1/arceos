@@ -8,6 +8,7 @@ mod boot;
 mod dtables;
 mod uart16550;
 
+#[cfg(feature = "monolithic")]
 pub(crate) use dtables::{kernel_stack_top, set_kernel_stack_top};
 
 pub mod mem;
@@ -74,9 +75,9 @@ pub fn platform_init() {
 }
 
 #[cfg(feature = "type1_5")]
-pub mod consts;
-#[cfg(feature = "type1_5")]
 pub mod config;
+#[cfg(feature = "type1_5")]
+pub mod consts;
 #[cfg(feature = "type1_5")]
 pub mod header;
 
@@ -109,7 +110,7 @@ static INIT_EARLY_OK: AtomicU32 = AtomicU32::new(0);
 #[cfg(feature = "type1_5")]
 // hypervisor start
 extern "sysv64" fn rust_entry_hv(cpu_id: u32, linux_sp: usize) -> i32 {
-    axlog::ax_println!("enter rust entry hv!!!");
+    axlog::ax_println!("Core {} enter rust entry hv!!!", cpu_id);
     if cpu_id == 0 {
         primary_init_early(cpu_id);
     } else {

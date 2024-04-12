@@ -40,6 +40,7 @@ pub struct TrapFrame {
     pub user_ss: u64,
 }
 
+#[cfg(feature = "monolithic")]
 impl TrapFrame {
     pub fn new_user(entry: VirtAddr, ustack_top: VirtAddr, arg0: usize) -> Self {
         Self {
@@ -283,6 +284,7 @@ impl TaskContext {
             //     .arch_data()
             //     .as_mut()
             //     .set_kernel_stack_top(next_ctx.kstack_top);
+            #[cfg(feature = "monolithic")]
 			crate::platform::set_kernel_stack_top(next_ctx.kstack_top);
 
             context_switch(&mut self.rsp, &next_ctx.rsp)

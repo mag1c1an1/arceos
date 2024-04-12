@@ -20,7 +20,7 @@ bitflags = "2.2"
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 spin = "0.9"
 # Todo: how to call methods exposed by these two modules through API like libax.
-axprocess = { path = "../../modules/axprocess", features = ["hv"]}
+# axprocess = { path = "../../modules/axprocess", features = ["hv"]}
 axvm = { path = "../../modules/axvm"}
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]

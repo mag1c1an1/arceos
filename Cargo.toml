@@ -68,3 +68,7 @@ members = [
     "modules/axvm",
     "ulib/libax",
 ]
+
+[profile.release]
+lto = true
+debug = true

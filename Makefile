@@ -91,6 +91,7 @@ include scripts/make/cargo.mk
 include scripts/make/qemu.mk
 include scripts/make/build.mk
 include scripts/make/test.mk
+include scripts/vmm/scp.mk
 ifeq ($(PLATFORM), raspi4-aarch64)
   include scripts/make/raspi4.mk
 endif
@@ -104,6 +105,10 @@ run: build justrun
 
 justrun:
 	$(call run_qemu)
+
+.PHONY: scp_linux
+scp_linux: $(OUT_DIR) $(OUT_BIN)
+  $(call scp_linux)
 
 debug: build
 	$(call run_qemu_debug) 

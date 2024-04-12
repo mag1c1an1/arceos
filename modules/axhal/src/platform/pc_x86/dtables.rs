@@ -76,6 +76,7 @@ pub fn kernel_stack_top() -> VirtAddr {
     }
 }
 
+#[cfg(feature = "monolithic")]
 pub fn set_kernel_stack_top(kstack_top: VirtAddr) {
     trace!("set percpu kernel stack: {:#x?}", kstack_top);
     unsafe {

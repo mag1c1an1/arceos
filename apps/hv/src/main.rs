@@ -52,6 +52,7 @@ mod aarch64_config;
 // #[path = "device/dummy.rs"]
 // mod device;
 
+#[cfg(feature = "monolithic")]
 mod process;
 mod linux;
 
@@ -94,12 +95,12 @@ fn main() {
 pub fn main_secondary(hart_id: usize) {
     println!("Hello, processs on core {}!", hart_id);
 
-    process::hello();
+    // process::hello();
 
-    loop {
-        libax::thread::sleep(libax::time::Duration::from_secs(1));
-        println!("secondary tick");
-    }
+    // loop {
+    //     libax::thread::sleep(libax::time::Duration::from_secs(1));
+    //     println!("secondary tick");
+    // }
 }
 
 #[cfg(target_arch = "riscv64")]

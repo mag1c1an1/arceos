@@ -6,12 +6,11 @@ sudo apt-get update
 sudo apt-get install -y build-essential python3-mako
 
 # Create a hypervisor image link to /lib/firmware/rvm-intel.bin
-mv hv_pc-x86.bin arceos-intel.bin
 sudo mkdir -p /lib/firmware
 sudo ln -sf ~/arceos-intel.bin /lib/firmware
 
 # Clone jailhouse, apply patches and build
-cd jailhouse
+cd jailhouse-arceos
 ./gen-config.sh
 make
 

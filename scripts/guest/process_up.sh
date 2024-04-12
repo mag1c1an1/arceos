@@ -1,4 +1,4 @@
-JH_DIR=~/jailhouse
+JH_DIR=~/jailhouse-arceos
 JH=$JH_DIR/tools/jailhouse
 
 echo "create axtask"
