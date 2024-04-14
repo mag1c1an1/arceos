@@ -112,12 +112,9 @@ pub(crate) fn memory_region_at(idx: usize) -> Option<MemRegion> {
 /// init mmio_num
 #[cfg(feature = "type1_5")]
 pub(crate) fn init_mmio_num() {
-    if !mmio_num.is_init() {
-        let sys_config = HvSystemConfig::get();
-        let cell_config = sys_config.root_cell.config();
-        let num = cell_config.mem_regions().len() + 2;
-        info!("mmio_num = {}", num);
-        mmio_num.init_by(num);
-    }
-    
+    let sys_config = HvSystemConfig::get();
+    let cell_config = sys_config.root_cell.config();
+    let num = cell_config.mem_regions().len() + 2;
+    // info!("mmio_num = {}", num);
+    mmio_num.init_by(num);
 }

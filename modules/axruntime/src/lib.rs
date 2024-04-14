@@ -124,7 +124,8 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
         ",
         option_env!("ARCH").unwrap_or(""),
         option_env!("PLATFORM").unwrap_or(""),
-        option_env!("SMP").unwrap_or(""),
+        // option_env!("SMP").unwrap_or(""),
+        axconfig::SMP,
         option_env!("MODE").unwrap_or(""),
         option_env!("LOG").unwrap_or(""),
     );
@@ -294,7 +295,7 @@ pub fn runtime_init_early() -> HyperResult {
         ",
         option_env!("ARCH").unwrap_or(""),
         option_env!("PLATFORM").unwrap_or(""),
-        option_env!("SMP").unwrap_or(""),
+        axconfig::SMP,
         option_env!("MODE").unwrap_or(""),
         option_env!("LOG").unwrap_or(""),
     );

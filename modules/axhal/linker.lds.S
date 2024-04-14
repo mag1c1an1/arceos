@@ -49,7 +49,7 @@ SECTIONS
         _percpu_load_start = .;
         *(.percpu .percpu.*)
         _percpu_load_end = .;
-        . = ALIGN(64);
+        . = ALIGN(4K);
         _percpu_size_aligned = .;
 
         . = _percpu_load_start + _percpu_size_aligned * %SMP%;

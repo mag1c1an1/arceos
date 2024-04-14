@@ -105,7 +105,6 @@ pub fn config_boot_linux(hart_id: usize) {
     panic!("done");
 }
 
-#[cfg(feature = "type1_5")]
 pub fn boot_vm(vm_type: usize, entry: usize, phy_addr: usize) {
     info!("boot_vm");
     let size = unsafe { core::slice::from_raw_parts(phys_to_virt(PhysAddr::from(phy_addr)).as_ptr() as *const u64, 3)};
@@ -113,9 +112,6 @@ pub fn boot_vm(vm_type: usize, entry: usize, phy_addr: usize) {
     let code = unsafe { core::slice::from_raw_parts(phys_to_virt(PhysAddr::from(phy_addr)).as_ptr(), size[0] as usize)};
     // info!("content: {:x?}: ", code);
 
-    
-    // Alloc guest memory set.
-    // Fix: this should be stored inside VM structure.
     if vm_type == 1 {
         info!("start nimbos vm");
         let bios_paddr = phy_addr + PAGE_SIZE_4K;
@@ -125,11 +121,11 @@ pub fn boot_vm(vm_type: usize, entry: usize, phy_addr: usize) {
         info!("{:#x?}", gpm);
 
         // Main scheduling item, managed by `axtask`
-        let vcpu = VCpu::new(0, crate::arch::cpu_vmcs_revision_id(), entry, npt).unwrap();
+        let vcpu = VCpu::new_nimbos(0, crate::arch::cpu_vmcs_revision_id(), entry, npt).unwrap();
         info!("vcpu...");
         let mut vcpus = VmCpus::<HyperCraftHalImpl, X64VcpuDevices<HyperCraftHalImpl>>::new();
         info!("vcpus...");
-        vcpus.add_vcpu_nimbos(vcpu).expect("add vcpu failed");
+        vcpus.add_vcpu(vcpu).expect("add vcpu failed");
         info!("add vcpus...");
         let mut vm = VM::<
             HyperCraftHalImpl,
@@ -139,7 +135,6 @@ pub fn boot_vm(vm_type: usize, entry: usize, phy_addr: usize) {
         info!("vm...");
         // The bind_vcpu method should be decoupled with vm struct.
         vm.bind_vcpu(0).expect("bind vcpu failed");
-
 
         info!("Running guest...");
         info!("{:?}", vm.run_vcpu(0));

@@ -26,6 +26,9 @@ mod arch;
 mod page_table;
 mod irq;
 mod hvc;
+mod nmi;
+
+// pub use nmi::cpu_nmi_list_init;
 
 // mod vm;
 // pub use vm::*;

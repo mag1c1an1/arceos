@@ -1,4 +1,4 @@
-use crate::{Result, VCpu, HyperCraftHal};
+use crate::{Result, VCpu, HyperCraftHal, nmi::NmiMessage, nmi::nmi_send_msg};
 use axhal::{current_cpu_id, mem::phys_to_virt};
 use axhal::mem::PhysAddr;
 use memory_addr::PAGE_SIZE_4K;
@@ -30,8 +30,14 @@ pub fn handle_hvc<H: HyperCraftHal>(vcpu: &mut VCpu<H>, id: usize, args: (usize,
             info!("{:#x?}", phy_addr);
             
             
-            crate::linux::boot_vm(args.1, 0x8000, phy_addr);
-            axtask_up(args.0);
+            // crate::linux::boot_vm(args.1, 0x8000, phy_addr);
+            let mut msg: NmiMessage;
+            if args.1 == 1 {
+                msg = NmiMessage::NIMBOS(0x8000, phy_addr);
+            } else {
+                msg = NmiMessage::NIMBOS(0x8000, phy_addr);
+            }
+            axtask_up(args.0, msg);
         }
         _ => {
             warn!("Unhandled hypercall {}. vcpu: {:#x?}", id, vcpu);
@@ -43,14 +49,15 @@ pub fn handle_hvc<H: HyperCraftHal>(vcpu: &mut VCpu<H>, id: usize, args: (usize,
     // Err(HyperError::NotSupported)
 }
 
-fn axtask_up(cpuset: usize) {
+fn axtask_up(cpuset: usize, msg: NmiMessage) {
     let current_cpu = current_cpu_id();
     let cpuset = cpuset as usize;
     let num_bits = core::mem::size_of::<u32>() * 8;
     for i in 0..num_bits {
         if cpuset & (1 << i) != 0 {
             info!("CPU{} send nmi ipi to CPU{} ", current_cpu, i);
-            axhal::irq::send_nmi_to(i);
+            // axhal::irq::send_nmi_to(i);
+            nmi_send_msg(i, msg);
             // todo!();
         }
     }

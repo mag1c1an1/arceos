@@ -79,6 +79,8 @@ fn gpa_as_mut_ptr(guest_paddr: GuestPhysAddr) -> *mut u8 {
 #[cfg(target_arch = "x86_64")]
 fn load_guest_image(hpa: HostPhysAddr, load_gpa: GuestPhysAddr, size: usize) {
     let image_ptr = usize::from(phys_to_virt(hpa.into())) as *const u8;
+    // let image = unsafe { core::slice::from_raw_parts(image_ptr, 110) };
+    // info!("first 110 byte: {:#x?}", image);
     let image = unsafe { core::slice::from_raw_parts(image_ptr, size) };
 
     trace!(
@@ -131,14 +133,14 @@ pub fn setup_nimbos_gpm(bios_paddr: usize, bios_size: usize, guest_image_paddr: 
         //     gpa: 0xfe00_0000,
         //     hpa: 0xfe00_0000,
         //     size: 0x1_0000,
-        //     flags: MappingFlags::READ | MappingFlags::WRITE,
+        //     flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
         // },
-        GuestMemoryRegion {
-            gpa: 0xfeb0_0000,
-            hpa: 0xfeb0_0000,
-            size: 0xc_4000,
-            flags: MappingFlags::READ | MappingFlags::WRITE,
-        },
+        // GuestMemoryRegion {
+        //     gpa: 0xfeb0_0000,
+        //     hpa: 0xfeb0_0000,
+        //     size: 0x10_0000,
+        //     flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
+        // },
         GuestMemoryRegion {
             // IO APIC
             gpa: 0xfec0_0000,

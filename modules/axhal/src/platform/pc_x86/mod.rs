@@ -91,8 +91,6 @@ pub fn platform_init() {
 #[cfg(all(feature = "type1_5", feature = "smp"))]
 pub fn platform_init_secondary() {
     self::dtables::init_secondary();
-    // after changing load_ds, some static values change back to initial value
-    self::mem::init_mmio_num();
     // self::apic::init_secondary();
     // self::time::init_primary();
 }

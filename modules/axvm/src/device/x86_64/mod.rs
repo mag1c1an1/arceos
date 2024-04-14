@@ -1,11 +1,11 @@
 pub mod device_emu;
 
 extern crate alloc;
-
+use axhal::{current_cpu_id, mem::phys_to_virt};
 use crate::{Error as HyperError, VmExitInfo as VmxExitInfo};
 use crate::{
     HyperCraftHal, PerCpuDevices, PerVmDevices, Result as HyperResult, VCpu, VmExitInfo,
-    VmxExitReason,
+    VmxExitReason, nmi::CPU_NMI_LIST, nmi::NmiMessage
 };
 use alloc::{sync::Arc, vec, vec::Vec};
 use bit_field::BitField;
@@ -245,73 +245,7 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
             marker: PhantomData,
         })
     }
-
-    fn new_nimbos(_vcpu: &VCpu<H>) -> HyperResult<Self> {
-        // let apic_timer = Arc::new(Mutex::new(VirtLocalApic::new()));
-        // let bundle = Arc::new(Mutex::new(Bundle::new()));
-        // let console = Arc::new(Mutex::new(device_emu::Uart16550::<
-        //     device_emu::MultiplexConsoleBackend,
-        // >::new(0x3f8)));
-        let temp = device_emu::I8259Pic::new(0x20);
-        info!("1");
-        let temp2 = Mutex::new(temp);
-        info!("1");
-        let temp3 = Arc::new(temp2);
-        info!("1");
-        // let pic: [Arc<Mutex<device_emu::I8259Pic>>; 2] = [
-        //     Arc::new(Mutex::new(device_emu::I8259Pic::new(0x20))),
-        //     Arc::new(Mutex::new(device_emu::I8259Pic::new(0xA0))),
-        // ];
-
-        // *console.lock().backend() =
-        //     device_emu::MultiplexConsoleBackend::new_secondary(1, "sleep\n");
-
-        // let mut devices = DeviceList::new();
-
-        // let mut pmio_devices: Vec<Arc<Mutex<dyn PortIoDevice>>> = vec![
-        //     // console.clone(), // COM1
-        //     Arc::new(Mutex::new(<device_emu::PortPassthrough>::new(0x3f8, 8))),
-        //     Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2f8))), // COM2
-        //     Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x3e8))), // COM3
-        //     Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2e8))), // COM4
-        //     pic[0].clone(),                                            // PIC1
-        //     pic[1].clone(),                                            // PIC2
-        //     Arc::new(Mutex::new(device_emu::DebugPort::new(0x80))),    // Debug Port
-        //     /*
-        //        the complexity:
-        //        - port 0x70 and 0x71 is for CMOS, but bit 7 of 0x70 is for NMI
-        //        - port 0x40 ~ 0x43 is for PIT, but port 0x61 is also related
-        //     */
-        //     Arc::new(Mutex::new(Bundle::proxy_system_control_a(&bundle))),
-        //     Arc::new(Mutex::new(Bundle::proxy_system_control_b(&bundle))),
-        //     Arc::new(Mutex::new(Bundle::proxy_cmos(&bundle))),
-        //     Arc::new(Mutex::new(Bundle::proxy_pit(&bundle))),
-        //     Arc::new(Mutex::new(device_emu::Dummy::new(0xf0, 2))), // 0xf0 and 0xf1 are ports about fpu
-        //     Arc::new(Mutex::new(device_emu::Dummy::new(0x3d4, 2))), // 0x3d4 and 0x3d5 are ports about vga
-        //     Arc::new(Mutex::new(device_emu::Dummy::new(0x87, 1))),  // 0x87 is a port about dma
-        //     Arc::new(Mutex::new(device_emu::Dummy::new(0x60, 1))), // 0x60 and 0x64 are ports about ps/2 controller
-        //     Arc::new(Mutex::new(device_emu::Dummy::new(0x64, 1))), //
-        //     Arc::new(Mutex::new(device_emu::PCIConfigurationSpace::new(0xcf8))),
-        //     // Arc::new(Mutex::new(device_emu::PCIPassthrough::new(0xcf8))),
-        // ];
-
-        // devices.add_port_io_devices(&mut pmio_devices);
-        // devices.add_msr_device(Arc::new(Mutex::new(VirtLocalApic::msr_proxy(&apic_timer))));
-        // devices.add_msr_device(Arc::new(Mutex::new(ApicBaseMsrHandler {})));
-        // // linux read this amd-related msr on my intel cpu for some unknown reason... make it happy
-        // devices.add_msr_device(Arc::new(Mutex::new(device_emu::MsrDummy::new(0xc0011029))));
-
-        // Ok(Self {
-        //     apic_timer,
-        //     bundle,
-        //     console,
-        //     devices,
-        //     pic,
-        //     last: None,
-        //     marker: PhantomData,
-        // })
-        Err(HyperError::BadState)
-    }
+    
     fn vmexit_handler(
         &mut self,
         vcpu: &mut VCpu<H>,
@@ -333,6 +267,24 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
     ) -> HyperResult<u32> {
         // debug!("hypercall #{id:#x?}, args: {args:#x?}");
         crate::hvc::handle_hvc(vcpu, id as usize, args)
+    }
+
+    fn nmi_handler(
+        &mut self,
+        vcpu: &mut VCpu<H>
+    ) -> HyperResult<u32> {
+        debug!("nmi handler!");
+        let current_cpu = current_cpu_id();
+        let mut cpu_nmi_list = CPU_NMI_LIST.lock();
+        match cpu_nmi_list[current_cpu].msg_queue.pop() {
+            Some(NmiMessage::NIMBOS(entry, addr)) => {
+                crate::linux::boot_vm(1, entry, addr);
+            },
+            None => {
+                info!("cpu_nmi_list is none");
+            },
+        }
+        Err(HyperError::BadState)
     }
 
     fn check_events(&mut self, vcpu: &mut VCpu<H>) -> HyperResult {
