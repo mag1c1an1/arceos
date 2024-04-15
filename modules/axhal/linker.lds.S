@@ -45,7 +45,7 @@ SECTIONS
 
     . = ALIGN(4K);
     _percpu_start = .;
-    .percpu 0x0 : AT(_percpu_start) ALIGN(4K) {
+    .percpu 0x0 : AT(_percpu_start) {
         _percpu_load_start = .;
         *(.percpu .percpu.*)
         _percpu_load_end = .;
@@ -55,8 +55,6 @@ SECTIONS
         . = _percpu_load_start + _percpu_size_aligned * %SMP%;
     }
     . = _percpu_start + SIZEOF(.percpu);
-
-    . = ALIGN(4K);
     _percpu_end = .;
 
     . = ALIGN(4K);

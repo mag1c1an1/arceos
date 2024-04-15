@@ -61,7 +61,7 @@ impl MachineMeta {
         for node in fdt.find_all_nodes("/intc") {
             let regions = node.reg().unwrap();
             for region in regions {
-                let paddr = region. starting_address as usize;
+                let paddr = region.starting_address as usize;
                 let size = region.size.unwrap();
                 debug!("intc addr: {:#x}, size: {:#x}", paddr, size);
                 meta.intc.push(Device {

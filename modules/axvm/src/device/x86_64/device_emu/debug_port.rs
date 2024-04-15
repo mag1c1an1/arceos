@@ -2,13 +2,13 @@ use super::PortIoDevice;
 use crate::Result as HyperResult;
 
 pub struct DebugPort {
-    port: u16
+    port: u16,
 }
 
 impl DebugPort {
     pub fn new(port: u16) -> Self {
         Self { port }
-    } 
+    }
 }
 
 impl PortIoDevice for DebugPort {

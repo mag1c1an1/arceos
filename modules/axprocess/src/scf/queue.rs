@@ -6,8 +6,8 @@ use core::sync::atomic::{fence, AtomicBool, Ordering};
 use crate::syscall::Sysno;
 
 use super::cfg::*;
-use super::syscall_forward::SyscallCondVar;
 use super::spin::*;
+use super::syscall_forward::SyscallCondVar;
 
 use axhal::mem::{phys_to_virt, PhysAddr, VirtAddr};
 use axhal::paging::PageSize;
@@ -253,6 +253,6 @@ pub fn init() {
     ));
 
     // This `handle_irq` can be called inside a IPI handler.
-	// Which is better??
+    // Which is better??
     axtask::add_timer_event(handle_irq);
 }

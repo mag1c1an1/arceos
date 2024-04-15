@@ -579,6 +579,7 @@ extern "C" fn task_entry() -> ! {
             }
             crate::exit(0)
         }
+        #[cfg(feature = "monolithic")]
         TaskType::Process { trap_frame } => {
             if !LINUX_IS_BOOTED.load(Ordering::Acquire) {
                 info!("Task {:?} of process waiting for Linux", task.id());

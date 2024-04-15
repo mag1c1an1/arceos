@@ -1,8 +1,8 @@
 //! Emulated Intel 8259 Programmable Interrupt Controller. (ref: https://wiki.osdev.org/8259_PIC)
 
 use super::PortIoDevice;
+use crate::{Error as HyperError, Result as HyperResult};
 use bit_field::BitField;
-use crate::{Result as HyperResult, Error as HyperError};
 
 pub struct I8259Pic {
     port_base: u16,
@@ -30,7 +30,7 @@ impl PortIoDevice for I8259Pic {
 
     fn write(&mut self, port: u16, _access_size: u8, value: u32) -> HyperResult {
         // debug!("writing to pic port {port:#x}: {value:#x}");
-        
+
         let value = value as u8;
         match port - self.port_base {
             0 => {
@@ -41,7 +41,7 @@ impl PortIoDevice for I8259Pic {
                 } else {
                     // debug!("pit ocw ignored");
                 }
-            },
+            }
             1 => {
                 if !self.icw_left {
                     self.mask = value;
@@ -60,7 +60,7 @@ impl PortIoDevice for I8259Pic {
                         self.icw_written += 1;
                     }
                 }
-            },
+            }
             _ => return Err(HyperError::InvalidParam),
         }
 

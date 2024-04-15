@@ -12,10 +12,10 @@ use axhal::KERNEL_PROCESS_ID;
 use axmem::MemorySet;
 use axsync::Mutex;
 use axtask::{current, AxTaskRef, TaskId, TaskInner, RUN_QUEUE};
-use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU64, Ordering};
-use x86_64::registers::control::{Cr0, Cr0Flags, Cr3, Cr4, Cr4Flags};
 use core::arch::x86_64::__readeflags;
 use core::arch::x86_64::__writeeflags;
+use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU64, Ordering};
+use x86_64::registers::control::{Cr0, Cr0Flags, Cr3, Cr4, Cr4Flags};
 
 use crate::fd_manager::FdManager;
 use crate::flags::CloneFlags;
@@ -242,9 +242,9 @@ impl Process {
 
     /// TMP: Create simple hello process
     pub fn init_hello() -> AxResult<AxTaskRef> {
-		// Init syscall forward mechanism.
+        // Init syscall forward mechanism.
         info!("initializing scf...");
-		super::scf::init();
+        super::scf::init();
         info!("scf initialized.");
 
         let mut memory_set = MemorySet::new_with_kernel_mapped();
@@ -255,11 +255,11 @@ impl Process {
                 let cr4 = Cr4::read_raw();
                 let eflags = __readeflags();
                 info!("CR0 :{:x}, CR4 :{:x}, eflags: {:x}", cr0, cr4, eflags);
-                // EFLAGS.AC = 1 
+                // EFLAGS.AC = 1
                 let eflags = eflags | (1 << 18);
                 __writeeflags(eflags);
                 write_page_table_root(page_table_token.into());
-        
+
                 // riscv::register::sstatus::set_sum();
             };
         }

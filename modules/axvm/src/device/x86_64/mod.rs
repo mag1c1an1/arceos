@@ -1,13 +1,13 @@
 pub mod device_emu;
 
 extern crate alloc;
-use axhal::{current_cpu_id, mem::phys_to_virt};
-use crate::{Error as HyperError, VmExitInfo as VmxExitInfo};
 use crate::{
-    HyperCraftHal, PerCpuDevices, PerVmDevices, Result as HyperResult, VCpu, VmExitInfo,
-    VmxExitReason, nmi::CPU_NMI_LIST, nmi::NmiMessage
+    nmi::NmiMessage, nmi::CPU_NMI_LIST, HyperCraftHal, PerCpuDevices, PerVmDevices,
+    Result as HyperResult, VCpu, VmExitInfo, VmxExitReason,
 };
+use crate::{Error as HyperError, VmExitInfo as VmxExitInfo};
 use alloc::{sync::Arc, vec, vec::Vec};
+use axhal::{current_cpu_id, mem::phys_to_virt};
 use bit_field::BitField;
 use core::marker::PhantomData;
 use spin::Mutex;
@@ -245,7 +245,7 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
             marker: PhantomData,
         })
     }
-    
+
     fn vmexit_handler(
         &mut self,
         vcpu: &mut VCpu<H>,
@@ -269,20 +269,17 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         crate::hvc::handle_hvc(vcpu, id as usize, args)
     }
 
-    fn nmi_handler(
-        &mut self,
-        vcpu: &mut VCpu<H>
-    ) -> HyperResult<u32> {
+    fn nmi_handler(&mut self, vcpu: &mut VCpu<H>) -> HyperResult<u32> {
         debug!("nmi handler!");
         let current_cpu = current_cpu_id();
         let mut cpu_nmi_list = CPU_NMI_LIST.lock();
         match cpu_nmi_list[current_cpu].msg_queue.pop() {
             Some(NmiMessage::NIMBOS(entry, addr)) => {
                 crate::linux::boot_vm(1, entry, addr);
-            },
+            }
             None => {
                 info!("cpu_nmi_list is none");
-            },
+            }
         }
         Err(HyperError::BadState)
     }

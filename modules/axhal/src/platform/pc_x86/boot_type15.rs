@@ -1,6 +1,5 @@
+use super::consts::{PER_CPU_ARRAY_PTR, PER_CPU_SIZE};
 use super::current_cpu_id;
-use super::consts::{PER_CPU_SIZE, PER_CPU_ARRAY_PTR};
-
 
 unsafe extern "sysv64" fn switch_stack(linux_sp: usize) -> i32 {
     let linux_tp = x86::msr::rdmsr(x86::msr::IA32_GS_BASE) as u64;

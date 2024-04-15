@@ -82,7 +82,6 @@ pub use self::platform::platform_init;
 #[cfg(feature = "smp")]
 pub use self::platform::platform_init_secondary;
 
-
 #[cfg(feature = "type1_5")]
 pub mod header {
     pub use super::platform::header::*;

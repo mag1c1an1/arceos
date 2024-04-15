@@ -3,7 +3,6 @@ use super::header::HvHeader;
 use memory_addr::{align_up, VirtAddr, PAGE_SIZE_4K};
 // use super::percpu::PerCpu;
 
-
 /// Size of the hypervisor heap.
 pub const HV_HEAP_SIZE: usize = 32 * 1024 * 1024; // 32 MB
 
@@ -29,7 +28,11 @@ pub fn hv_config_ptr() -> *const HvSystemConfig {
 
 /// Pointer of the free memory pool.
 pub fn free_memory_start() -> VirtAddr {
-    align_up(hv_config_ptr() as usize + HvSystemConfig::get().size(), PAGE_SIZE_4K).into()
+    align_up(
+        hv_config_ptr() as usize + HvSystemConfig::get().size(),
+        PAGE_SIZE_4K,
+    )
+    .into()
 }
 
 /// End virtual address of the hypervisor memory.

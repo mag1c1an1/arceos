@@ -1,9 +1,7 @@
 use alloc::collections::BTreeMap;
 use core::fmt::{Debug, Formatter, Result};
 
-use hypercraft::{
-    GuestPageTableTrait, GuestPhysAddr, HostPhysAddr, HyperCraftHal,
-};
+use hypercraft::{GuestPageTableTrait, GuestPhysAddr, HostPhysAddr, HyperCraftHal};
 
 use page_table_entry::MappingFlags;
 

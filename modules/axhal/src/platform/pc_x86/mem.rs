@@ -3,11 +3,11 @@
 use crate::mem::*;
 
 #[cfg(feature = "type1_5")]
-use lazy_init::LazyInit;
+use crate::platform::config::HvSystemConfig;
 #[cfg(feature = "type1_5")]
 use crate::platform::header::HvHeader;
 #[cfg(feature = "type1_5")]
-use crate::platform::config::HvSystemConfig;
+use lazy_init::LazyInit;
 #[cfg(feature = "type1_5")]
 static mmio_num: LazyInit<usize> = LazyInit::new();
 

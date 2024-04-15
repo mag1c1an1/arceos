@@ -1,4 +1,4 @@
-use crate::{Result as HyperResult, Error as HyperError};
+use crate::{Error as HyperError, Result as HyperResult};
 use axhal::time::current_time_nanos;
 use bit_field::BitField;
 
@@ -81,9 +81,9 @@ impl PITChannel {
 
                 self.reload_low_written = false;
                 self.started = false;
-                
+
                 Ok(())
-            },
+            }
             _ => Err(HyperError::NotSupported),
         }
     }
@@ -107,7 +107,7 @@ impl PITChannel {
                 } else {
                     self.read_high_byte()
                 })
-            },
+            }
             _ => Err(HyperError::BadState),
         }
     }
@@ -119,32 +119,30 @@ impl PITChannel {
 
     fn write(&mut self, value: u8) -> HyperResult {
         match self.op_mode {
-            PITChannelOpMode::OneShot => {
-                match self.access_mode {
-                    PITChannelAccessMode::LowOnly => {
+            PITChannelOpMode::OneShot => match self.access_mode {
+                PITChannelAccessMode::LowOnly => {
+                    self.reload.set_bits(0..8, value as u32);
+                    self.restart();
+                    Ok(())
+                }
+                PITChannelAccessMode::HighOnly => {
+                    self.reload.set_bits(8..16, value as u32);
+                    self.restart();
+                    Ok(())
+                }
+                PITChannelAccessMode::LowThenHigh => {
+                    if self.reload_low_written {
                         self.reload.set_bits(0..8, value as u32);
-                        self.restart();
-                        Ok(())
-                    },
-                    PITChannelAccessMode::HighOnly => {
+                    } else {
                         self.reload.set_bits(8..16, value as u32);
                         self.restart();
-                        Ok(())
-                    },
-                    PITChannelAccessMode::LowThenHigh => {
-                        if self.reload_low_written {
-                            self.reload.set_bits(0..8, value as u32);
-                        } else {
-                            self.reload.set_bits(8..16, value as u32);
-                            self.restart();
-                        }
+                    }
 
-                        self.reload_low_written = !self.reload_low_written;
-                        Ok(())
-                    },
-                    _ => Err(HyperError::BadState),
+                    self.reload_low_written = !self.reload_low_written;
+                    Ok(())
                 }
-            }
+                _ => Err(HyperError::BadState),
+            },
             _ => Err(HyperError::BadState),
         }
     }
@@ -173,8 +171,7 @@ impl PITChannel {
         }
     }
 
-    fn set_enabled(&self, _enabled: bool) {
-    }
+    fn set_enabled(&self, _enabled: bool) {}
 }
 
 /// Intel 8253/8254 Programmable Interval Timer (PIT) emulation
@@ -200,7 +197,7 @@ impl PIT {
             })
         }
     }
-    
+
     pub fn read(&mut self, channel: u8) -> HyperResult<u8> {
         let channel = channel as usize;
         if channel >= PIT_CHANNEL_COUNT {

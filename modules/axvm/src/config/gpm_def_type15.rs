@@ -4,8 +4,8 @@ use memory_addr::align_down_4k;
 use page_table_entry::MappingFlags;
 
 use crate::mm::{GuestMemoryRegion, GuestPhysMemorySet};
-use crate::{Error, GuestPageTable, Result as HyperResult};
 use crate::{phys_to_virt, virt_to_phys};
+use crate::{Error, GuestPageTable, Result as HyperResult};
 
 static ROOT_GPM: spin::Once<GuestPhysMemorySet> = spin::Once::new();
 
@@ -26,27 +26,42 @@ pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
     let offset = hv_phys_start - hv_phys_start;
     trace!(
         "gpm mapped gpa:{:#x} hpa: {:#x} offset:{:#x} size: {:#x}",
-        hv_phys_start, hv_phys_start, offset, hv_phys_size
+        hv_phys_start,
+        hv_phys_start,
+        offset,
+        hv_phys_size
     );
-    
-    gpm.map_region(GuestMemoryRegion {
-        gpa: hv_phys_start as GuestPhysAddr,
-        hpa: hv_phys_start as HostPhysAddr,
-        size: hv_phys_size,
-        flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
-    }.into())?;
+
+    gpm.map_region(
+        GuestMemoryRegion {
+            gpa: hv_phys_start as GuestPhysAddr,
+            hpa: hv_phys_start as HostPhysAddr,
+            size: hv_phys_size,
+            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
+        }
+        .into(),
+    )?;
     for region in cell_config.mem_regions() {
         let start_gpa = region.virt_start as usize;
         let start_hpa = region.phys_start as usize;
         let region_size = region.size as usize;
         let offset = start_gpa - start_hpa;
-        trace!("gpm mapped gpa:{:#x} hpa: {:#x} offset:{:#x} size:{:#x}", start_gpa, start_hpa, offset, region_size);
-        gpm.map_region(GuestMemoryRegion {
-            gpa: start_gpa as GuestPhysAddr,
-            hpa: start_hpa as HostPhysAddr,
-            size: region_size,
-            flags: region.flags.into(),
-        }.into())?;
+        trace!(
+            "gpm mapped gpa:{:#x} hpa: {:#x} offset:{:#x} size:{:#x}",
+            start_gpa,
+            start_hpa,
+            offset,
+            region_size
+        );
+        gpm.map_region(
+            GuestMemoryRegion {
+                gpa: start_gpa as GuestPhysAddr,
+                hpa: start_hpa as HostPhysAddr,
+                size: region_size,
+                flags: region.flags.into(),
+            }
+            .into(),
+        )?;
     }
     Ok(gpm)
 }
@@ -62,7 +77,6 @@ const GUEST_PHYS_MEMORY_BASE: GuestPhysAddr = 0;
 
 const NIMBOS_BIOS_ENTRY: GuestPhysAddr = 0x8000;
 const NIMBOS_GUEST_ENTRY: GuestPhysAddr = 0x20_0000;
-
 
 #[repr(align(4096))]
 pub(super) struct AlignedMemory<const LEN: usize>([u8; LEN]);
@@ -96,11 +110,16 @@ fn load_guest_image(hpa: HostPhysAddr, load_gpa: GuestPhysAddr, size: usize) {
 }
 
 #[cfg(target_arch = "x86_64")]
-pub fn setup_nimbos_gpm(bios_paddr: usize, bios_size: usize, guest_image_paddr: usize, guest_image_size: usize) -> HyperResult<GuestPhysMemorySet> {
+pub fn setup_nimbos_gpm(
+    bios_paddr: usize,
+    bios_size: usize,
+    guest_image_paddr: usize,
+    guest_image_size: usize,
+) -> HyperResult<GuestPhysMemorySet> {
     // copy BIOS and guest images
     load_guest_image(bios_paddr, NIMBOS_BIOS_ENTRY, bios_size);
     load_guest_image(guest_image_paddr, NIMBOS_GUEST_ENTRY, guest_image_size);
-    
+
     info!("1");
     // create nested page table and add mapping
     let mut gpm = GuestPhysMemorySet::new()?;
@@ -113,7 +132,6 @@ pub fn setup_nimbos_gpm(bios_paddr: usize, bios_size: usize, guest_image_paddr: 
             size: GUEST_PHYS_MEMORY_SIZE,
             flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
         },
-        
         GuestMemoryRegion {
             // syscall forwarder region
             gpa: 0x6700_0000,
@@ -121,7 +139,6 @@ pub fn setup_nimbos_gpm(bios_paddr: usize, bios_size: usize, guest_image_paddr: 
             size: 0x0100_0000,
             flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
         },
-        
         GuestMemoryRegion {
             // PCI
             gpa: 0x8000_0000,
@@ -162,7 +179,7 @@ pub fn setup_nimbos_gpm(bios_paddr: usize, bios_size: usize, guest_image_paddr: 
             size: 0x1000,
             flags: MappingFlags::READ | MappingFlags::WRITE,
         },
-		// SCF: memory region for shared memory should be configged here.
+        // SCF: memory region for shared memory should be configged here.
     ];
     for r in guest_memory_regions.into_iter() {
         gpm.map_region(r.into())?;

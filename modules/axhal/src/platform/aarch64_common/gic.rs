@@ -29,7 +29,8 @@ pub static GICD: SpinNoIrq<GicDistributor> =
 // per-CPU, no lock
 pub static GICC: GicCpuInterface = GicCpuInterface::new(phys_to_virt(GICC_BASE).as_mut_ptr());
 
-pub static GICH: GicHypervisorInterface = GicHypervisorInterface::new(phys_to_virt(GICH_BASE).as_mut_ptr());
+pub static GICH: GicHypervisorInterface =
+    GicHypervisorInterface::new(phys_to_virt(GICH_BASE).as_mut_ptr());
 
 /// Enables or disables the given IRQ.
 pub fn set_enable(irq_num: usize, enabled: bool) {
@@ -38,7 +39,7 @@ pub fn set_enable(irq_num: usize, enabled: bool) {
     #[cfg(feature = "hv")]
     {
         GICD.lock().set_priority(irq_num as _, 0x7f);
-        GICD.lock().set_target_cpu(irq_num as _, 1 << 0);   // only enable one cpu
+        GICD.lock().set_target_cpu(irq_num as _, 1 << 0); // only enable one cpu
         GICD.lock().set_enable(irq_num as _, en);
     }
 }
@@ -72,7 +73,6 @@ pub(crate) fn init_primary() {
         arch::GICC = Some(&GICC);
         arch::GICD = Some(&GICD);
     }
-    
 }
 
 /// Initializes GICC on secondary CPUs.

@@ -79,10 +79,20 @@ impl GlobalAllocator {
     pub fn init(&self, start_vaddr: usize, size: usize) {
         assert!(size > MIN_HEAP_SIZE);
         let init_heap_size = MIN_HEAP_SIZE;
+        info!(
+            "BitmapPageAllocator at {:#x} - {:#x}",
+            start_vaddr,
+            start_vaddr + size,
+        );
         self.palloc.lock().init(start_vaddr, size);
         let heap_ptr = self
             .alloc_pages(init_heap_size / PAGE_SIZE, PAGE_SIZE)
             .unwrap();
+        info!(
+            "DefaultByteAllocator at {:#x} - {:#x}",
+            heap_ptr,
+            heap_ptr + init_heap_size,
+        );
         self.balloc.lock().init(heap_ptr, init_heap_size);
     }
 
@@ -209,8 +219,9 @@ pub fn global_allocator() -> &'static GlobalAllocator {
 ///
 /// This function should be called only once, and before any allocation.
 pub fn global_init(start_vaddr: usize, size: usize) {
-    debug!(
-        "initialize global allocator at: [{:#x}, {:#x})",
+    info!(
+        "initialize {} global allocator at: [{:#x}, {:#x})",
+        GLOBAL_ALLOCATOR.name(),
         start_vaddr,
         start_vaddr + size
     );

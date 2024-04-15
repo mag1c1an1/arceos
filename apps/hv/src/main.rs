@@ -5,17 +5,17 @@ extern crate alloc;
 #[macro_use]
 extern crate libax;
 
-#[cfg(target_arch = "riscv64")]
-use dtb_riscv64::MachineMeta;
-#[cfg(target_arch = "aarch64")]
-use dtb_aarch64::MachineMeta;
 #[cfg(target_arch = "aarch64")]
 use aarch64_config::GUEST_KERNEL_BASE_VADDR;
 #[cfg(target_arch = "aarch64")]
+use dtb_aarch64::MachineMeta;
+#[cfg(target_arch = "riscv64")]
+use dtb_riscv64::MachineMeta;
+#[cfg(target_arch = "aarch64")]
 use libax::{
     hv::{
-        self, GuestPageTable, GuestPageTableTrait, HyperCraftHalImpl, PerCpu,
-        Result, VCpu, VmCpus, VM,
+        self, GuestPageTable, GuestPageTableTrait, HyperCraftHalImpl, PerCpu, Result, VCpu, VmCpus,
+        VM,
     },
     info,
 };
@@ -28,18 +28,18 @@ use libax::{
 //     info,
 // };
 
-use page_table_entry::MappingFlags;
 use axvm::LinuxContext;
+use page_table_entry::MappingFlags;
 
 // #[cfg(target_arch = "x86_64")]
 // use device::{X64VcpuDevices, X64VmDevices};
 
-#[cfg(target_arch = "riscv64")]
-mod dtb_riscv64;
-#[cfg(target_arch = "aarch64")]
-mod dtb_aarch64;
 #[cfg(target_arch = "aarch64")]
 mod aarch64_config;
+#[cfg(target_arch = "aarch64")]
+mod dtb_aarch64;
+#[cfg(target_arch = "riscv64")]
+mod dtb_riscv64;
 
 // #[cfg(target_arch = "x86_64")]
 // mod x64;
@@ -52,8 +52,9 @@ mod aarch64_config;
 // #[path = "device/dummy.rs"]
 // mod device;
 
-mod process;
 mod linux;
+#[cfg(feature = "monolithic")]
+mod process;
 
 #[cfg(feature = "type1_5")]
 #[no_mangle]
@@ -61,19 +62,18 @@ fn main(cpu_id: u32, linux_context: &LinuxContext) {
     info!("Hello, hv!");
     info!("Currently Linux inside VM is on Core {}", cpu_id);
     linux::boot_linux(cpu_id as usize, linux_context);
-    
 
     // if cpu_id == 1 {
     //     println!("Hello, processs on core {}!", cpu_id);
     //     process::hello();
     // }
     // loop{};
-/* 
-	loop {
-        libax::thread::sleep(libax::time::Duration::from_secs(1));
-        println!("main tick");
-    }
-*/    
+    /*
+        loop {
+            libax::thread::sleep(libax::time::Duration::from_secs(1));
+            println!("main tick");
+        }
+    */
 }
 
 #[cfg(not(feature = "type1_5"))]
@@ -83,7 +83,7 @@ fn main() {
     println!("Currently Linux inside VM is pinned on Core 0");
     // linux::boot_linux(0);
 
-	loop {
+    loop {
         libax::thread::sleep(libax::time::Duration::from_secs(1));
         println!("main tick");
     }
@@ -94,12 +94,12 @@ fn main() {
 pub fn main_secondary(hart_id: usize) {
     println!("Hello, processs on core {}!", hart_id);
 
-    process::hello();
+    // process::hello();
 
-    loop {
-        libax::thread::sleep(libax::time::Duration::from_secs(1));
-        println!("secondary tick");
-    }
+    // loop {
+    //     libax::thread::sleep(libax::time::Duration::from_secs(1));
+    //     println!("secondary tick");
+    // }
 }
 
 #[cfg(target_arch = "riscv64")]
@@ -179,12 +179,12 @@ pub fn setup_gpm(dtb: usize) -> Result<GuestPageTable> {
 pub fn setup_gpm(dtb: usize, kernel_entry: usize) -> Result<GuestPageTable> {
     let mut gpt = GuestPageTable::new()?;
     let meta = MachineMeta::parse(dtb);
-    /* 
+    /*
     for virtio in meta.virtio.iter() {
         gpt.map_region(
             virtio.base_address,
             virtio.base_address,
-            0x1000, 
+            0x1000,
             MappingFlags::READ | MappingFlags::WRITE | MappingFlags::USER,
         )?;
         debug!("finish one virtio");
@@ -197,7 +197,7 @@ pub fn setup_gpm(dtb: usize, kernel_entry: usize) -> Result<GuestPageTable> {
         0x4000,
         MappingFlags::READ | MappingFlags::WRITE | MappingFlags::USER,
     )?;
-    
+
     if let Some(pl011) = meta.pl011 {
         gpt.map_region(
             pl011.base_address,
@@ -206,7 +206,6 @@ pub fn setup_gpm(dtb: usize, kernel_entry: usize) -> Result<GuestPageTable> {
             MappingFlags::READ | MappingFlags::WRITE | MappingFlags::USER,
         )?;
     }
-
 
     for intc in meta.intc.iter() {
         gpt.map_region(
@@ -231,14 +230,14 @@ pub fn setup_gpm(dtb: usize, kernel_entry: usize) -> Result<GuestPageTable> {
         meta.physical_memory_offset,
         meta.physical_memory_offset + meta.physical_memory_size
     );
-    
+
     gpt.map_region(
         meta.physical_memory_offset,
         meta.physical_memory_offset,
         meta.physical_memory_size,
         MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE | MappingFlags::USER,
     )?;
-    
+
     gpt.map_region(
         GUEST_KERNEL_BASE_VADDR,
         kernel_entry,

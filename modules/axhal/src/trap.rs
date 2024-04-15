@@ -17,14 +17,14 @@ pub trait TrapHandler {
     /// Handles interrupt requests for the given IRQ number.
     fn handle_irq(irq_num: usize);
     // more e.g.: handle_page_fault();
-	/// Handle page fault from `axprocess`. Todo: redefine feature.
+    /// Handle page fault from `axprocess`. Todo: redefine feature.
     #[cfg(feature = "monolithic")]
     fn handle_page_fault(addr: VirtAddr, flags: MappingFlags, tf: &mut TrapFrame);
 }
 
 #[def_interface]
 pub trait SyscallHandler {
-	/// Handle syscall from user process.
+    /// Handle syscall from user process.
     #[cfg(feature = "monolithic")]
     fn handle_syscall(syscall_id: usize, args: [usize; 6]) -> isize;
 }

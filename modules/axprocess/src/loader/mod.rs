@@ -55,12 +55,12 @@ impl<'a> Loader<'a> {
             .program_iter()
             .find(|ph| ph.get_type() == Ok(xmas_elf::program::Type::Interp))
         {
-			// Dynamic linked ELF detected!
+            // Dynamic linked ELF detected!
             let interp = match interp.get_data(&self.elf) {
                 Ok(SegmentData::Undefined(data)) => data,
                 _ => panic!("Invalid data in Interp Elf Program Header"),
             };
-			// Get the interpreter.
+            // Get the interpreter.
             let interp_path = from_utf8(interp).expect("Interpreter path isn't valid UTF-8");
             // remove trailing '\0'
             let interp_path = interp_path.trim_matches(char::from(0));

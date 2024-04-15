@@ -22,6 +22,10 @@ features-$(HV) += libax/monolithic
 features-$(HV) += libax/fp_simd
 endif
 
+ifeq ($(STRUCT), Hypervisor)
+features-$(HV) += libax/fp_simd
+endif
+
 ifeq ($(GUEST), nimbos)
   features-$(HV) += guest_nimbos
 else ifeq ($(GUEST), linux)

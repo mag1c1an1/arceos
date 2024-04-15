@@ -1,6 +1,5 @@
+use axhal::arch::{disable_irqs, enable_irqs, irqs_enabled};
 use core::sync::atomic::{AtomicBool, Ordering};
-use axhal::arch::{disable_irqs, irqs_enabled, enable_irqs};
-
 
 pub fn spin_lock_irqsave(lock: &AtomicBool) -> bool {
     let irq_enabled_before = irqs_enabled();
