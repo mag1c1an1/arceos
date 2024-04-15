@@ -1,9 +1,9 @@
+use super::header::HvHeader;
+use crate::mem::MemRegionFlags;
+use bitflags::bitflags;
 use core::fmt::{Debug, Formatter, Result};
 use core::{mem::size_of, slice};
-use bitflags::bitflags;
 use page_table_entry::MappingFlags;
-use crate::mem::MemRegionFlags;
-use super::header::HvHeader;
 
 const CONFIG_SIGNATURE: [u8; 6] = *b"AOSSYS";
 const CONFIG_REVISION: u16 = 10;
@@ -256,7 +256,7 @@ impl HvSystemConfig {
 
     pub const fn size(&self) -> usize {
         size_of::<Self>() + self.root_cell.config_size()
-    }  
+    }
 }
 
 impl<'a> CellConfig<'a> {

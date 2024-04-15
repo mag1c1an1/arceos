@@ -34,19 +34,19 @@ cfg_if::cfg_if! {
         extern crate log;
         extern crate alloc;
         mod run_queue;
-		pub use run_queue::{IDLE_TASK, RUN_QUEUE, EXITED_TASKS};
+        pub use run_queue::{IDLE_TASK, RUN_QUEUE, EXITED_TASKS};
 
         mod task;
-		pub use task::TaskState;
+        pub use task::TaskState;
         mod wait_queue;
 
         #[cfg(feature = "irq")]
         mod timers;
 
-		#[cfg(all(feature = "irq", feature = "hv"))]
-		pub use timers::add_timer_event;
+        #[cfg(all(feature = "irq", feature = "hv"))]
+        pub use timers::add_timer_event;
         #[cfg(feature = "hv")]
-		pub use task::notify_all_process;
+        pub use task::notify_all_process;
     }
 }
 

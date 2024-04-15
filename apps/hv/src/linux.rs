@@ -17,5 +17,5 @@ pub fn boot_linux(hart_id: usize) {
         // }
 
         axprocess::yield_now_task();
-    };
+    }
 }

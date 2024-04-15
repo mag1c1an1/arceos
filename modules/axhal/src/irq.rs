@@ -6,8 +6,7 @@ use crate::platform::irq::MAX_IRQ_COUNT;
 
 pub use crate::platform::irq::{dispatch_irq, register_handler, set_enable};
 
-
-#[cfg(target_arch="x86_64")]
+#[cfg(target_arch = "x86_64")]
 pub use crate::platform::irq::{send_ipi, send_nmi_to};
 
 /// The type if an IRQ handler.

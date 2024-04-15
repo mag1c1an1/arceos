@@ -101,7 +101,7 @@ impl AxRunQueue {
         unreachable!("task exited!");
     }
 
-	#[cfg(feature = "monolithic")]
+    #[cfg(feature = "monolithic")]
     /// 仅用于exec与exit时清除其他后台线程
     pub fn remove_task(&mut self, task: &AxTaskRef) {
         debug!("task remove: {}", task.id_name());
@@ -197,14 +197,15 @@ impl AxRunQueue {
             let prev_ctx_ptr = prev_task.ctx_mut_ptr();
             let next_ctx_ptr = next_task.ctx_mut_ptr();
 
-
             trace!(
                 "context switch ptr: prev {:#p} {:?}",
-                prev_ctx_ptr, *prev_ctx_ptr
+                prev_ctx_ptr,
+                *prev_ctx_ptr
             );
             trace!(
                 "context switch ptr: next {:#p} {:?}",
-                next_ctx_ptr, *next_ctx_ptr
+                next_ctx_ptr,
+                *next_ctx_ptr
             );
 
             // The strong reference count of `prev_task` will be decremented by 1,
@@ -212,7 +213,7 @@ impl AxRunQueue {
             assert!(Arc::strong_count(prev_task.as_task_ref()) > 1);
             assert!(Arc::strong_count(&next_task) >= 1);
 
-			#[cfg(feature = "monolithic")]
+            #[cfg(feature = "monolithic")]
             {
                 let page_table_token = next_task.get_page_table_token();
                 if page_table_token != 0 {
@@ -220,7 +221,7 @@ impl AxRunQueue {
                 }
             }
 
-            CurrentTask::set_current(prev_task, next_task);	
+            CurrentTask::set_current(prev_task, next_task);
 
             (*prev_ctx_ptr).switch_to(&*next_ctx_ptr);
         }

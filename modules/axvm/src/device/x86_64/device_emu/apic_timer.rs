@@ -1,11 +1,11 @@
 //! Emulated Local APIC. (SDM Vol. 3A, Chapter 10)
 
 #![allow(dead_code)]
-use crate::{Result as HyperResult, Error as HyperError};
-use bit_field::BitField;
+use crate::{Error as HyperError, Result as HyperResult};
 use axhal::time::current_time_nanos;
+use bit_field::BitField;
 
-use super::{msr_proxy_struct, msr_proxy_factory, VirtMsrDevice};
+use super::{msr_proxy_factory, msr_proxy_struct, VirtMsrDevice};
 
 const APIC_FREQ_MHZ: u64 = 1000; // 1000 MHz
 const APIC_CYCLE_NANOS: u64 = 1000 / APIC_FREQ_MHZ;
@@ -227,11 +227,20 @@ pub struct VirtLocalApic {
     pub inner: ApicTimer,
 }
 
-msr_proxy_struct!(0x800, 0x83f, VirtLocalApicMsrProxy, VirtLocalApic, read_msr, write_msr);
+msr_proxy_struct!(
+    0x800,
+    0x83f,
+    VirtLocalApicMsrProxy,
+    VirtLocalApic,
+    read_msr,
+    write_msr
+);
 
 impl VirtLocalApic {
     pub fn new() -> Self {
-        Self { inner: ApicTimer::new() }
+        Self {
+            inner: ApicTimer::new(),
+        }
     }
 
     pub const fn msr_range() -> core::ops::Range<u32> {
@@ -245,9 +254,9 @@ impl VirtLocalApic {
             SIVR => Ok(0x1ff), // SDM Vol. 3A, Section 10.9, Figure 10-23 (with Software Enable bit)
             LVT_THERMAL | LVT_PMI | LVT_LINT0 | LVT_LINT1 | LVT_ERR => {
                 Ok(0x1_0000) // SDM Vol. 3A, Section 10.5.1, Figure 10-8 (with Mask bit)
-            },
-            IRR0 ..= IRR7 => Ok(0),
-            ISR0 ..= ISR7 => Ok(0),
+            }
+            IRR0..=IRR7 => Ok(0),
+            ISR0..=ISR7 => Ok(0),
             LVT_TIMER => Ok(apic_timer.lvt_timer() as u64),
             INIT_COUNT => Ok(apic_timer.initial_count() as u64),
             DIV_CONF => Ok(apic_timer.divide() as u64),
@@ -283,7 +292,13 @@ impl VirtLocalApic {
             INIT_COUNT => apic_timer.set_initial_count(value as u32),
             DIV_CONF => apic_timer.set_divide(value as u32),
             TPR => Ok(apic_timer.set_tpr(value as u32)),
-            ESR => if value == 0 { Ok(()) } else { Err(HyperError::InvalidParam) },
+            ESR => {
+                if value == 0 {
+                    Ok(())
+                } else {
+                    Err(HyperError::InvalidParam)
+                }
+            }
             _ => Err(HyperError::NotSupported),
         }
     }

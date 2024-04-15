@@ -5,7 +5,6 @@ use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
 
 use axconfig::TASK_STACK_SIZE;
 
-
 #[link_section = ".bss.stack"]
 static mut BOOT_STACK: [u8; TASK_STACK_SIZE] = [0; TASK_STACK_SIZE];
 
@@ -59,7 +58,7 @@ unsafe fn switch_to_el1() {
 }
 
 unsafe fn init_mmu_el2() {
-    /* 
+    /*
     MAIR_EL2.write(
         MAIR_EL2::Attr0_Device::nonGathering_nonReordering_noEarlyWriteAck
             + MAIR_EL2::Attr1_Normal_Outer::WriteBack_NonTransient_ReadWriteAlloc
@@ -76,7 +75,7 @@ unsafe fn init_mmu_el2() {
             + TCR_EL2::T0SZ.val(16),
     );
     */
-    
+
     // Set EL1 to 64bit.
     HCR_EL2.write(HCR_EL2::RW::EL1IsAarch64);
 
@@ -87,12 +86,12 @@ unsafe fn init_mmu_el2() {
         + MAIR_EL2::Attr1_Normal_Outer::WriteBack_NonTransient_ReadWriteAlloc;
     MAIR_EL2.write(attr0 + attr1); // 0xff_04
 
-     // Enable TTBR0 and TTBR1 walks, page size = 4K, vaddr size = 48 bits, paddr size = 40 bits.
+    // Enable TTBR0 and TTBR1 walks, page size = 4K, vaddr size = 48 bits, paddr size = 40 bits.
     let tcr_flags0 = TCR_EL2::TG0::KiB_4
         + TCR_EL2::SH0::Inner
-         + TCR_EL2::ORGN0::WriteBack_ReadAlloc_WriteAlloc_Cacheable
-         + TCR_EL2::IRGN0::WriteBack_ReadAlloc_WriteAlloc_Cacheable
-         + TCR_EL2::T0SZ.val(16);
+        + TCR_EL2::ORGN0::WriteBack_ReadAlloc_WriteAlloc_Cacheable
+        + TCR_EL2::IRGN0::WriteBack_ReadAlloc_WriteAlloc_Cacheable
+        + TCR_EL2::T0SZ.val(16);
     TCR_EL2.write(TCR_EL2::PS::Bits_40 + tcr_flags0);
     barrier::isb(barrier::SY);
 
@@ -170,7 +169,7 @@ extern "C" {
 unsafe extern "C" fn _start() -> ! {
     // PC = 0x8_0000
     // X0 = dtb
-    
+
     #[cfg(not(feature = "hv"))]
     core::arch::asm!("
         mrs     x19, mpidr_el1

@@ -13,7 +13,7 @@ extern crate alloc;
 
 use crate::Result as HyperResult;
 
-pub use apic_timer::{VirtLocalApic, ApicBaseMsrHandler};
+pub use apic_timer::{ApicBaseMsrHandler, VirtLocalApic};
 pub use bundle::Bundle;
 pub use debug_port::DebugPort;
 pub use dummy::Dummy;
@@ -21,7 +21,7 @@ pub use i8259_pic::I8259Pic;
 pub use pci::PCIConfigurationSpace;
 
 pub use port_passthrough::PortPassthrough;
-pub use uart16550::{Uart16550, MultiplexConsoleBackend};
+pub use uart16550::{MultiplexConsoleBackend, Uart16550};
 
 pub trait PortIoDevice: Send + Sync {
     fn port_range(&self) -> core::ops::Range<u16>;
@@ -45,11 +45,11 @@ macro_rules! pmio_proxy_struct {
             fn port_range(&self) -> core::ops::Range<u16> {
                 ($port_begin)..(($port_end) + 1)
             }
-        
+
             fn read(&mut self, port: u16, access_size: u8) -> crate::Result<u32> {
                 self.parent.lock().$reader(port, access_size)
             }
-        
+
             fn write(&mut self, port: u16, access_size: u8, value: u32) -> crate::Result {
                 self.parent.lock().$writer(port, access_size, value)
             }
@@ -60,7 +60,9 @@ macro_rules! pmio_proxy_struct {
 macro_rules! pmio_proxy_factory {
     ($fn:ident, $type:ident) => {
         pub fn $fn(some: &alloc::sync::Arc<spin::Mutex<Self>>) -> $type {
-            $type { parent: some.clone() }
+            $type {
+                parent: some.clone(),
+            }
         }
     };
 }
@@ -90,15 +92,17 @@ macro_rules! msr_proxy_struct {
 macro_rules! msr_proxy_factory {
     ($fn:ident, $type:ident) => {
         pub fn $fn(some: &alloc::sync::Arc<spin::Mutex<Self>>) -> $type {
-            $type { parent: some.clone() }
+            $type {
+                parent: some.clone(),
+            }
         }
     };
 }
 
-pub(crate) use pmio_proxy_struct;
-pub(crate) use pmio_proxy_factory;
-pub(crate) use msr_proxy_struct;
 pub(crate) use msr_proxy_factory;
+pub(crate) use msr_proxy_struct;
+pub(crate) use pmio_proxy_factory;
+pub(crate) use pmio_proxy_struct;
 
 pub struct MsrDummy {
     msr_range: core::ops::Range<u32>,
@@ -106,7 +110,9 @@ pub struct MsrDummy {
 
 impl MsrDummy {
     pub fn new(msr: u32) -> Self {
-        Self { msr_range: msr..msr+1 }
+        Self {
+            msr_range: msr..msr + 1,
+        }
     }
 
     pub fn new_range(range: core::ops::Range<u32>) -> Self {

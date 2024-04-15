@@ -14,4 +14,4 @@ use core::sync::atomic::{AtomicI32, AtomicU32, Ordering};
 
 mod memory;
 
-pub use memory::{init_type15_allocator, activate_hv_pt, init_hv_page_table};
+pub use memory::{activate_hv_pt, init_hv_page_table, init_type15_allocator};

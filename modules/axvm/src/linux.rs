@@ -1,18 +1,18 @@
+#[cfg(feature = "type1_5")]
+use crate::config::{init_gpm, root_gpm};
+#[cfg(feature = "type1_5")]
+use hypercraft::LinuxContext;
 /// Temporar module to boot Linux as a guest VM.
 ///
 /// To be removed...
 // use hypercraft::GuestPageTableTrait;
 use hypercraft::{PerCpu, VCpu, VmCpus, VM};
-#[cfg(feature = "type1_5")]
-use hypercraft::LinuxContext;
-#[cfg(feature = "type1_5")]
-use crate::config::{root_gpm, init_gpm};
 
+use super::arch::new_vcpu;
 #[cfg(target_arch = "x86_64")]
 use super::device::{self, X64VcpuDevices, X64VmDevices};
-use super::arch::new_vcpu;
-use axhal::hv::HyperCraftHalImpl;
 use crate::{phys_to_virt, PhysAddr};
+use axhal::hv::HyperCraftHalImpl;
 use axhal::mem::PAGE_SIZE_4K;
 use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 // use super::type1_5::cell;
@@ -27,17 +27,23 @@ pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
     if hart_id == 0 {
         super::config::init_gpm();
         INIT_GPM_OK.store(1, Ordering::Release);
-    }else {
+    } else {
         while INIT_GPM_OK.load(Ordering::Acquire) < 1 {
             core::hint::spin_loop();
         }
     }
     info!("CPU{} after init_gpm", hart_id);
-    
+
     // let gpm = super::config::setup_gpm().unwrap();
     let gpm = super::config::root_gpm();
     debug!("CPU{} type 1.5 gpm: {:#x?}", hart_id, gpm);
-    let vcpu = new_vcpu(hart_id, crate::arch::cpu_vmcs_revision_id(), gpm.nest_page_table_root(), &linux_context).unwrap();
+    let vcpu = new_vcpu(
+        hart_id,
+        crate::arch::cpu_vmcs_revision_id(),
+        gpm.nest_page_table_root(),
+        &linux_context,
+    )
+    .unwrap();
     let mut vcpus = VmCpus::<HyperCraftHalImpl, X64VcpuDevices<HyperCraftHalImpl>>::new();
     info!("CPU{} add vcpu to vm...", hart_id);
     vcpus.add_vcpu(vcpu).expect("add vcpu failed");
@@ -48,7 +54,7 @@ pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
     >::new(vcpus);
     // The bind_vcpu method should be decoupled with vm struct.
     vm.bind_vcpu(hart_id).expect("bind vcpu failed");
-    
+
     INITED_CPUS.fetch_add(1, Ordering::SeqCst);
     while INITED_CPUS.load(Ordering::Acquire) < axconfig::SMP {
         core::hint::spin_loop();
@@ -84,8 +90,8 @@ pub fn config_boot_linux(hart_id: usize) {
         X64VcpuDevices<HyperCraftHalImpl>,
         X64VmDevices<HyperCraftHalImpl>,
     >::new(vcpus);
-	
-	// The bind_vcpu method should be decoupled with vm struct.
+
+    // The bind_vcpu method should be decoupled with vm struct.
     vm.bind_vcpu(0).expect("bind vcpu failed");
 
     if hart_id == 0 {
@@ -107,16 +113,32 @@ pub fn config_boot_linux(hart_id: usize) {
 
 pub fn boot_vm(vm_type: usize, entry: usize, phy_addr: usize) {
     info!("boot_vm");
-    let size = unsafe { core::slice::from_raw_parts(phys_to_virt(PhysAddr::from(phy_addr)).as_ptr() as *const u64, 3)};
+    let size = unsafe {
+        core::slice::from_raw_parts(
+            phys_to_virt(PhysAddr::from(phy_addr)).as_ptr() as *const u64,
+            3,
+        )
+    };
     info!("size: {:x?}: ", size);
-    let code = unsafe { core::slice::from_raw_parts(phys_to_virt(PhysAddr::from(phy_addr)).as_ptr(), size[0] as usize)};
+    let code = unsafe {
+        core::slice::from_raw_parts(
+            phys_to_virt(PhysAddr::from(phy_addr)).as_ptr(),
+            size[0] as usize,
+        )
+    };
     // info!("content: {:x?}: ", code);
 
     if vm_type == 1 {
         info!("start nimbos vm");
         let bios_paddr = phy_addr + PAGE_SIZE_4K;
         let guest_image_paddr = phy_addr + PAGE_SIZE_4K + size[1] as usize;
-        let gpm = super::config::setup_nimbos_gpm(bios_paddr, size[1] as usize, guest_image_paddr, size[2] as usize).unwrap();
+        let gpm = super::config::setup_nimbos_gpm(
+            bios_paddr,
+            size[1] as usize,
+            guest_image_paddr,
+            size[2] as usize,
+        )
+        .unwrap();
         let npt = gpm.nest_page_table_root();
         info!("{:#x?}", gpm);
 
@@ -138,7 +160,5 @@ pub fn boot_vm(vm_type: usize, entry: usize, phy_addr: usize) {
 
         info!("Running guest...");
         info!("{:?}", vm.run_vcpu(0));
-    } 
-    
-
+    }
 }

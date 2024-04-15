@@ -1,11 +1,10 @@
 //! Emulated UART 16550. (ref: https://wiki.osdev.org/Serial_Ports)
-//! 
+//!
 
 use super::PortIoDevice;
 
-
+use crate::{Error as HyperError, Result as HyperResult};
 use alloc::string::String;
-use crate::{Result as HyperResult, Error as HyperError};
 use spin::Mutex;
 
 const DATA_REG: u16 = 0;
@@ -95,16 +94,25 @@ impl VirtualConsoleBackend for DefaultConsoleBackend {
     }
 }
 
-
 const MULTIPLEX_BUFFER_LENGTH: usize = 80;
 pub enum MultiplexConsoleBackend {
     Primary,
-    Secondary{id: isize, buffer: Fifo<MULTIPLEX_BUFFER_LENGTH>, input: String, input_ptr: usize},
+    Secondary {
+        id: isize,
+        buffer: Fifo<MULTIPLEX_BUFFER_LENGTH>,
+        input: String,
+        input_ptr: usize,
+    },
 }
 
 impl MultiplexConsoleBackend {
     pub fn new_secondary(id: isize, input: impl Into<String>) -> Self {
-        Self::Secondary { id: id, buffer: Fifo::new(), input: input.into(), input_ptr: 0 }
+        Self::Secondary {
+            id: id,
+            buffer: Fifo::new(),
+            input: input.into(),
+            input_ptr: 0,
+        }
     }
 }
 
@@ -118,7 +126,7 @@ impl VirtualConsoleBackend for MultiplexConsoleBackend {
             MultiplexConsoleBackend::Primary => {
                 use axhal::console as uart;
                 uart::putchar(c)
-            },
+            }
             MultiplexConsoleBackend::Secondary { id, buffer, .. } => {
                 if c == ('\n' as u8) {
                     let mut result = [0u8; MULTIPLEX_BUFFER_LENGTH + 1];
@@ -129,11 +137,15 @@ impl VirtualConsoleBackend for MultiplexConsoleBackend {
                         ptr += 1;
                     }
 
-                    info!("multiplex console output {}: {}", id, core::str::from_utf8(&result[0..ptr]).unwrap())
+                    info!(
+                        "multiplex console output {}: {}",
+                        id,
+                        core::str::from_utf8(&result[0..ptr]).unwrap()
+                    )
                 } else {
                     buffer.push(c);
                 }
-            },
+            }
         }
     }
 
@@ -142,8 +154,10 @@ impl VirtualConsoleBackend for MultiplexConsoleBackend {
             MultiplexConsoleBackend::Primary => {
                 use axhal::console as uart;
                 uart::getchar()
-            },
-            MultiplexConsoleBackend::Secondary { input, input_ptr, .. } => {
+            }
+            MultiplexConsoleBackend::Secondary {
+                input, input_ptr, ..
+            } => {
                 let result = input.as_bytes()[*input_ptr];
 
                 *input_ptr += 1;
@@ -152,7 +166,7 @@ impl VirtualConsoleBackend for MultiplexConsoleBackend {
                 }
 
                 Some(result)
-            },
+            }
         }
     }
 }
@@ -199,11 +213,8 @@ impl<B: VirtualConsoleBackend> PortIoDevice for Uart16550<B> {
                 }
                 lsr.bits()
             }
-            LINE_CTRL_REG => {
-                self.line_control_reg
-            }
-            INT_EN_REG | FIFO_CTRL_REG | MODEM_CTRL_REG | MODEM_STATUS_REG
-            | SCRATCH_REG => {
+            LINE_CTRL_REG => self.line_control_reg,
+            INT_EN_REG | FIFO_CTRL_REG | MODEM_CTRL_REG | MODEM_STATUS_REG | SCRATCH_REG => {
                 trace!("Unimplemented serial port I/O read: {:#x}", port); // unimplemented
                 0
             }

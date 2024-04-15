@@ -9,8 +9,11 @@ pub struct Dummy {
 
 impl Dummy {
     pub fn new(port_base: u16, port_count: u16) -> Self {
-        Self { port_base, port_count }
-    } 
+        Self {
+            port_base,
+            port_count,
+        }
+    }
 }
 
 impl PortIoDevice for Dummy {

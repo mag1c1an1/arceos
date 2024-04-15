@@ -182,11 +182,14 @@ macro_rules! include_bytes_aligned {
 pub fn load_hello_app(memory_set: &mut MemorySet) -> AxResult<(VirtAddr, VirtAddr, VirtAddr)> {
     // Has to be aligned with `HeaderPt1` inside xmas-elf, so we used a alignment here.
     static HELLO: &'static [u8] = include_bytes_aligned!(0x1000, "hello");
-    
+
     let elf_data = HELLO;
     debug!("app elf data length: {} at {:#p}", elf_data.len(), elf_data);
 
-    debug!("app elf data: [{:x} {:x} {:x} {:x}]", elf_data[0], elf_data[1],elf_data[2],elf_data[3]);
+    debug!(
+        "app elf data: [{:x} {:x} {:x} {:x}]",
+        elf_data[0], elf_data[1], elf_data[2], elf_data[3]
+    );
 
     let loader = Loader::new(&elf_data);
 

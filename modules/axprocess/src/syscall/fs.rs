@@ -1,6 +1,6 @@
+use axlog::ax_println;
 /// File related syscalls.
 use axmem::{UserInPtr, UserOutPtr};
-use axlog::ax_println;
 
 const FD_STDIN: usize = 0;
 const FD_STDOUT: usize = 1;

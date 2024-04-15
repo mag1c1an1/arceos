@@ -4,12 +4,12 @@ use lazy_init::LazyInit;
 use hypercraft::{HostPhysAddr, HostVirtAddr, HyperCraftHal};
 use x86::msr::P5_MC_ADDR;
 
-pub use hypercraft::PerCpu;
 #[cfg(feature = "type1_5")]
 use hypercraft::LinuxContext;
+pub use hypercraft::PerCpu;
 
-use axhal::hv::HyperCraftHalImpl;
 use crate::Result;
+use axhal::hv::HyperCraftHalImpl;
 
 #[percpu::def_percpu]
 static HV_PER_CPU: LazyInit<PerCpu<HyperCraftHalImpl>> = LazyInit::new();

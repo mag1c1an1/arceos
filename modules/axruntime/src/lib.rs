@@ -93,7 +93,7 @@ impl axlog::LogIf for LogIfImpl {
     }
 }
 
-use core::sync::atomic::{AtomicUsize, AtomicU32, Ordering};
+use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 
 static INITED_CPUS: AtomicUsize = AtomicUsize::new(0);
 
@@ -226,8 +226,8 @@ pub mod type1_5;
 #[cfg(feature = "type1_5")]
 #[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
-    let is_primary = cpu_id == 0;  
-    
+    let is_primary = cpu_id == 0;
+
     if is_primary {
         runtime_init_early().expect("runtime init early failed");
     } else {
@@ -236,20 +236,23 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
         }
         debug!("CPU{} after primary early init ok", cpu_id);
     }
-    info!("CPU {} init finished, linux_sp = {:#x}. rust_main_type1_5", cpu_id, linux_sp);
+    info!(
+        "CPU {} init finished, linux_sp = {:#x}. rust_main_type1_5",
+        cpu_id, linux_sp
+    );
     let linux_context = LinuxContext::load_from(linux_sp);
     trace!("CPU{} Linux: {:#x?}", cpu_id, linux_context);
-    type1_5::activate_hv_pt(); 
+    type1_5::activate_hv_pt();
 
     if is_primary {
         info!("Primary Initialize platform devices...");
         axhal::platform_init();
-        
+
         cfg_if::cfg_if! {
             if #[cfg(feature = "monolithic")] {
                 axprocess::init_kernel_process();
                 info!("Kernel process init ok!!");
-    
+
             }
             else {
                 #[cfg(feature = "multitask")]
@@ -257,9 +260,9 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
             }
         }
         INIT_SYNC.fetch_add(1, Ordering::Release);
-    }else {
+    } else {
         info!("Secondary Initialize platform devices...");
-        while INIT_SYNC.load(Ordering::Acquire) < 1{
+        while INIT_SYNC.load(Ordering::Acquire) < 1 {
             core::hint::spin_loop();
         }
         axhal::platform_init_secondary();
@@ -268,7 +271,7 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
 
         INIT_SYNC.fetch_add(1, Ordering::Release);
     }
-    
+
     while INIT_SYNC.load(Ordering::Acquire) < 2 {
         core::hint::spin_loop();
     }
@@ -276,7 +279,7 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
     unsafe {
         main(cpu_id, &linux_context);
     };
-    
+
     0
 }
 

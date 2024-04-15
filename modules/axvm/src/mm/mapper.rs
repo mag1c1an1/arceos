@@ -20,7 +20,7 @@ impl GuestPageTableTrait for GuestPageTable {
         #[cfg(target_arch = "aarch64")]
         {
             let agpt = NestedPageTable::<GuestPagingIfImpl>::try_new()
-            .map_err(|_| HyperError::NoMemory)?;
+                .map_err(|_| HyperError::NoMemory)?;
             Ok(GuestPageTable(agpt))
         }
         #[cfg(target_arch = "x86_64")]
@@ -29,7 +29,11 @@ impl GuestPageTableTrait for GuestPageTable {
                 .map_err(|_| HyperError::NoMemory)?;
             Ok(GuestPageTable(npt))
         }
-        #[cfg(not(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64")))]
+        #[cfg(not(any(
+            target_arch = "riscv64",
+            target_arch = "x86_64",
+            target_arch = "aarch64"
+        )))]
         {
             todo!()
         }
@@ -41,7 +45,11 @@ impl GuestPageTableTrait for GuestPageTable {
         hpa: hypercraft::HostPhysAddr,
         flags: MappingFlags,
     ) -> HyperResult<()> {
-        #[cfg(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64"))]
+        #[cfg(any(
+            target_arch = "riscv64",
+            target_arch = "x86_64",
+            target_arch = "aarch64"
+        ))]
         {
             self.0
                 .map(
@@ -56,7 +64,11 @@ impl GuestPageTableTrait for GuestPageTable {
                 })?;
             Ok(())
         }
-        #[cfg(not(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64")))]
+        #[cfg(not(any(
+            target_arch = "riscv64",
+            target_arch = "x86_64",
+            target_arch = "aarch64"
+        )))]
         {
             todo!()
         }
@@ -89,14 +101,22 @@ impl GuestPageTableTrait for GuestPageTable {
                 })?;
             Ok(())
         }
-        #[cfg(not(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64")))]
+        #[cfg(not(any(
+            target_arch = "riscv64",
+            target_arch = "x86_64",
+            target_arch = "aarch64"
+        )))]
         {
             todo!()
         }
     }
 
     fn unmap(&mut self, gpa: GuestPhysAddr) -> HyperResult<()> {
-        #[cfg(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64"))]
+        #[cfg(any(
+            target_arch = "riscv64",
+            target_arch = "x86_64",
+            target_arch = "aarch64"
+        ))]
         {
             let (_, _) = self.0.unmap(VirtAddr::from(gpa)).map_err(|paging_err| {
                 error!("paging error: {:?}", paging_err);
@@ -104,14 +124,22 @@ impl GuestPageTableTrait for GuestPageTable {
             })?;
             Ok(())
         }
-        #[cfg(not(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64")))]
+        #[cfg(not(any(
+            target_arch = "riscv64",
+            target_arch = "x86_64",
+            target_arch = "aarch64"
+        )))]
         {
             todo!()
         }
     }
 
     fn translate(&self, gpa: GuestPhysAddr) -> HyperResult<hypercraft::HostPhysAddr> {
-        #[cfg(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64"))]
+        #[cfg(any(
+            target_arch = "riscv64",
+            target_arch = "x86_64",
+            target_arch = "aarch64"
+        ))]
         {
             let (addr, _, _) = self.0.query(VirtAddr::from(gpa)).map_err(|paging_err| {
                 error!("paging error: {:?}", paging_err);
@@ -119,7 +147,11 @@ impl GuestPageTableTrait for GuestPageTable {
             })?;
             Ok(addr.into())
         }
-        #[cfg(not(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64")))]
+        #[cfg(not(any(
+            target_arch = "riscv64",
+            target_arch = "x86_64",
+            target_arch = "aarch64"
+        )))]
         {
             todo!()
         }
@@ -132,9 +164,13 @@ impl GuestPageTableTrait for GuestPageTable {
         }
         #[cfg(target_arch = "aarch64")]
         {
-            usize::from(self.0.root_paddr())  // need to lrs 1 bit for CnP??
+            usize::from(self.0.root_paddr()) // need to lrs 1 bit for CnP??
         }
-        #[cfg(not(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64")))]
+        #[cfg(not(any(
+            target_arch = "riscv64",
+            target_arch = "x86_64",
+            target_arch = "aarch64"
+        )))]
         {
             todo!()
         }

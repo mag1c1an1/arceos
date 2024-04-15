@@ -1,10 +1,9 @@
 /// Bundle for CMOS, NMI, PIT and Speaker
-
 extern crate alloc;
-use bit_field::BitField;
-use crate::{Result as HyperResult, Error as HyperError};
 use super::pit::PIT;
 use super::{pmio_proxy_factory, pmio_proxy_struct};
+use crate::{Error as HyperError, Result as HyperResult};
+use bit_field::BitField;
 
 pub const PORT_SYSTEM_CONTROL_A: u16 = 0x92;
 pub const PORT_SYSTEM_CONTROL_B: u16 = 0x61;
@@ -32,7 +31,6 @@ bitflags::bitflags! {
         const READONLY_MASK = 0b1111_0000;
     }
 }
-
 
 pub struct Bundle {
     // about cmos
@@ -78,9 +76,11 @@ impl Bundle {
     }
 
     fn write_system_control_b(&mut self, _port: u16, _access_size: u8, value: u32) -> HyperResult {
-        let value = SystemControlPortB::from_bits_truncate(value as u8) & !SystemControlPortB::READONLY_MASK;
+        let value = SystemControlPortB::from_bits_truncate(value as u8)
+            & !SystemControlPortB::READONLY_MASK;
 
-        self.pit.set_enabled(2, value.contains(SystemControlPortB::TIMER2_ENABLED))?;
+        self.pit
+            .set_enabled(2, value.contains(SystemControlPortB::TIMER2_ENABLED))?;
         self.scp_b_writable = value;
 
         Ok(())
@@ -96,7 +96,7 @@ impl Bundle {
                     self.cmos_selected_reg = None;
                     debug!("cmos read from reg {:#x} ignored", selected);
                     Ok(0)
-                },
+                }
             }
         }
     }
@@ -107,14 +107,18 @@ impl Bundle {
             self.nmi_enabled = (value & 0x80) == 0;
 
             Ok(())
-        } else { // port == PORT_CMOS_DATA
+        } else {
+            // port == PORT_CMOS_DATA
             match self.cmos_selected_reg {
                 None => Err(HyperError::InvalidParam),
                 Some(selected) => {
                     self.cmos_selected_reg = None;
-                    debug!("cmos write to reg {:#x}(value {:#x}) ignored", selected, value);
+                    debug!(
+                        "cmos write to reg {:#x}(value {:#x}) ignored",
+                        selected, value
+                    );
                     Ok(())
-                },
+                }
             }
         }
     }
@@ -125,7 +129,9 @@ impl Bundle {
         if port == PORT_PIT_COMMAND {
             Ok(0)
         } else {
-            self.pit.read((port - PORT_PIT_CHANNEL_DATA_BASE) as u8).map(|v| v as u32)
+            self.pit
+                .read((port - PORT_PIT_CHANNEL_DATA_BASE) as u8)
+                .map(|v| v as u32)
         }
     }
 
@@ -135,20 +141,53 @@ impl Bundle {
         // debug!("pit write, port {port:#x}, value {value:#x}");
 
         if port == PORT_PIT_COMMAND {
-            self.pit.command(value.get_bits(6..8), value.get_bits(4..6), value.get_bits(1..4), value.get_bit(0))
+            self.pit.command(
+                value.get_bits(6..8),
+                value.get_bits(4..6),
+                value.get_bits(1..4),
+                value.get_bit(0),
+            )
         } else {
-            self.pit.write((port - PORT_PIT_CHANNEL_DATA_BASE) as u8, value)
+            self.pit
+                .write((port - PORT_PIT_CHANNEL_DATA_BASE) as u8, value)
         }
     }
 }
 
 // following are proxies
 
-
-pmio_proxy_struct!(PORT_SYSTEM_CONTROL_A, PORT_SYSTEM_CONTROL_A, BundleSystemControlPortAProxy, Bundle, read_system_control_a, write_system_control_a);
-pmio_proxy_struct!(PORT_SYSTEM_CONTROL_B, PORT_SYSTEM_CONTROL_B, BundleSystemControlPortBProxy, Bundle, read_system_control_b, write_system_control_b);
-pmio_proxy_struct!(PORT_CMOS_ADDRESS, PORT_CMOS_DATA, BundleCMOSProxy, Bundle, read_cmos, write_cmos);
-pmio_proxy_struct!(PORT_PIT_CHANNEL_DATA_BASE, PORT_PIT_COMMAND, BundlePITProxy, Bundle, read_pit, write_pit);
+pmio_proxy_struct!(
+    PORT_SYSTEM_CONTROL_A,
+    PORT_SYSTEM_CONTROL_A,
+    BundleSystemControlPortAProxy,
+    Bundle,
+    read_system_control_a,
+    write_system_control_a
+);
+pmio_proxy_struct!(
+    PORT_SYSTEM_CONTROL_B,
+    PORT_SYSTEM_CONTROL_B,
+    BundleSystemControlPortBProxy,
+    Bundle,
+    read_system_control_b,
+    write_system_control_b
+);
+pmio_proxy_struct!(
+    PORT_CMOS_ADDRESS,
+    PORT_CMOS_DATA,
+    BundleCMOSProxy,
+    Bundle,
+    read_cmos,
+    write_cmos
+);
+pmio_proxy_struct!(
+    PORT_PIT_CHANNEL_DATA_BASE,
+    PORT_PIT_COMMAND,
+    BundlePITProxy,
+    Bundle,
+    read_pit,
+    write_pit
+);
 
 impl Bundle {
     pmio_proxy_factory!(proxy_system_control_a, BundleSystemControlPortAProxy);

@@ -1,9 +1,9 @@
 use crate::Result;
 use axhal::hv::HyperCraftHalImpl;
-pub use hypercraft::VCpu;
 use hypercraft::HostPhysAddr;
 #[cfg(feature = "type1_5")]
 use hypercraft::LinuxContext;
+pub use hypercraft::VCpu;
 
 #[cfg(feature = "type1_5")]
 pub fn new_vcpu(

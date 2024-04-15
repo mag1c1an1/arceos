@@ -1,5 +1,5 @@
-use axalloc::global_allocator;
 use crate::mem::{phys_to_virt, virt_to_phys, PAGE_SIZE_4K};
+use axalloc::global_allocator;
 use hypercraft::{HostPhysAddr, HostVirtAddr, HyperCraftHal};
 
 /// An empty struct to implementate of `HyperCraftHal`

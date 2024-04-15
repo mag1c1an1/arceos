@@ -1,5 +1,5 @@
 use super::PortIoDevice;
-use crate::{Result as HyperResult, Error as HyperError};
+use crate::{Error as HyperError, Result as HyperResult};
 use x86::io;
 
 pub struct PCIPassthrough {
@@ -9,13 +9,16 @@ pub struct PCIPassthrough {
 
 impl PCIPassthrough {
     pub fn new(port_base: u16) -> Self {
-        Self { port_base, current_address: 0 }
+        Self {
+            port_base,
+            current_address: 0,
+        }
     }
 }
 
 impl PortIoDevice for PCIPassthrough {
     fn port_range(&self) -> core::ops::Range<u16> {
-        return self.port_base..self.port_base + 8
+        return self.port_base..self.port_base + 8;
     }
 
     fn read(&mut self, port: u16, access_size: u8) -> HyperResult<u32> {

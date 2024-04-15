@@ -23,10 +23,10 @@ mod mm;
 
 mod arch;
 
-mod page_table;
-mod irq;
 mod hvc;
+mod irq;
 mod nmi;
+mod page_table;
 
 // pub use nmi::cpu_nmi_list_init;
 
@@ -35,7 +35,6 @@ mod nmi;
 
 pub use arch::{PerCpu, VCpu};
 
-
 /// To be removed.
 mod linux;
 pub use linux::config_boot_linux;
@@ -43,12 +42,12 @@ pub use linux::config_boot_linux;
 pub use axhal::mem::{phys_to_virt, virt_to_phys, PhysAddr};
 pub use page_table::GuestPageTable;
 
-#[cfg(feature = "type1_5")]
-pub use hypercraft::LinuxContext;
 pub use hypercraft::GuestPageTableTrait;
 pub use hypercraft::HyperCraftHal;
 pub use hypercraft::HyperError as Error;
 pub use hypercraft::HyperResult as Result;
+#[cfg(feature = "type1_5")]
+pub use hypercraft::LinuxContext;
 pub use hypercraft::{
     GuestPhysAddr, GuestVirtAddr, HostPhysAddr, HostVirtAddr, HyperCallMsg, VmExitInfo,
 };

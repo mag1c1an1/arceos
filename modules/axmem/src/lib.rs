@@ -23,12 +23,12 @@ use spinlock::SpinNoIrq;
 #[macro_use]
 extern crate log;
 
+use axhal::mem::MemRegionFlags;
 use axhal::{
     mem::{memory_regions, phys_to_virt, PhysAddr, VirtAddr, PAGE_SIZE_4K},
     paging::{MappingFlags, PageSize, PageTable},
 };
 use xmas_elf::symbol_table::Entry;
-use axhal::mem::MemRegionFlags;
 pub(crate) const REL_GOT: u32 = 6;
 pub(crate) const REL_PLT: u32 = 7;
 pub(crate) const REL_RELATIVE: u32 = 8;

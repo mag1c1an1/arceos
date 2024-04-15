@@ -1,5 +1,5 @@
 use core::{arch::asm, fmt};
-use memory_addr::{VirtAddr, PhysAddr};
+use memory_addr::{PhysAddr, VirtAddr};
 
 use x86_64::registers::rflags::RFlags;
 
@@ -35,7 +35,7 @@ pub struct TrapFrame {
     pub cs: u64,
     pub rflags: u64,
 
-	// Pushed by CPU when trap from ring-3
+    // Pushed by CPU when trap from ring-3
     pub user_rsp: u64,
     pub user_ss: u64,
 }
@@ -98,10 +98,7 @@ impl TrapFrame {
         );
         crate::arch::disable_irqs();
 
-		assert_eq!(
-            crate::platform::kernel_stack_top(),
-            kstack_top
-        );
+        assert_eq!(crate::platform::kernel_stack_top(), kstack_top);
 
         asm!("
             mov     rsp, {tf}
@@ -224,7 +221,7 @@ pub struct TaskContext {
     pub kstack_top: VirtAddr,
     /// `RSP` after all callee-saved registers are pushed.
     pub rsp: u64,
-	pub cr3: u64,
+    pub cr3: u64,
     /// Extended states, i.e., FP/SIMD states.
     #[cfg(feature = "fp_simd")]
     pub ext_state: ExtendedState,
@@ -236,7 +233,7 @@ impl TaskContext {
         Self {
             kstack_top: VirtAddr::from(0),
             rsp: 0,
-			cr3: 0,
+            cr3: 0,
             #[cfg(feature = "fp_simd")]
             ext_state: ExtendedState::default(),
         }
@@ -261,7 +258,7 @@ impl TaskContext {
             self.rsp = frame_ptr as u64;
         }
         self.kstack_top = kstack_top;
-		self.cr3 = page_table_root.as_usize() as u64;
+        self.cr3 = page_table_root.as_usize() as u64;
     }
 
     /// Switches to another task.
@@ -275,17 +272,20 @@ impl TaskContext {
             next_ctx.ext_state.restore();
         }
 
-		debug!("switch to(), next kstack_top {:?} rsp {}", next_ctx.kstack_top, next_ctx.rsp);
+        debug!(
+            "switch to(), next kstack_top {:?} rsp {}",
+            next_ctx.kstack_top, next_ctx.rsp
+        );
 
         unsafe {
             // TODO: swtich tls
 
-			// PerCpu::current()
+            // PerCpu::current()
             //     .arch_data()
             //     .as_mut()
             //     .set_kernel_stack_top(next_ctx.kstack_top);
             #[cfg(feature = "monolithic")]
-			crate::platform::set_kernel_stack_top(next_ctx.kstack_top);
+            crate::platform::set_kernel_stack_top(next_ctx.kstack_top);
 
             context_switch(&mut self.rsp, &next_ctx.rsp)
         }
