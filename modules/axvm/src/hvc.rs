@@ -1,8 +1,13 @@
-use crate::{nmi::nmi_send_msg, nmi::NmiMessage, HyperCraftHal, Result, VCpu};
-use axhal::mem::PhysAddr;
-use axhal::{current_cpu_id, mem::phys_to_virt};
+use alloc::string::String;
+
 use axalloc::GlobalPage;
+use axhal::current_cpu_id;
+use axhal::mem::{phys_to_virt, virt_to_phys, PhysAddr};
 use memory_addr::PAGE_SIZE_4K;
+
+use crate::config::entry::{vm_cfg_add_vm_entry, vm_cfg_entry, VMCfgEntry};
+use crate::Error;
+use crate::{nmi::nmi_send_msg, nmi::NmiMessage, HyperCraftHal, Result, VCpu};
 // use axhal::hv::HyperCraftHalImpl;
 
 pub const HVC_SHADOW_PROCESS_INIT: usize = 0x53686477;
@@ -17,19 +22,19 @@ pub const HVC_AXVM_BOOT: usize = 0x103;
 #[repr(C, packed)]
 struct ArceosAxvmCreateArg {
     /// VM ID, set by ArceOS hypervisor.
-    vm_id: u64,
+    vm_id: usize,
     /// Reserved.
-    vm_type: u64,
+    vm_type: usize,
     /// VM cpu mask.
-    cpu_mask: u64,
+    cpu_mask: usize,
     /// Size of BIOS.
-    bios_size: u64,
+    bios_size: usize,
     /// Physical addr of BIOS, set by ArceOS hypervisor.
-    bios_load_physical_addr: u64,
+    bios_load_physical_addr: usize,
     /// Size of KERNEL.
-    kernel_size: u64,
+    kernel_size: usize,
     /// Physical addr of kernel image, set by ArceOS hypervisor.
-    kernel_load_physical_addr: u64,
+    kernel_load_physical_addr: usize,
 }
 
 pub fn handle_hvc<H: HyperCraftHal>(
@@ -60,7 +65,7 @@ pub fn handle_hvc<H: HyperCraftHal>(
 
             debug!("HVC_AXVM_CREATE_CFG get\n{:#x?}", arg);
 
-            ax_hvc_create_vm(arg);
+            let _ = ax_hvc_create_vm(arg)?;
         }
         HVC_AXVM_LOAD_IMG => {
             warn!("HVC_AXVM_LOAD_IMG is combined with HVC_AXVM_CREATE_CFG currently");
@@ -80,26 +85,67 @@ pub fn handle_hvc<H: HyperCraftHal>(
 }
 
 #[inline]
-const fn align_up(pos: usize, align: usize) -> usize {
-    (pos + align - 1) & !(align - 1)
+const fn align_up_4k(pos: usize) -> usize {
+    (pos + PAGE_SIZE_4K - 1) & !(PAGE_SIZE_4K - 1)
 }
 
-fn ax_hvc_create_vm(cfg: &mut ArceosAxvmCreateArg) {
-    cfg.vm_id = super::vm::generate_vm_id() as u64;
+fn ax_hvc_create_vm(cfg: &mut ArceosAxvmCreateArg) -> Result<u32> {
+    let mut vm_cfg_entry = VMCfgEntry::new(
+        String::from("Guest VM"),
+        String::from("Guest cmdline"),
+        crate::config::BIOS_ENTRY,
+        cfg.cpu_mask,
+    );
 
-    // let bios_loaded_addr = GlobalPage::alloc_contiguous(num_pages, PAGE_SIZE_4K);
+    let bios_img_size = align_up_4k(cfg.bios_size);
+    let bios_loaded_pages =
+        GlobalPage::alloc_contiguous(bios_img_size / PAGE_SIZE_4K, PAGE_SIZE_4K).map_err(|e| {
+            warn!(
+                "failed to allocate {} Bytes memory for bios, err {:?}",
+                bios_img_size, e
+            );
+            Error::NoMemory
+        })?;
 
-    cfg.bios_load_physical_addr = 0xffff;
-    cfg.kernel_load_physical_addr = 0xffff;
+    cfg.bios_load_physical_addr = bios_loaded_pages.start_paddr(virt_to_phys).as_usize();
+    vm_cfg_entry.set_bios_loaded_pages(bios_loaded_pages);
+
+    let kernel_img_size = align_up_4k(cfg.kernel_size);
+    let kernel_loaded_pages =
+        GlobalPage::alloc_contiguous(kernel_img_size / PAGE_SIZE_4K, PAGE_SIZE_4K).map_err(
+            |e| {
+                warn!(
+                    "failed to allocate {} Bytes memory for kernel",
+                    kernel_img_size
+                );
+                Error::NoMemory
+            },
+        )?;
+
+    cfg.kernel_load_physical_addr = kernel_loaded_pages.start_paddr(virt_to_phys).as_usize();
+    vm_cfg_entry.set_kernel_img_loaded_pages(kernel_loaded_pages);
+
+    let vm_id = vm_cfg_add_vm_entry(vm_cfg_entry)?;
+    cfg.vm_id = vm_id;
+
+    Ok(vm_id as u32)
 }
 
 fn ax_hvc_boot_vm(vm_id: usize) {
-    let cpuset = 0;
+    let vm_cfg_entry = match vm_cfg_entry(vm_id) {
+        Some(entry) => entry,
+        None => {
+            warn!("VM {} not existed, boot vm failed", vm_id);
+            return;
+        }
+    };
+    let cpuset = vm_cfg_entry.get_cpu_set();
+
     info!("boot VM {} on cpuset {:#x}", vm_id, cpuset);
-    return;
+
     let current_cpu = current_cpu_id();
     let num_bits = core::mem::size_of::<u32>() * 8;
-    let msg = NmiMessage::NIMBOS(0x8000, 0);
+    let msg = NmiMessage::BootVm(vm_id);
     for i in 0..num_bits {
         if cpuset & (1 << i) != 0 {
             info!("CPU{} send nmi ipi to CPU{} ", current_cpu, i);

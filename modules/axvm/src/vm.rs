@@ -18,12 +18,6 @@ use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 static INIT_GPM_OK: AtomicU32 = AtomicU32::new(0);
 static INITED_CPUS: AtomicUsize = AtomicUsize::new(0);
 
-static VM_ID_ALLOCATOR: AtomicU32 = AtomicUsize::new(1);
-
-pub fn generate_vm_id() {
-    VM_ID_ALLOCATOR.fetch_add(1, Ordering::SeqCst);
-}
-
 pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
     crate::arch::cpu_hv_hardware_enable(hart_id, linux_context);
 
@@ -74,7 +68,7 @@ pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
     // disable hardware virtualization todo
 }
 
-pub fn boot_vm(vm_type: usize, entry: usize, phy_addr: usize) {
+pub fn boot_vm(vm_id: usize) {
     info!("boot_vm");
     let size = unsafe {
         core::slice::from_raw_parts(
