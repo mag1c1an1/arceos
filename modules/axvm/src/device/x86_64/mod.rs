@@ -276,7 +276,7 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         let mut cpu_nmi_list = CPU_NMI_LIST.lock();
         match cpu_nmi_list[current_cpu].msg_queue.pop() {
             Some(NmiMessage::NIMBOS(entry, addr)) => {
-                crate::linux::boot_vm(1, entry, addr);
+                crate::vm::boot_vm(1, entry, addr);
             }
             None => {
                 info!("cpu_nmi_list is none");

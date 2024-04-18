@@ -13,7 +13,7 @@ pub fn root_gpm() -> &'static GuestPhysMemorySet {
     ROOT_GPM.get().expect("Uninitialized root gpm!")
 }
 
-pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
+pub fn setup_root_gpm() -> HyperResult<GuestPhysMemorySet> {
     let sys_config = HvSystemConfig::get();
     let cell_config = sys_config.root_cell.config();
     // trace!("cell_config:\n{:#x?}", cell_config);
@@ -66,8 +66,8 @@ pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
     Ok(gpm)
 }
 
-pub fn init_gpm() -> HyperResult {
-    let gpm = setup_gpm()?;
+pub fn init_root_gpm() -> HyperResult {
+    let gpm = setup_root_gpm()?;
     ROOT_GPM.call_once(|| gpm);
     Ok(())
 }

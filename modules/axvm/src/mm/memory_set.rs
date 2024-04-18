@@ -1,5 +1,5 @@
 use alloc::collections::BTreeMap;
-use core::fmt::{Debug, Formatter, Result};
+use core::fmt::{Debug, Display, Formatter, Result};
 
 use hypercraft::{GuestPageTableTrait, GuestPhysAddr, HostPhysAddr, HyperCraftHal};
 
@@ -99,6 +99,19 @@ impl Debug for MapRegion {
     }
 }
 
+impl Display for MapRegion {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(
+            f,
+            "[{:#x?}], size {:#x}, flags {:?}",
+            &(self.start..self.start + self.size),
+            &self.size,
+            &self.flags
+        )?;
+        Ok(())
+    }
+}
+
 impl From<GuestMemoryRegion> for MapRegion {
     fn from(r: GuestMemoryRegion) -> Self {
         Self::new_offset(r.gpa, r.hpa, r.size, r.flags)
@@ -174,9 +187,18 @@ impl Drop for GuestPhysMemorySet {
 
 impl Debug for GuestPhysMemorySet {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        f.debug_struct("GuestPhysMemorySet")
-            .field("page_table_root", &self.nest_page_table_root())
-            .field("regions", &self.regions)
-            .finish()
+        // f.debug_struct("GuestPhysMemorySet")
+        //     .field("page_table_root", &self.nest_page_table_root())
+        //     .field("regions", &self.regions)
+        //     .finish()
+        write!(
+            f,
+            "GuestPhysMemorySet: page_table_root [{:#x}]",
+            &self.nest_page_table_root()
+        )?;
+        for (_addr, region) in &self.regions {
+            write!(f, "{}", region)?;
+        }
+        Ok(())
     }
 }
