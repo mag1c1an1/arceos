@@ -10,14 +10,17 @@
 #![cfg_attr(not(test), no_std)]
 #![feature(doc_cfg)]
 #![feature(doc_auto_cfg)]
+#![feature(exclusive_range_pattern)]
 
 extern crate alloc;
 
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate pci;
 
 mod config;
-#[cfg(target_arch = "x86_64")]
+// #[cfg(target_arch = "x86_64")]
 mod device;
 mod mm;
 

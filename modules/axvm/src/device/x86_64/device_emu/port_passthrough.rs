@@ -1,5 +1,5 @@
-use super::PortIoDevice;
 use crate::{Error as HyperError, Result as HyperResult};
+use hypercraft::PioOps;
 use x86::io;
 
 pub struct PortPassthrough {
@@ -13,7 +13,7 @@ impl PortPassthrough {
     }
 }
 
-impl PortIoDevice for PortPassthrough {
+impl PioOps for PortPassthrough {
     fn port_range(&self) -> core::ops::Range<u16> {
         return self.port_base..self.port_base + self.count;
     }

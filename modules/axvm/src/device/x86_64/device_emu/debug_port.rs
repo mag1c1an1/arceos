@@ -1,5 +1,5 @@
-use super::PortIoDevice;
 use crate::Result as HyperResult;
+use hypercraft::PioOps;
 
 pub struct DebugPort {
     port: u16,
@@ -11,7 +11,7 @@ impl DebugPort {
     }
 }
 
-impl PortIoDevice for DebugPort {
+impl PioOps for DebugPort {
     fn port_range(&self) -> core::ops::Range<u16> {
         self.port..self.port + 1
     }

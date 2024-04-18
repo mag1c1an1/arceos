@@ -16,7 +16,7 @@ impl PCIPassthrough {
     }
 }
 
-impl PortIoDevice for PCIPassthrough {
+impl PioOps for PCIPassthrough {
     fn port_range(&self) -> core::ops::Range<u16> {
         return self.port_base..self.port_base + 8;
     }

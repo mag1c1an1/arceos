@@ -1,8 +1,7 @@
 //! Emulated Intel 8259 Programmable Interrupt Controller. (ref: https://wiki.osdev.org/8259_PIC)
 
-use super::PortIoDevice;
-use crate::{Error as HyperError, Result as HyperResult};
 use bit_field::BitField;
+use hypercraft::{HyperError, HyperResult, PioOps};
 
 pub struct I8259Pic {
     port_base: u16,
@@ -15,7 +14,7 @@ pub struct I8259Pic {
     mask: u8,
 }
 
-impl PortIoDevice for I8259Pic {
+impl PioOps for I8259Pic {
     fn port_range(&self) -> core::ops::Range<u16> {
         self.port_base..self.port_base + 2
     }
