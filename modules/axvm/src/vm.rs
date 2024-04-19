@@ -18,10 +18,11 @@ static INIT_GPM_OK: AtomicU32 = AtomicU32::new(0);
 static INITED_CPUS: AtomicUsize = AtomicUsize::new(0);
 
 pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
-    crate::arch::cpu_hv_hardware_enable(hart_id, linux_context);
+    crate::arch::cpu_hv_hardware_enable(hart_id, linux_context)
+        .expect("cpu_hv_hardware_enable failed");
 
     if hart_id == 0 {
-        super::config::init_root_gpm();
+        super::config::init_root_gpm().expect("init_root_gpm failed");
         INIT_GPM_OK.store(1, Ordering::Release);
     } else {
         while INIT_GPM_OK.load(Ordering::Acquire) < 1 {

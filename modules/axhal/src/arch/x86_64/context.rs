@@ -1,10 +1,6 @@
 use core::{arch::asm, fmt};
 use memory_addr::{PhysAddr, VirtAddr};
 
-use x86_64::registers::rflags::RFlags;
-
-use super::gdt::GdtStruct;
-
 /// Saved registers when a trap (interrupt or exception) occurs.
 #[allow(missing_docs)]
 #[repr(C)]

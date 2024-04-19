@@ -4,8 +4,6 @@ use spin::Mutex;
 
 use axconfig::SMP;
 
-const MAX_CPUS: usize = 8;
-
 const PER_CPU_NMI_MSG_QUEUE: Mutex<NmiMsgQueue> = Mutex::new(NmiMsgQueue::new());
 pub static CPU_NMI_LIST: [Mutex<NmiMsgQueue>; SMP] = [PER_CPU_NMI_MSG_QUEUE; SMP];
 

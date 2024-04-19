@@ -197,7 +197,7 @@ impl Debug for GuestPhysMemorySet {
             &self.nest_page_table_root()
         )?;
         for (_addr, region) in &self.regions {
-            write!(f, "{}", region)?;
+            write!(f, "\t{}\n", region)?;
         }
         Ok(())
     }

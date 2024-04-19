@@ -4,7 +4,7 @@ use crate::arch::{GdtStruct, IdtStruct, TaskStateSegment};
 use crate::mem::VirtAddr;
 use lazy_init::LazyInit;
 #[cfg(feature = "type1_5")]
-use x86::{segmentation, segmentation::SegmentSelector, Ring};
+use x86::{segmentation, segmentation::SegmentSelector};
 
 use memoffset::offset_of;
 

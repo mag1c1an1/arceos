@@ -1,7 +1,6 @@
 QEMU ?= qemu-system-x86_64
 PORT ?= 2333
 WORKSPACE ?= $(shell pwd)/../../..
-target_bin := $(WORKSPACE)/arceos/apps/hv/hv_pc-x86.bin 
 jailhouse := $(WORKSPACE)/jailhouse-arceos
 guest := $(WORKSPACE)/arceos/scripts/guest/*
 
@@ -47,11 +46,11 @@ qemu_gdb:
 	  -ex 'continue' \
 	  -ex 'disp /16i $$pc'
 
+# You can configure a ssh authorization through:
+# 	cat ~/.ssh/id_rsa.pub| ssh -p 2333 ubuntu@localhost "cat - >> ~/.ssh/authorized_keys"
+
 ssh:
 	ssh -p $(PORT) ubuntu@localhost
-
-scp_bin:
-	scp -P $(PORT) -r $(target_bin) ubuntu@localhost:/home/ubuntu/arceos-intel.bin
 
 scp_jailhouse:
 	scp -P $(PORT) -r $(jailhouse) ubuntu@localhost:/home/ubuntu

@@ -177,8 +177,8 @@ impl GuestPageTableTrait for GuestPageTable {
     }
 }
 
-impl GuestPageTable {
-    pub fn root_paddr(&self) -> PhysAddr {
-        self.0.root_paddr()
-    }
-}
+// impl GuestPageTable {
+//     pub fn root_paddr(&self) -> PhysAddr {
+//         self.0.root_paddr()
+//     }
+// }

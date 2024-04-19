@@ -1,3 +1,4 @@
+#[cfg(feature = "monolithic")]
 use axhal::{arch::TrapFrame, mem::VirtAddr, paging::MappingFlags};
 
 struct TrapHandlerImpl;

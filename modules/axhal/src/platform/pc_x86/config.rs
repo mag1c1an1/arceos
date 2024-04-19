@@ -1,12 +1,11 @@
-use super::header::HvHeader;
 use crate::mem::MemRegionFlags;
 use bitflags::bitflags;
-use core::fmt::{Debug, Formatter, Result};
+use core::fmt::Debug;
 use core::{mem::size_of, slice};
 use page_table_entry::MappingFlags;
 
-const CONFIG_SIGNATURE: [u8; 6] = *b"AOSSYS";
-const CONFIG_REVISION: u16 = 10;
+const _CONFIG_SIGNATURE: [u8; 6] = *b"AOSSYS";
+const _CONFIG_REVISION: u16 = 10;
 pub const PER_CPU_ARRAY_PTR: *mut HvSystemConfig = __core_end as _;
 
 const HV_CELL_NAME_MAXLEN: usize = 31;
