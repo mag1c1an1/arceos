@@ -1,9 +1,7 @@
+use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
+
 #[cfg(feature = "type1_5")]
 use hypercraft::LinuxContext;
-/// Temporar module to boot Linux as a guest VM.
-///
-/// To be removed...
-// use hypercraft::GuestPageTableTrait;
 use hypercraft::{PerCpu, VCpu, VmCpus, VM};
 
 use super::arch::new_vcpu;
@@ -13,7 +11,8 @@ use crate::{phys_to_virt, PhysAddr};
 use axhal::hv::HyperCraftHalImpl;
 use axhal::mem::PAGE_SIZE_4K;
 
-use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
+use crate::config::entry::vm_cfg_entry;
+
 // use super::type1_5::cell;
 static INIT_GPM_OK: AtomicU32 = AtomicU32::new(0);
 static INITED_CPUS: AtomicUsize = AtomicUsize::new(0);
@@ -69,53 +68,41 @@ pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
 }
 
 pub fn boot_vm(vm_id: usize) {
-    info!("boot_vm");
-    let size = unsafe {
-        core::slice::from_raw_parts(
-            phys_to_virt(PhysAddr::from(phy_addr)).as_ptr() as *const u64,
-            3,
-        )
+    info!("boot_vm {} on core {}", vm_id, axhal::current_cpu_id());
+
+    let vm_cfg_entry = match vm_cfg_entry(vm_id) {
+        Some(entry) => entry,
+        None => {
+            warn!("VM {} not existed, boot vm failed", vm_id);
+            return;
+        }
     };
-    info!("size: {:x?}: ", size);
-    let code = unsafe {
-        core::slice::from_raw_parts(
-            phys_to_virt(PhysAddr::from(phy_addr)).as_ptr(),
-            size[0] as usize,
-        )
-    };
-    // info!("content: {:x?}: ", code);
 
-    if vm_type == 1 {
-        info!("start nimbos vm");
-        let bios_paddr = phy_addr + PAGE_SIZE_4K;
-        let guest_image_paddr = phy_addr + PAGE_SIZE_4K + size[1] as usize;
-        let gpm = super::config::setup_nimbos_gpm(
-            bios_paddr,
-            size[1] as usize,
-            guest_image_paddr,
-            size[2] as usize,
-        )
-        .unwrap();
-        let npt = gpm.nest_page_table_root();
-        info!("{:#x?}", gpm);
+    let gpm = vm_cfg_entry
+        .generate_guest_phys_memory_set()
+        .expect("Failed to generate GPM");
 
-        // Main scheduling item, managed by `axtask`
-        let vcpu = VCpu::new_nimbos(0, crate::arch::cpu_vmcs_revision_id(), entry, npt).unwrap();
-        info!("vcpu...");
-        let mut vcpus = VmCpus::<HyperCraftHalImpl, X64VcpuDevices<HyperCraftHalImpl>>::new();
-        info!("vcpus...");
-        vcpus.add_vcpu(vcpu).expect("add vcpu failed");
-        info!("add vcpus...");
-        let mut vm = VM::<
-            HyperCraftHalImpl,
-            X64VcpuDevices<HyperCraftHalImpl>,
-            X64VmDevices<HyperCraftHalImpl>,
-        >::new(vcpus);
-        info!("vm...");
-        // The bind_vcpu method should be decoupled with vm struct.
-        vm.bind_vcpu(0).expect("bind vcpu failed");
+    let npt = gpm.nest_page_table_root();
+    info!("{:#x?}", gpm);
 
-        info!("Running guest...");
-        info!("{:?}", vm.run_vcpu(0));
-    }
+    // Main scheduling item, managed by `axtask`
+    let vcpu = VCpu::new_nimbos(
+        0,
+        crate::arch::cpu_vmcs_revision_id(),
+        vm_cfg_entry.get_vm_entry(),
+        npt,
+    )
+    .unwrap();
+    let mut vcpus = VmCpus::<HyperCraftHalImpl, X64VcpuDevices<HyperCraftHalImpl>>::new();
+    vcpus.add_vcpu(vcpu).expect("add vcpu failed");
+    let mut vm = VM::<
+        HyperCraftHalImpl,
+        X64VcpuDevices<HyperCraftHalImpl>,
+        X64VmDevices<HyperCraftHalImpl>,
+    >::new(vcpus);
+    // The bind_vcpu method should be decoupled with vm struct.
+    vm.bind_vcpu(0).expect("bind vcpu failed");
+
+    info!("Running guest...");
+    info!("{:?}", vm.run_vcpu(0));
 }

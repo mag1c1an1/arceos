@@ -3,6 +3,7 @@ use alloc::string::String;
 use axalloc::GlobalPage;
 use axhal::current_cpu_id;
 use axhal::mem::{phys_to_virt, virt_to_phys, PhysAddr};
+use hypercraft::{GuestPhysAddr, HostPhysAddr, HostVirtAddr};
 use memory_addr::PAGE_SIZE_4K;
 
 use crate::config::entry::{vm_cfg_add_vm_entry, vm_cfg_entry, VMCfgEntry};
@@ -20,21 +21,33 @@ pub const HVC_AXVM_BOOT: usize = 0x103;
 
 #[derive(Debug)]
 #[repr(C, packed)]
-struct ArceosAxvmCreateArg {
+pub struct AxVMCreateArg {
     /// VM ID, set by ArceOS hypervisor.
     vm_id: usize,
     /// Reserved.
     vm_type: usize,
     /// VM cpu mask.
     cpu_mask: usize,
-    /// Size of BIOS.
-    bios_size: usize,
-    /// Physical addr of BIOS, set by ArceOS hypervisor.
-    bios_load_physical_addr: usize,
-    /// Size of KERNEL.
-    kernel_size: usize,
-    /// Physical addr of kernel image, set by ArceOS hypervisor.
-    kernel_load_physical_addr: usize,
+    /// VM entry point.
+    vm_entry_point: GuestPhysAddr,
+    /// Size of memory.
+    ram_size: usize,
+    /// Target physical address of memory.
+    ram_base_gpa: GuestPhysAddr,
+
+    /// BIOS image loaded target guest physical address.
+    bios_load_gpa: GuestPhysAddr,
+    /// Kernel image loaded target guest physical address.
+    kernel_load_gpa: GuestPhysAddr,
+    /// randisk image loaded target guest physical address.
+    ramdisk_load_gpa: GuestPhysAddr,
+
+    /// Physical load address of BIOS, set by ArceOS hypervisor.
+    bios_load_hpa: HostPhysAddr,
+    /// Physical load address of kernel image, set by ArceOS hypervisor.
+    kernel_load_hpa: HostPhysAddr,
+    /// Physical load address of ramdisk image, set by ArceOS hypervisor.
+    ramdisk_load_hpa: HostPhysAddr,
 }
 
 pub fn handle_hvc<H: HyperCraftHal>(
@@ -56,12 +69,12 @@ pub fn handle_hvc<H: HyperCraftHal>(
             axtask::notify_all_process();
         }
         HVC_AXVM_CREATE_CFG => {
-            // Translate guest physical address of ArceosAxvmCreateArg into virtual address of hypervisor.
+            // Translate guest physical address of AxVMCreateArg into virtual address of hypervisor.
             let arg_gpa = args.0;
             let arg_hpa = crate::config::root_gpm().translate(arg_gpa)?;
             let arg_hva = phys_to_virt(PhysAddr::from(arg_hpa)).as_mut_ptr();
 
-            let arg = unsafe { &mut *{ arg_hva as *mut ArceosAxvmCreateArg } };
+            let arg = unsafe { &mut *{ arg_hva as *mut AxVMCreateArg } };
 
             debug!("HVC_AXVM_CREATE_CFG get\n{:#x?}", arg);
 
@@ -89,43 +102,49 @@ const fn align_up_4k(pos: usize) -> usize {
     (pos + PAGE_SIZE_4K - 1) & !(PAGE_SIZE_4K - 1)
 }
 
-fn ax_hvc_create_vm(cfg: &mut ArceosAxvmCreateArg) -> Result<u32> {
+fn ax_hvc_create_vm(cfg: &mut AxVMCreateArg) -> Result<u32> {
+    // These fields should be set by user, but now this is provided by hypervisor.
+    // Todo: refactor these.
+    cfg.vm_entry_point = crate::config::BIOS_ENTRY;
+    cfg.ram_size = crate::config::GUEST_PHYS_MEMORY_SIZE;
+    cfg.ram_base_gpa = crate::config::GUEST_PHYS_MEMORY_BASE;
+    cfg.bios_load_gpa = crate::config::BIOS_ENTRY;
+    cfg.kernel_load_gpa = crate::config::GUEST_ENTRY;
+    cfg.ramdisk_load_gpa = 0;
+
     let mut vm_cfg_entry = VMCfgEntry::new(
         String::from("Guest VM"),
-        String::from("Guest cmdline"),
-        crate::config::BIOS_ENTRY,
+        String::from("guest cmdline"),
         cfg.cpu_mask,
+        cfg.kernel_load_gpa,
+        cfg.vm_entry_point,
+        cfg.bios_load_gpa,
+        cfg.ramdisk_load_gpa,
+        cfg.ram_size,
+        cfg.ram_base_gpa,
     );
 
-    let bios_img_size = align_up_4k(cfg.bios_size);
-    let bios_loaded_pages =
-        GlobalPage::alloc_contiguous(bios_img_size / PAGE_SIZE_4K, PAGE_SIZE_4K).map_err(|e| {
+    let ram_size = align_up_4k(cfg.ram_size);
+    let guest_mem_pages = GlobalPage::alloc_contiguous(ram_size / PAGE_SIZE_4K, PAGE_SIZE_4K)
+        .map_err(|e| {
             warn!(
-                "failed to allocate {} Bytes memory for bios, err {:?}",
-                bios_img_size, e
+                "failed to allocate {} Bytes memory for guest, err {:?}",
+                ram_size, e
             );
             Error::NoMemory
         })?;
 
-    cfg.bios_load_physical_addr = bios_loaded_pages.start_paddr(virt_to_phys).as_usize();
-    vm_cfg_entry.set_bios_loaded_pages(bios_loaded_pages);
+    vm_cfg_entry.add_physical_pages(0, guest_mem_pages);
 
-    let kernel_img_size = align_up_4k(cfg.kernel_size);
-    let kernel_loaded_pages =
-        GlobalPage::alloc_contiguous(kernel_img_size / PAGE_SIZE_4K, PAGE_SIZE_4K).map_err(
-            |e| {
-                warn!(
-                    "failed to allocate {} Bytes memory for kernel",
-                    kernel_img_size
-                );
-                Error::NoMemory
-            },
-        )?;
+    vm_cfg_entry.set_up_memory_region();
 
-    cfg.kernel_load_physical_addr = kernel_loaded_pages.start_paddr(virt_to_phys).as_usize();
-    vm_cfg_entry.set_kernel_img_loaded_pages(kernel_loaded_pages);
+    // These fields should be set by hypervisor and read by Linux kernel module.
+    (cfg.bios_load_hpa, cfg.kernel_load_hpa, cfg.ramdisk_load_hpa) =
+        vm_cfg_entry.get_img_load_info();
 
     let vm_id = vm_cfg_add_vm_entry(vm_cfg_entry)?;
+
+    // This field should be set by hypervisor and read by Linux kernel module.
     cfg.vm_id = vm_id;
 
     Ok(vm_id as u32)

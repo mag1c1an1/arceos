@@ -1,5 +1,5 @@
 use alloc::collections::BTreeMap;
-use core::fmt::{Debug, Display, Formatter, Result};
+use core::{clone, fmt::{Debug, Display, Formatter, Result}};
 
 use hypercraft::{GuestPageTableTrait, GuestPhysAddr, HostPhysAddr, HyperCraftHal};
 
@@ -18,7 +18,7 @@ enum Mapper {
     Offset(usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GuestMemoryRegion {
     pub gpa: GuestPhysAddr,
     pub hpa: HostPhysAddr,
@@ -193,7 +193,7 @@ impl Debug for GuestPhysMemorySet {
         //     .finish()
         write!(
             f,
-            "GuestPhysMemorySet: page_table_root [{:#x}]",
+            "GuestPhysMemorySet: page_table_root [{:#x}]\n",
             &self.nest_page_table_root()
         )?;
         for (_addr, region) in &self.regions {
