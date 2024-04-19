@@ -1,7 +1,7 @@
 QEMU ?= qemu-system-x86_64
 PORT ?= 2333
 WORKSPACE ?= $(shell pwd)/../../..
-target_bin := $(WORKSPACE)/arceos/apps/hv/hv_pc-x86.bin 
+target_bin := $(WORKSPACE)/arceos/apps/hv/hv_pc-x86.bin
 jailhouse := $(WORKSPACE)/jailhouse-arceos
 guest := $(WORKSPACE)/arceos/scripts/guest/*
 
@@ -9,7 +9,7 @@ OUT_ELF ?= ../../apps/hv/hv_pc-x86.elf
 
 qemu_image := ubuntu-20.04-server-cloudimg-amd64.img
 qemu_args := \
-  -smp 2 -m 4G -accel kvm -nographic \
+  -smp 2 -m 8G -accel kvm -nographic \
   -machine q35,kernel_irqchip=split \
   -cpu host,-kvm-asyncpf,-kvm-pv-eoi,-kvm-pv-ipi,-kvm-pv-sched-yield,-kvm-pv-unhalt,-kvm-steal-time,-kvmclock \
   -drive file=$(qemu_image) \
@@ -46,6 +46,9 @@ qemu_gdb:
 	  -ex 'target remote localhost:1234' \
 	  -ex 'continue' \
 	  -ex 'disp /16i $$pc'
+
+# You can configure a ssh authorization through:
+# 	cat ~/.ssh/id_rsa.pub| ssh -p 2333 ubuntu@localhost "cat - >> ~/.ssh/authorized_keys"
 
 ssh:
 	ssh -p $(PORT) ubuntu@localhost

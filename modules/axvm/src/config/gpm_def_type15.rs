@@ -13,7 +13,7 @@ pub fn root_gpm() -> &'static GuestPhysMemorySet {
     ROOT_GPM.get().expect("Uninitialized root gpm!")
 }
 
-pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
+pub fn setup_root_gpm() -> HyperResult<GuestPhysMemorySet> {
     let sys_config = HvSystemConfig::get();
     let cell_config = sys_config.root_cell.config();
     // trace!("cell_config:\n{:#x?}", cell_config);
@@ -66,8 +66,8 @@ pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
     Ok(gpm)
 }
 
-pub fn init_gpm() -> HyperResult {
-    let gpm = setup_gpm()?;
+pub fn init_root_gpm() -> HyperResult {
+    let gpm = setup_root_gpm()?;
     ROOT_GPM.call_once(|| gpm);
     Ok(())
 }
@@ -107,82 +107,4 @@ fn load_guest_image(hpa: HostPhysAddr, load_gpa: GuestPhysAddr, size: usize) {
     unsafe {
         core::slice::from_raw_parts_mut(gpa_as_mut_ptr(load_gpa), size).copy_from_slice(image)
     }
-}
-
-#[cfg(target_arch = "x86_64")]
-pub fn setup_nimbos_gpm(
-    bios_paddr: usize,
-    bios_size: usize,
-    guest_image_paddr: usize,
-    guest_image_size: usize,
-) -> HyperResult<GuestPhysMemorySet> {
-    // copy BIOS and guest images
-    load_guest_image(bios_paddr, NIMBOS_BIOS_ENTRY, bios_size);
-    load_guest_image(guest_image_paddr, NIMBOS_GUEST_ENTRY, guest_image_size);
-
-    info!("1");
-    // create nested page table and add mapping
-    let mut gpm = GuestPhysMemorySet::new()?;
-    let guest_memory_regions = [
-        GuestMemoryRegion {
-            // Low RAM
-            gpa: GUEST_PHYS_MEMORY_BASE,
-            hpa: virt_to_phys((gpa_as_mut_ptr(GUEST_PHYS_MEMORY_BASE) as HostVirtAddr).into())
-                .into(),
-            size: GUEST_PHYS_MEMORY_SIZE,
-            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
-        },
-        GuestMemoryRegion {
-            // syscall forwarder region
-            gpa: 0x6700_0000,
-            hpa: 0x700_0000,
-            size: 0x0100_0000,
-            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
-        },
-        GuestMemoryRegion {
-            // PCI
-            gpa: 0x8000_0000,
-            hpa: 0x8000_0000,
-            size: 0x1000_0000,
-            flags: MappingFlags::READ | MappingFlags::WRITE,
-        },
-        // GuestMemoryRegion {
-        //     gpa: 0xfe00_0000,
-        //     hpa: 0xfe00_0000,
-        //     size: 0x1_0000,
-        //     flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
-        // },
-        // GuestMemoryRegion {
-        //     gpa: 0xfeb0_0000,
-        //     hpa: 0xfeb0_0000,
-        //     size: 0x10_0000,
-        //     flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
-        // },
-        GuestMemoryRegion {
-            // IO APIC
-            gpa: 0xfec0_0000,
-            hpa: 0xfec0_0000,
-            size: 0x1000,
-            flags: MappingFlags::READ | MappingFlags::WRITE,
-        },
-        GuestMemoryRegion {
-            // HPET
-            gpa: 0xfed0_0000,
-            hpa: 0xfed0_0000,
-            size: 0x1000,
-            flags: MappingFlags::READ | MappingFlags::WRITE,
-        },
-        GuestMemoryRegion {
-            // Local APIC
-            gpa: 0xfee0_0000,
-            hpa: 0xfee0_0000,
-            size: 0x1000,
-            flags: MappingFlags::READ | MappingFlags::WRITE,
-        },
-        // SCF: memory region for shared memory should be configged here.
-    ];
-    for r in guest_memory_regions.into_iter() {
-        gpm.map_region(r.into())?;
-    }
-    Ok(gpm)
 }

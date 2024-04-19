@@ -271,18 +271,21 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
     }
 
     fn nmi_handler(&mut self, vcpu: &mut VCpu<H>) -> HyperResult<u32> {
-        debug!("nmi handler!");
-        let current_cpu = current_cpu_id();
-        let mut cpu_nmi_list = CPU_NMI_LIST.lock();
-        match cpu_nmi_list[current_cpu].msg_queue.pop() {
-            Some(NmiMessage::NIMBOS(entry, addr)) => {
-                crate::linux::boot_vm(1, entry, addr);
+        let current_cpu_id = current_cpu_id();
+        debug!("nmi handler on CPU {}!", current_cpu_id);
+        // let mut cpu_nmi_list = CPU_NMI_LIST[].lock();
+        let msg = CPU_NMI_LIST[current_cpu_id].lock().pop();
+        match msg {
+            Some(NmiMessage::BootVm(vm_id)) => {
+                crate::vm::boot_vm(vm_id);
+                Ok(0)
             }
             None => {
-                info!("cpu_nmi_list is none");
+                warn!("Core [{}] unexpected NMI, something very bad happened", current_cpu_id);
+                warn!("VCPU ctx:\n{:?}", vcpu);
+                Err(HyperError::BadState)
             }
         }
-        Err(HyperError::BadState)
     }
 
     fn check_events(&mut self, vcpu: &mut VCpu<H>) -> HyperResult {

@@ -33,14 +33,10 @@ mod page_table;
 
 // pub use nmi::cpu_nmi_list_init;
 
-// mod vm;
-// pub use vm::*;
+mod vm;
+pub use vm::*;
 
 pub use arch::{PerCpu, VCpu};
-
-/// To be removed.
-mod linux;
-pub use linux::config_boot_linux;
 
 pub use axhal::mem::{phys_to_virt, virt_to_phys, PhysAddr};
 pub use page_table::GuestPageTable;

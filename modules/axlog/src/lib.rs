@@ -28,8 +28,6 @@ use core::str::FromStr;
 
 use log::{Level, LevelFilter, Log, Metadata, Record};
 
-use spin::Mutex;
-
 #[cfg(not(feature = "std"))]
 use crate_interface::call_interface;
 

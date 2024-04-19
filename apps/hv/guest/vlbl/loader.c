@@ -65,8 +65,12 @@ const char cmd[256] = "console=uart8250,io,0x3f8,115200n8 debug\0";
 /*
  * load linux kernel image from <void *kernel_image> to <void *loc_real> (for real-mode part) and <void *loc_prot> (for protected-mode part) and fill kernel header
  * 
+ * kernel_image: current physical addr of kernel image binary file, see qemu.mk.
+ * loc_real: expected physical addr of read mode.
  * stack_end: end of boot stack
- * 
+ * loc_prot: expected physical addr of protected mode.
+ * initramfs
+ * initramfs_size
  * 
  **/
 int load_kernel(void *kernel_image, void *loc_real, void *stack_end, void *loc_prot, void *initramfs, uint32_t initramfs_size) {

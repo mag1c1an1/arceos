@@ -22,8 +22,6 @@ fn x86_trap_handler(tf: &mut TrapFrame) {
                     tf.error_code,
                 );
             }
-            #[cfg(feature = "monolithic")]
-            {
                 panic!(
                     "Kernel #PF @ {:#x}, fault_vaddr={:#x}, error_code={:#x}:\n{:#x?}",
                     tf.rip,
@@ -31,7 +29,6 @@ fn x86_trap_handler(tf: &mut TrapFrame) {
                     tf.error_code,
                     tf,
                 );
-            }
         }
         BREAKPOINT_VECTOR => debug!("#BP @ {:#x} ", tf.rip),
         GENERAL_PROTECTION_FAULT_VECTOR => {

@@ -5,7 +5,6 @@ use memory_addr::PhysAddr;
 use spinlock::SpinNoIrq;
 use x2apic::ioapic::IoApic;
 use x2apic::lapic::{xapic_base, LocalApic, LocalApicBuilder};
-use x86_64::instructions::port::Port;
 
 use self::vectors::*;
 use crate::mem::phys_to_virt;
@@ -154,7 +153,7 @@ pub(super) fn init_primary() {
         let base_vaddr = phys_to_virt(PhysAddr::from(unsafe { xapic_base() } as usize));
         builder.set_xapic_base(base_vaddr.as_usize() as u64);
     }
-    let mut lapic = builder.build().unwrap();
+    let lapic = builder.build().unwrap();
     unsafe {
         LOCAL_APIC = Some(lapic);
     }

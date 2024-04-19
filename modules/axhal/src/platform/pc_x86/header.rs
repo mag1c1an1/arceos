@@ -1,4 +1,5 @@
-use core::fmt::{Debug, Formatter, Result};
+/// ArceOS-Hypervisor configuration structures.
+/// See `jailhouse-arceos/hypervisor/include/jailhouse/header.h` for details.
 
 /// Pointer of the `HvHeader` structure.
 pub const HV_HEADER_PTR: *const HvHeader = sheader as _;
