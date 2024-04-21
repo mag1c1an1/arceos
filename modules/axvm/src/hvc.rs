@@ -97,10 +97,25 @@ pub fn handle_hvc<H: HyperCraftHal>(
 fn ax_hvc_create_vm(cfg: &mut AxVMCreateArg) -> Result<u32> {
     // These fields should be set by user, but now this is provided by hypervisor.
     // Todo: refactor these.
-    cfg.vm_entry_point = crate::config::BIOS_ENTRY;
-    cfg.bios_load_gpa = crate::config::BIOS_ENTRY;
-    cfg.kernel_load_gpa = crate::config::GUEST_ENTRY;
-    cfg.ramdisk_load_gpa = 0;
+    match VmType::from(cfg.vm_type) {
+        VmType::VmTNimbOS => {
+            cfg.vm_entry_point = crate::config::NIMBOS_VM_ENTRY;
+            cfg.bios_load_gpa = crate::config::NIMBOS_BIOS_LOAD_GPA;
+            cfg.kernel_load_gpa = crate::config::NIMBOS_KERNEL_LOAD_GPA;
+            // No ramdisk for Nimbos.
+            cfg.ramdisk_load_gpa = 0;
+        }
+        VmType::VmTLinux => {
+            cfg.vm_entry_point = crate::config::LINUX_VM_ENTRY;
+            cfg.bios_load_gpa = crate::config::LINUX_BIOS_LOAD_GPA;
+            cfg.kernel_load_gpa = crate::config::LINUX_KERNEL_LOAD_GPA;
+            cfg.ramdisk_load_gpa = crate::config::LINUX_RAMDISK_LOAD_GPA;
+        }
+        _ => {
+            warn!("Unsupported VM Type {}", cfg.vm_type as u64);
+            return Err(Error::InvalidParam);
+        }
+    }
 
     let mut vm_cfg_entry = VMCfgEntry::new(
         String::from("Guest VM"),
@@ -113,7 +128,16 @@ fn ax_hvc_create_vm(cfg: &mut AxVMCreateArg) -> Result<u32> {
         cfg.ramdisk_load_gpa,
     );
 
-    vm_cfg_entry.memory_region_editor(crate::config::nimbos_cfg_def::nimbos_memory_regions_setup);
+    let mm_setup_fn = match VmType::from(cfg.vm_type) {
+        VmType::VmTNimbOS => crate::config::nimbos_cfg_def::nimbos_memory_regions_setup,
+        VmType::VmTLinux => crate::config::linux_cfg_def::linux_memory_regions_setup,
+        _ => {
+            warn!("Unsupported VM Type {}", cfg.vm_type as u64);
+            return Err(Error::InvalidParam);
+        }
+    };
+
+    vm_cfg_entry.memory_region_editor(mm_setup_fn);
 
     vm_cfg_entry.set_up_memory_region()?;
 

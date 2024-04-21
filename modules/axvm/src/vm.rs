@@ -72,8 +72,6 @@ pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
 }
 
 pub fn boot_vm(vm_id: usize) {
-    info!("boot_vm {} on core {}", vm_id, axhal::current_cpu_id());
-
     let vm_cfg_entry = match vm_cfg_entry(vm_id) {
         Some(entry) => entry,
         None => {
@@ -81,6 +79,14 @@ pub fn boot_vm(vm_id: usize) {
             return;
         }
     };
+
+    info!(
+        "boot_vm {} {:?} on core {}, guest entry {:#x}",
+        vm_id,
+        vm_cfg_entry.get_vm_type(),
+        axhal::current_cpu_id(),
+        vm_cfg_entry.get_vm_entry(),
+    );
 
     let gpm = vm_cfg_entry
         .generate_guest_phys_memory_set()

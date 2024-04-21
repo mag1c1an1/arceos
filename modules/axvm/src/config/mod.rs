@@ -10,8 +10,17 @@ macro_rules! cfg_block {
 }
 
 // about guests
-pub const BIOS_PADDR: HostPhysAddr = 0x400_0000;
-pub const BIOS_SIZE: usize = 0x2000;
+
+pub const NIMBOS_VM_ENTRY: GuestPhysAddr = 0x8000;
+pub const NIMBOS_BIOS_LOAD_GPA: GuestPhysAddr = 0x8000;
+pub const NIMBOS_KERNEL_LOAD_GPA: GuestPhysAddr = 0x20_0000;
+
+// Hardcoded in `apps/hv/guest/vlbl/entry.S`.
+pub const LINUX_VM_ENTRY: GuestPhysAddr = 0x7c00;
+pub const LINUX_BIOS_LOAD_GPA: GuestPhysAddr = 0x7c00;
+pub const LINUX_KERNEL_LOAD_GPA: GuestPhysAddr = 0x70200000;
+pub const LINUX_RAMDISK_LOAD_GPA: GuestPhysAddr = 0x72000000;
+
 cfg_block! {
     #[cfg(feature = "guest_nimbos")]
     {
@@ -39,6 +48,7 @@ mod gpm_def;
 #[cfg(feature = "type1_5")]
 pub use gpm_def::{init_root_gpm, root_gpm};
 
+pub mod linux_cfg_def;
 pub mod nimbos_cfg_def;
 
 pub mod entry;
