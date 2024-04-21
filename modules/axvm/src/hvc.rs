@@ -1,12 +1,10 @@
 use alloc::string::String;
 
-use axalloc::GlobalPage;
 use axhal::current_cpu_id;
-use axhal::mem::{phys_to_virt, virt_to_phys, PhysAddr};
-use hypercraft::{GuestPhysAddr, HostPhysAddr, HostVirtAddr};
-use memory_addr::PAGE_SIZE_4K;
+use axhal::mem::{phys_to_virt, PhysAddr};
+use hypercraft::{GuestPhysAddr, HostPhysAddr};
 
-use crate::config::entry::{vm_cfg_add_vm_entry, vm_cfg_entry, VMCfgEntry};
+use crate::config::entry::{vm_cfg_add_vm_entry, vm_cfg_entry, VMCfgEntry, VmType};
 use crate::Error;
 use crate::{nmi::nmi_send_msg, nmi::NmiMessage, HyperCraftHal, Result, VCpu};
 // use axhal::hv::HyperCraftHalImpl;
@@ -19,6 +17,9 @@ pub const HVC_AXVM_CREATE_CFG: usize = 0x101;
 pub const HVC_AXVM_LOAD_IMG: usize = 0x102;
 pub const HVC_AXVM_BOOT: usize = 0x103;
 
+// The struct used for parameter passing between the kernel module and ArceOS hypervisor.
+// This struct should have the same memory layout as the `AxVMCreateArg` structure in ArceOS.
+// See jailhouse-arceos/driver/axvm.h
 #[derive(Debug)]
 #[repr(C, packed)]
 pub struct AxVMCreateArg {
@@ -30,10 +31,6 @@ pub struct AxVMCreateArg {
     cpu_mask: usize,
     /// VM entry point.
     vm_entry_point: GuestPhysAddr,
-    /// Size of memory.
-    ram_size: usize,
-    /// Target physical address of memory.
-    ram_base_gpa: GuestPhysAddr,
 
     /// BIOS image loaded target guest physical address.
     bios_load_gpa: GuestPhysAddr,
@@ -97,46 +94,28 @@ pub fn handle_hvc<H: HyperCraftHal>(
     // Err(HyperError::NotSupported)
 }
 
-#[inline]
-const fn align_up_4k(pos: usize) -> usize {
-    (pos + PAGE_SIZE_4K - 1) & !(PAGE_SIZE_4K - 1)
-}
-
 fn ax_hvc_create_vm(cfg: &mut AxVMCreateArg) -> Result<u32> {
     // These fields should be set by user, but now this is provided by hypervisor.
     // Todo: refactor these.
     cfg.vm_entry_point = crate::config::BIOS_ENTRY;
-    cfg.ram_size = crate::config::GUEST_PHYS_MEMORY_SIZE;
-    cfg.ram_base_gpa = crate::config::GUEST_PHYS_MEMORY_BASE;
     cfg.bios_load_gpa = crate::config::BIOS_ENTRY;
     cfg.kernel_load_gpa = crate::config::GUEST_ENTRY;
     cfg.ramdisk_load_gpa = 0;
 
     let mut vm_cfg_entry = VMCfgEntry::new(
         String::from("Guest VM"),
+        VmType::from(cfg.vm_type),
         String::from("guest cmdline"),
         cfg.cpu_mask,
         cfg.kernel_load_gpa,
         cfg.vm_entry_point,
         cfg.bios_load_gpa,
         cfg.ramdisk_load_gpa,
-        cfg.ram_size,
-        cfg.ram_base_gpa,
     );
 
-    let ram_size = align_up_4k(cfg.ram_size);
-    let guest_mem_pages = GlobalPage::alloc_contiguous(ram_size / PAGE_SIZE_4K, PAGE_SIZE_4K)
-        .map_err(|e| {
-            warn!(
-                "failed to allocate {} Bytes memory for guest, err {:?}",
-                ram_size, e
-            );
-            Error::NoMemory
-        })?;
+    vm_cfg_entry.memory_region_editor(crate::config::nimbos_cfg_def::nimbos_memory_regions_setup);
 
-    vm_cfg_entry.add_physical_pages(0, guest_mem_pages);
-
-    vm_cfg_entry.set_up_memory_region();
+    vm_cfg_entry.set_up_memory_region()?;
 
     // These fields should be set by hypervisor and read by Linux kernel module.
     (cfg.bios_load_hpa, cfg.kernel_load_hpa, cfg.ramdisk_load_hpa) =
@@ -159,8 +138,9 @@ fn ax_hvc_boot_vm(vm_id: usize) {
         }
     };
     let cpuset = vm_cfg_entry.get_cpu_set();
+    let vm_type = vm_cfg_entry.get_vm_type();
 
-    info!("boot VM {} on cpuset {:#x}", vm_id, cpuset);
+    info!("boot VM {} {:?} on cpuset {:#x}", vm_id, vm_type, cpuset);
 
     let current_cpu = current_cpu_id();
     let num_bits = core::mem::size_of::<u32>() * 8;

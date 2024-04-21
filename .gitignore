@@ -10,3 +10,6 @@ qemu*.log
 /*.sh
 \[ignore\]*
 scripts/host/user*
+scripts/guest/*.bin
+scripts/guest/*.cpio.gz
+scripts/guest/*.cpio.gz

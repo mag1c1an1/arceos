@@ -8,6 +8,7 @@ use spin::Mutex;
 use axalloc::GlobalPage;
 use axhal::mem::virt_to_phys;
 use hypercraft::{GuestPhysAddr, HostPhysAddr, HostVirtAddr};
+use memory_addr::PAGE_SIZE_4K;
 use page_table_entry::MappingFlags;
 
 use crate::mm::{GuestMemoryRegion, GuestPhysMemorySet};
@@ -16,6 +17,11 @@ use crate::{Error, Result};
 // VM_ID = 0 reserved for host Linux.
 const CONFIG_VM_ID_START: usize = 1;
 const CONFIG_VM_NUM_MAX: usize = 8;
+
+#[inline]
+const fn align_up_4k(pos: usize) -> usize {
+    (pos + PAGE_SIZE_4K - 1) & !(PAGE_SIZE_4K - 1)
+}
 
 struct VmConfigTable {
     entries: BTreeMap<usize, Arc<VMCfgEntry>>,
@@ -42,6 +48,25 @@ impl VmConfigTable {
             error!("illegal vm id {}", vm_id);
         } else {
             self.entries.remove(&vm_id);
+        }
+    }
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+pub enum VmType {
+    #[default]
+    VmTUnknown = 0,
+    VmTNimbOS = 1,
+    VmTLinux = 2,
+}
+
+impl From<usize> for VmType {
+    fn from(value: usize) -> Self {
+        match value {
+            0 => Self::VmTUnknown,
+            1 => Self::VmTNimbOS,
+            2 => Self::VmTLinux,
+            _ => panic!("Unknown VmType value: {}", value),
         }
     }
 }
@@ -81,13 +106,12 @@ impl VMImgCfg {
 pub struct VMCfgEntry {
     vm_id: usize,
     name: String,
+    vm_type: VmType,
+
     cmdline: String,
     cpu_set: usize,
 
     img_cfg: VMImgCfg,
-
-    ram_size: usize,
-    ram_base_gpa: GuestPhysAddr,
 
     memory_regions: Vec<GuestMemoryRegion>,
     physical_pages: BTreeMap<usize, GlobalPage>,
@@ -97,28 +121,26 @@ pub struct VMCfgEntry {
 impl VMCfgEntry {
     pub fn new(
         name: String,
+        vm_type: VmType,
         cmdline: String,
         cpu_set: usize,
         kernel_load_gpa: GuestPhysAddr,
         vm_entry_point: GuestPhysAddr,
         bios_load_gpa: GuestPhysAddr,
         ramdisk_load_gpa: GuestPhysAddr,
-        ram_size: usize,
-        ram_base_gpa: GuestPhysAddr,
     ) -> Self {
         VMCfgEntry {
             vm_id: 0xdeaf_beef,
             name,
+            vm_type,
             cmdline,
             cpu_set,
-            ram_size,
             img_cfg: VMImgCfg::new(
                 kernel_load_gpa,
                 vm_entry_point,
                 bios_load_gpa,
                 ramdisk_load_gpa,
             ),
-            ram_base_gpa,
             memory_regions: Vec::new(),
             physical_pages: BTreeMap::new(),
             memory_set: None,
@@ -129,6 +151,10 @@ impl VMCfgEntry {
         self.cpu_set
     }
 
+    pub fn get_vm_type(&self) -> VmType {
+        self.vm_type
+    }
+
     pub fn get_vm_entry(&self) -> GuestPhysAddr {
         self.img_cfg.vm_entry_point
     }
@@ -137,31 +163,45 @@ impl VMCfgEntry {
         self.physical_pages.insert(index, pages);
     }
 
-    fn memory_region_editor<F>(&mut self, f: F)
+    pub fn memory_region_editor<F>(&mut self, f: F)
     where
         F: FnOnce(&mut Vec<GuestMemoryRegion>),
     {
         f(&mut self.memory_regions)
     }
 
-    pub fn set_up_memory_region(&mut self) {
-        // Currenly we just use physical_pages[0]
-        // because we only need to allocate one physical mem region for Guest VM RAM.
-        let ram_base_hpa = self
-            .physical_pages
-            .get(&0)
-            .expect("physical memory space for Guest VM not allocated")
-            .start_paddr(virt_to_phys)
-            .as_usize();
+    /// Set up VM GuestMemoryRegion.
+    /// Alloc physical memory region for guest ram memory.
+    pub fn set_up_memory_region(&mut self) -> Result {
+        for (index, region) in self.memory_regions.iter_mut().enumerate() {
+            // We do not need to alloc physical memory region for device regions.
+            if region.flags.contains(MappingFlags::DEVICE) {
+                continue;
+            }
+            let ram_size = align_up_4k(region.size);
+            let physical_pages =
+                GlobalPage::alloc_contiguous(ram_size / PAGE_SIZE_4K, PAGE_SIZE_4K).map_err(
+                    |e| {
+                        warn!(
+                            "failed to allocate {} Bytes memory for guest, err {:?}",
+                            ram_size, e
+                        );
+                        Error::NoMemory
+                    },
+                )?;
+            let ram_base_hpa = physical_pages.start_paddr(virt_to_phys).as_usize();
+            region.hpa = ram_base_hpa;
 
-        self.memory_regions.push(GuestMemoryRegion {
-            gpa: self.ram_base_gpa,
-            hpa: ram_base_hpa,
-            size: self.ram_size,
-            flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
-        });
+            debug!(
+                "Alloc {:#x} Bytes of GlobalPage for ram region\n{}",
+                physical_pages.size(),
+                region
+            );
 
-        self.memory_region_editor(super::nimbos_cfg_def::nimbos_memory_regions_setup);
+            self.physical_pages.insert(index, physical_pages);
+        }
+
+        Ok(())
     }
 
     pub fn generate_guest_phys_memory_set(&self) -> Result<GuestPhysMemorySet> {
@@ -175,62 +215,69 @@ impl VMCfgEntry {
         Ok(gpm)
     }
 
-    fn addr_in_memory_range(&self, addr: GuestPhysAddr) -> bool {
-        let physical_mem_range = self.ram_base_gpa..(self.ram_base_gpa + self.ram_size);
-        return physical_mem_range.contains(&addr);
+    fn gpa_to_hpa_inside_ram_memory_region(&self, addr: GuestPhysAddr) -> Option<HostPhysAddr> {
+        for (index, region) in self.memory_regions.iter().enumerate() {
+            if region.flags.contains(MappingFlags::DEVICE) {
+                continue;
+            }
+            if ((region.gpa..region.gpa + region.size).contains(&addr)) {
+                debug!("Target GuestPhysAddr {:#x} belongs to \n\t{}", addr, region);
+                return self
+                    .physical_pages
+                    .get(&index)
+                    .map(|pages| pages.start_paddr(virt_to_phys).as_usize() + addr - region.gpa);
+            }
+        }
+
+        return None;
     }
 
+    /// According to the VM configuration,
+    /// find the `HostPhysAddr` to which each Guest VM image needs to be loaded.
+    /// Return Value:
+    ///   bios_load_hpa : HostPhysAddr
+    ///   kernel_load_hpa : HostPhysAddr
+    ///   ramdisk_load_hpa : HostPhysAddr
     pub fn get_img_load_info(&mut self) -> (HostPhysAddr, HostPhysAddr, HostPhysAddr) {
-        // Currenly we just use physical_pages[0]
-        // because we only need to allocate one physical mem region for Guest VM RAM.
-        let ram_base_hpa = self
-            .physical_pages
-            .get(&0)
-            .expect("physical memory space for Guest VM not allocated")
-            .start_paddr(virt_to_phys)
-            .as_usize();
-
-        if self.addr_in_memory_range(self.img_cfg.bios_load_gpa) {
-            self.img_cfg.bios_load_hpa =
-                self.img_cfg.bios_load_gpa - self.ram_base_gpa + ram_base_hpa;
+        if let Some(bios_load_hpa) =
+            self.gpa_to_hpa_inside_ram_memory_region(self.img_cfg.bios_load_gpa)
+        {
+            self.img_cfg.bios_load_hpa = bios_load_hpa;
         } else {
             warn!(
-                "Guest VM bios load gpa {:#x} not in memory range {:#x?}",
-                self.img_cfg.bios_load_gpa,
-                self.ram_base_gpa..(self.ram_base_gpa + self.ram_size),
+                "Guest VM bios load gpa {:#x} not in ram memory range",
+                self.img_cfg.bios_load_gpa
             );
             self.img_cfg.bios_load_hpa = 0;
         }
 
-        if self.addr_in_memory_range(self.img_cfg.kernel_load_gpa) {
-            self.img_cfg.kernel_load_hpa =
-                self.img_cfg.kernel_load_gpa - self.ram_base_gpa + ram_base_hpa;
+        if let Some(kernel_load_hpa) =
+            self.gpa_to_hpa_inside_ram_memory_region(self.img_cfg.kernel_load_gpa)
+        {
+            self.img_cfg.kernel_load_hpa = kernel_load_hpa;
         } else {
             warn!(
-                "Guest VM kernel load gpa {:#x} not in memory range {:#x?}",
+                "Guest VM kernel load gpa {:#x} not in ram memory range",
                 self.img_cfg.kernel_load_gpa,
-                self.ram_base_gpa..(self.ram_base_gpa + self.ram_size),
             );
             self.img_cfg.kernel_load_hpa = 0;
         }
 
-        if self.addr_in_memory_range(self.img_cfg.ramdisk_load_gpa) {
-            self.img_cfg.ramdisk_load_hpa =
-                self.img_cfg.ramdisk_load_gpa - self.ram_base_gpa + ram_base_hpa;
+        if let Some(ramdisk_load_hpa) =
+            self.gpa_to_hpa_inside_ram_memory_region(self.img_cfg.ramdisk_load_gpa)
+        {
+            self.img_cfg.ramdisk_load_hpa = ramdisk_load_hpa;
         } else {
+            warn!(
+                "Guest VM ramdisk load gpa {:#x} not in ram memory range",
+                self.img_cfg.ramdisk_load_gpa,
+            );
             self.img_cfg.ramdisk_load_hpa = 0;
         }
 
         debug!(
-            "memory range {:#?} ram_base_hpa {:#x}",
-            self.ram_base_gpa..(self.ram_base_gpa + self.ram_size),
-            ram_base_hpa
-        );
-        debug!(
             "bios_load_hpa {:#x} kernel_load_hpa {:#x} ramdisk_load_hpa {:#x}",
-            self.img_cfg.bios_load_hpa,
-            self.img_cfg.kernel_load_hpa,
-            self.img_cfg.ramdisk_load_hpa,
+            self.img_cfg.bios_load_hpa, self.img_cfg.kernel_load_hpa, self.img_cfg.ramdisk_load_hpa,
         );
 
         (

@@ -39,6 +39,6 @@ mod gpm_def;
 #[cfg(feature = "type1_5")]
 pub use gpm_def::{init_root_gpm, root_gpm};
 
-mod nimbos_cfg_def;
+pub mod nimbos_cfg_def;
 
 pub mod entry;

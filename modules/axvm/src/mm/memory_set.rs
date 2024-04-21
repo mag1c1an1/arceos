@@ -29,6 +29,20 @@ pub struct GuestMemoryRegion {
     pub flags: MappingFlags,
 }
 
+impl Display for GuestMemoryRegion {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(
+            f,
+            "GuestMemoryRegion: GPA: [{:#x?}], HPA: [{:#x?}] size {:#x}, flags {:?}",
+            &(self.gpa..self.gpa + self.size),
+            &(self.hpa..self.hpa + self.size),
+            &self.size,
+            &self.flags
+        )?;
+        Ok(())
+    }
+}
+
 pub struct MapRegion {
     pub start: GuestPhysAddr,
     pub size: usize,
