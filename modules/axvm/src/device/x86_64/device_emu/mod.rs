@@ -115,6 +115,7 @@ impl VirtMsrOps for MsrDummy {
     fn read(&mut self, msr: u32) -> HyperResult<u64> {
         debug!("read from msr dummy {:#x}", msr);
 
+        // Todo: refactor this.
         if msr == IA32_UMWAIT_CONTROL {
             use x86::msr::rdmsr;
             let value = unsafe { rdmsr(IA32_UMWAIT_CONTROL) };
@@ -126,6 +127,8 @@ impl VirtMsrOps for MsrDummy {
 
     fn write(&mut self, msr: u32, value: u64) -> HyperResult {
         debug!("write to msr dummy {:#x}, value: {:#x}", msr, value);
+
+        // Todo: refactor this.
         if msr == IA32_UMWAIT_CONTROL {
             use x86::msr::rdmsr;
             debug!("IA32_UMWAIT_CONTROL current value {:#x}", unsafe {

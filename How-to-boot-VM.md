@@ -81,14 +81,17 @@ Then you can start another guest VM through jailhouse cmd tool.
 
 ```bash
 # Execute in guest /home/ubuntu directory.
-sudo ${PATH_TO_JAILHOUSE_TOOL} axvm create CPU_MASK BIOS_IMG KERNEL_IMG
+sudo ${PATH_TO_JAILHOUSE_TOOL} axvm create CPU_MASK VM_TYPE BIOS_IMG KERNEL_IMG RAMDISK_IMG
 ```
 
 There is also a script for it.
 
 ```bash
 # Execute in guest /home/ubuntu directory.
-./boot_vm.sh
+./boot_nimbios.sh
+./boot_linux.sh
 ```
 
 Currently only [Nimbos](https://github.com/equation314/nimbos) is well supported, you can find its bios [here](apps/hv/guest/nimbos/bios).
+
+WIP on booting Linux.
