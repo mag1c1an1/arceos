@@ -105,6 +105,7 @@ impl MsrDummy {
         Self { msr_range: range }
     }
 }
+const IA32_UMWAIT_CONTROL: u32 = 0xe1;
 
 impl VirtMsrOps for MsrDummy {
     fn msr_range(&self) -> core::ops::Range<u32> {
