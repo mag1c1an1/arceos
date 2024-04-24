@@ -96,7 +96,7 @@ pub fn boot_vm(vm_id: usize) {
     let npt_root = gpm.nest_page_table_root();
     info!("{:#x?}", gpm);
     // Main scheduling item, managed by `axtask`
-    let vcpu = VCpu::new_nimbos(
+    let vcpu = VCpu::new(
         0,
         crate::arch::cpu_vmcs_revision_id(),
         vm_cfg_entry.get_vm_entry(),

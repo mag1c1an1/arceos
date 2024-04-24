@@ -113,11 +113,30 @@ impl VirtMsrOps for MsrDummy {
 
     fn read(&mut self, msr: u32) -> HyperResult<u64> {
         debug!("read from msr dummy {:#x}", msr);
+
+        if msr == IA32_UMWAIT_CONTROL {
+            use x86::msr::rdmsr;
+            let value = unsafe { rdmsr(IA32_UMWAIT_CONTROL) };
+            debug!("IA32_UMWAIT_CONTROL {:#x}", value);
+            return Ok(value);
+        }
         Ok(0)
     }
 
     fn write(&mut self, msr: u32, value: u64) -> HyperResult {
         debug!("write to msr dummy {:#x}, value: {:#x}", msr, value);
+        if msr == IA32_UMWAIT_CONTROL {
+            use x86::msr::rdmsr;
+            debug!("IA32_UMWAIT_CONTROL current value {:#x}", unsafe {
+                rdmsr(IA32_UMWAIT_CONTROL)
+            });
+
+            use x86::msr::wrmsr;
+            unsafe {
+                wrmsr(IA32_UMWAIT_CONTROL, value);
+            }
+            debug!("write to IA32_UMWAIT_CONTROL {:#x}", value);
+        }
         Ok(())
     }
 }
