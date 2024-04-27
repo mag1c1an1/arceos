@@ -119,7 +119,10 @@ impl VirtMsrOps for MsrDummy {
         if msr == IA32_UMWAIT_CONTROL {
             use x86::msr::rdmsr;
             let value = unsafe { rdmsr(IA32_UMWAIT_CONTROL) };
-            debug!("IA32_UMWAIT_CONTROL {:#x}", value);
+            debug!(
+                "IA32_UMWAIT_CONTROL {:#x}, we still don' why do we meed to mock this!!!",
+                value
+            );
             return Ok(value);
         }
         Ok(0)
@@ -139,7 +142,10 @@ impl VirtMsrOps for MsrDummy {
             unsafe {
                 wrmsr(IA32_UMWAIT_CONTROL, value);
             }
-            debug!("write to IA32_UMWAIT_CONTROL {:#x}", value);
+            debug!(
+                "write to IA32_UMWAIT_CONTROL {:#x}, we still don' why do we meed to mock this!!!",
+                value
+            );
         }
         Ok(())
     }

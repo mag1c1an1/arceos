@@ -323,7 +323,14 @@ impl VirtMsrOps for ApicBaseMsrHandler {
     fn read(&mut self, msr: u32) -> HyperResult<u64> {
         let _ = msr;
         let mut apic_base = unsafe { x86::msr::rdmsr(x86::msr::IA32_APIC_BASE) };
+
+        debug!("Get IA32_APIC_BASE {:#x}", apic_base);
+
+        // Ref: Table 11-5. x2APIC Operating Mode Configurations in SDM.
         apic_base |= 1 << 11 | 1 << 10; // enable xAPIC and x2APIC
+
+        debug!("Modify IA32_APIC_BASE to {:#x}", apic_base);
+
         Ok(apic_base)
     }
 

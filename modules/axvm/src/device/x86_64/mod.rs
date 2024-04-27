@@ -14,7 +14,7 @@ use core::any::Any;
 use core::marker::PhantomData;
 use iced_x86::{Code, Instruction, OpKind, Register};
 use page_table_entry::MappingFlags;
-use pci::{AsAny, PciDevOps, PciHost};
+use pci::{AsAny, DummyPciHost, PciDevOps};
 use spin::Mutex;
 
 use device_emu::{ApicBaseMsrHandler, Bundle, VirtLocalApic};
@@ -32,7 +32,7 @@ pub struct DeviceList<H: HyperCraftHal> {
     port_io_devices: Vec<Arc<Mutex<dyn PioOps>>>,
     memory_io_devices: Vec<Arc<Mutex<dyn MmioOps>>>,
     msr_devices: Vec<Arc<Mutex<dyn VirtMsrOps>>>,
-    pci_devices: Option<Arc<Mutex<PciHost>>>,
+    pci_devices: Option<Arc<Mutex<DummyPciHost>>>,
     marker: core::marker::PhantomData<H>,
 }
 
@@ -48,7 +48,7 @@ impl<H: HyperCraftHal> DeviceList<H> {
     }
 
     fn init_pci_host(&mut self) {
-        let pci_host = PciHost::new(Some(Arc::new(super::virtio::VirtioMsiIrqManager {})));
+        let pci_host = DummyPciHost::new(Some(Arc::new(super::virtio::VirtioMsiIrqManager {})));
         self.pci_devices = Some(Arc::new(Mutex::new(pci_host)));
     }
 
@@ -166,6 +166,8 @@ impl<H: HyperCraftHal> DeviceList<H> {
         exit_info: &VmxExitInfo,
     ) -> Option<HyperResult> {
         let io_info = vcpu.io_exit_info().unwrap();
+
+        // debug!("handle io {:#x?}", io_info);
 
         if let Some(dev) = self.find_port_io_device(io_info.port) {
             return Some(Self::handle_io_instruction_to_device(vcpu, exit_info, dev));
@@ -295,7 +297,7 @@ pub struct X64VcpuDevices<H: HyperCraftHal> {
     pub(crate) apic_timer: Arc<Mutex<VirtLocalApic>>,
     pub(crate) bundle: Arc<Mutex<Bundle>>,
     pub(crate) devices: DeviceList<H>,
-    pub(crate) console: Arc<Mutex<device_emu::Uart16550<device_emu::MultiplexConsoleBackend>>>,
+    // pub(crate) console: Arc<Mutex<device_emu::Uart16550<device_emu::MultiplexConsoleBackend>>>,
     pub(crate) pic: [Arc<Mutex<device_emu::I8259Pic>>; 2],
     last: Option<u64>,
     marker: PhantomData<H>,
@@ -305,47 +307,54 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
     fn new(_vcpu: &VCpu<H>) -> HyperResult<Self> {
         let apic_timer = Arc::new(Mutex::new(VirtLocalApic::new()));
         let bundle = Arc::new(Mutex::new(Bundle::new()));
-        let console = Arc::new(Mutex::new(device_emu::Uart16550::<
-            device_emu::MultiplexConsoleBackend,
-        >::new(0x3f8)));
         let pic: [Arc<Mutex<device_emu::I8259Pic>>; 2] = [
             Arc::new(Mutex::new(device_emu::I8259Pic::new(0x20))),
             Arc::new(Mutex::new(device_emu::I8259Pic::new(0xA0))),
         ];
 
-        *console.lock().backend() =
-            device_emu::MultiplexConsoleBackend::new_secondary(1, "sleep\n");
-
         let mut devices = DeviceList::new();
 
         let mut pmio_devices: Vec<Arc<Mutex<dyn PioOps>>> = vec![
-            // console.clone(), // COM1
-            Arc::new(Mutex::new(<device_emu::PortPassthrough>::new(0x3f8, 8))),
+            // 0x2f8, 0x2f8 + 8
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2f8))), // COM2
+            // 0x3e8, 0x3e8 + 8
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x3e8))), // COM3
+            // 0x2e8, 0x2e8 + 8
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2e8))), // COM4
-            pic[0].clone(),                                            // PIC1
-            pic[1].clone(),                                            // PIC2
-            Arc::new(Mutex::new(device_emu::DebugPort::new(0x80))),    // Debug Port
+            // 0x20, 0x20 + 2
+            pic[0].clone(), // PIC1
+            // 0xa0, 0xa0 + 2
+            pic[1].clone(), // PIC2
+            // 0x80, 0x80 + 1
+            Arc::new(Mutex::new(device_emu::DebugPort::new(0x80))), // Debug Port
             /*
                the complexity:
                - port 0x70 and 0x71 is for CMOS, but bit 7 of 0x70 is for NMI
                - port 0x40 ~ 0x43 is for PIT, but port 0x61 is also related
             */
+            // 0x92, 0x92 + 1
             Arc::new(Mutex::new(Bundle::proxy_system_control_a(&bundle))),
+            // 0x61, 0x61 + 1
             Arc::new(Mutex::new(Bundle::proxy_system_control_b(&bundle))),
+            // 0x70, 0x70 + 2
             Arc::new(Mutex::new(Bundle::proxy_cmos(&bundle))),
+            // 0x40, 0x40 + 4
             Arc::new(Mutex::new(Bundle::proxy_pit(&bundle))),
+            // 0xf0, 0xf0 + 2
             Arc::new(Mutex::new(device_emu::Dummy::new(0xf0, 2))), // 0xf0 and 0xf1 are ports about fpu
+            // 0x3d4, 0x3d4 + 2
             Arc::new(Mutex::new(device_emu::Dummy::new(0x3d4, 2))), // 0x3d4 and 0x3d5 are ports about vga
-            Arc::new(Mutex::new(device_emu::Dummy::new(0x87, 1))),  // 0x87 is a port about dma
+            // 0x87, 0x87 + 1
+            Arc::new(Mutex::new(device_emu::Dummy::new(0x87, 1))), // 0x87 is a port about dma
+            // 0x60, 0x60 + 1
             Arc::new(Mutex::new(device_emu::Dummy::new(0x60, 1))), // 0x60 and 0x64 are ports about ps/2 controller
+            // 0x64, 0x64 + 1
             Arc::new(Mutex::new(device_emu::Dummy::new(0x64, 1))), //
                                                                    // Arc::new(Mutex::new(device_emu::PCIConfigurationSpace::new(0xcf8))),
                                                                    // Arc::new(Mutex::new(device_emu::PCIPassthrough::new(0xcf8))),
         ];
-
         devices.add_port_io_devices(&mut pmio_devices);
+
         devices.add_msr_device(Arc::new(Mutex::new(VirtLocalApic::msr_proxy(&apic_timer))));
         devices.add_msr_device(Arc::new(Mutex::new(ApicBaseMsrHandler {})));
         // linux read this amd-related msr on my intel cpu for some unknown reason... make it happy
@@ -358,7 +367,6 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         Ok(Self {
             apic_timer,
             bundle,
-            console,
             devices,
             pic,
             last: None,

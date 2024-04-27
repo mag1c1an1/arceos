@@ -7,7 +7,6 @@ use hypercraft::{VCpu, VmCpus, VM};
 use super::arch::new_vcpu;
 #[cfg(target_arch = "x86_64")]
 use super::device::{self, X64VcpuDevices, X64VmDevices};
-use crate::mm::get_gva_content_bytes;
 use crate::GuestPageTable;
 use alloc::sync::Arc;
 use axhal::hv::HyperCraftHalImpl;
