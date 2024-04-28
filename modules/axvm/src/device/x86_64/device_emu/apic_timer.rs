@@ -327,7 +327,11 @@ impl VirtMsrOps for ApicBaseMsrHandler {
         debug!("Get IA32_APIC_BASE {:#x}", apic_base);
 
         // Ref: Table 11-5. x2APIC Operating Mode Configurations in SDM.
-        apic_base |= 1 << 11 | 1 << 10; // enable xAPIC and x2APIC
+        apic_base |= 1 << 11; // | 1 << 10; // enable xAPIC and x2APIC
+
+        if apic_base & (1 << 10) == (1 << 10) {
+            apic_base &= !(1 << 10);
+        }
 
         debug!("Modify IA32_APIC_BASE to {:#x}", apic_base);
 
@@ -335,6 +339,7 @@ impl VirtMsrOps for ApicBaseMsrHandler {
     }
 
     fn write(&mut self, _msr: u32, _value: u64) -> HyperResult {
+        debug!("write IA32_APIC_BASE to {:#x}", _value);
         Ok(())
     }
 }

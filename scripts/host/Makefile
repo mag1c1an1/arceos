@@ -42,7 +42,7 @@ qemu_debug: $(qemu_image)
 	$(QEMU) $(qemu_args) -s -S
 
 qemu_gdb:
-	gdb $(OUT_ELF) \
+	gdb-multiarch $(OUT_ELF) \
 	  -ex 'target remote localhost:1234' \
 	  -ex 'continue' \
 	  -ex 'disp /16i $$pc'
