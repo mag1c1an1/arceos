@@ -22,13 +22,13 @@ fn x86_trap_handler(tf: &mut TrapFrame) {
                     tf.error_code,
                 );
             }
-                panic!(
-                    "Kernel #PF @ {:#x}, fault_vaddr={:#x}, error_code={:#x}:\n{:#x?}",
-                    tf.rip,
-                    unsafe { cr2() },
-                    tf.error_code,
-                    tf,
-                );
+            panic!(
+                "Kernel #PF @ {:#x}, fault_vaddr={:#x}, error_code={:#x}:\n{:#x?}",
+                tf.rip,
+                unsafe { cr2() },
+                tf.error_code,
+                tf,
+            );
         }
         BREAKPOINT_VECTOR => debug!("#BP @ {:#x} ", tf.rip),
         GENERAL_PROTECTION_FAULT_VECTOR => {
@@ -45,7 +45,13 @@ fn x86_trap_handler(tf: &mut TrapFrame) {
             tf.rax = 0;
             // tf.rax = syscall(tf, tf.rax as _, tf.rdi as _, tf.rsi as _, tf.rdx as _) as u64
         }
-        IRQ_VECTOR_START..=IRQ_VECTOR_END => crate::trap::handle_irq_extern(tf.vector as _),
+        IRQ_VECTOR_START..=IRQ_VECTOR_END => {
+            debug!(
+                "IRQ @ {:#x}, rax {:#x}, rdi {:#x} rsi {:#x} rdx {:#x}",
+                tf.rip, tf.rax, tf.rdi, tf.rsi, tf.rdx,
+            );
+            crate::trap::handle_irq_extern(tf.vector as _);
+        }
         _ => {
             panic!(
                 "Unhandled exception {} (error_code = {:#x}) @ {:#x}:\n{:#x?}",

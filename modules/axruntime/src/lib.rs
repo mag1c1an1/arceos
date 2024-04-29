@@ -223,6 +223,7 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
 
 #[cfg(feature = "type1_5")]
 pub mod type1_5;
+
 #[cfg(feature = "type1_5")]
 #[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {

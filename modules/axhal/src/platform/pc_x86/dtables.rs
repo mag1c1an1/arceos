@@ -50,13 +50,14 @@ fn init_percpu() {
         gdt.load_tss();
 
         // PAT0: WB, PAT1: WC, PAT2: UC
-        x86::msr::wrmsr(x86::msr::IA32_PAT, 0x070106);
+        // x86::msr::wrmsr(x86::msr::IA32_PAT, 0x070106);
         debug!("CPU{} finish init percpu", current_cpu_id());
     }
 }
 
 /// Initializes IDT, GDT on the primary CPU.
 pub(super) fn init_primary() {
+    debug!("\nInitialize IDT & GDT...");
     axlog::ax_println!("\nInitialize IDT & GDT...");
     IDT.init_by(IdtStruct::new());
     init_percpu();

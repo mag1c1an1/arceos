@@ -84,14 +84,14 @@ pub mod header;
 /// Initializes the platform devices for the primary CPU.
 #[cfg(feature = "type1_5")]
 pub fn platform_init() {
-    self::dtables::init_primary();
+    // self::dtables::init_primary();
     self::apic::init_primary();
     // self::time::init_primary();
 }
 /// Initializes the platform devices for secondary CPUs.
 #[cfg(all(feature = "type1_5", feature = "smp"))]
 pub fn platform_init_secondary() {
-    self::dtables::init_secondary();
+    // self::dtables::init_secondary();
     // self::apic::init_secondary();
     // self::time::init_primary();
 }
@@ -108,8 +108,17 @@ use core::sync::atomic::{AtomicU32, Ordering};
 #[cfg(feature = "type1_5")]
 static INIT_EARLY_OK: AtomicU32 = AtomicU32::new(0);
 #[cfg(feature = "type1_5")]
+static BOOTED_CPUS: AtomicU32 = AtomicU32::new(0);
+
+#[cfg(feature = "type1_5")]
 // hypervisor start
 extern "sysv64" fn rust_entry_hv(cpu_id: u32, linux_sp: usize) -> i32 {
+    BOOTED_CPUS.fetch_add(1, Ordering::SeqCst);
+
+    while BOOTED_CPUS.load(Ordering::Acquire) < crate::header::HvHeader::get().online_cpus {
+        core::hint::spin_loop();
+    }
+
     axlog::ax_println!("Core {} enter rust entry hv!!!", cpu_id);
     if cpu_id == 0 {
         primary_init_early(cpu_id);
@@ -118,6 +127,7 @@ extern "sysv64" fn rust_entry_hv(cpu_id: u32, linux_sp: usize) -> i32 {
             core::hint::spin_loop();
         }
         crate::cpu::init_secondary(cpu_id as _);
+        self::dtables::init_secondary();
     }
     let ret = unsafe { rust_main(cpu_id, linux_sp) };
     ret
@@ -128,6 +138,7 @@ fn primary_init_early(cpu_id: u32) {
     // crate::mem::clear_bss();
     crate::cpu::init_primary(cpu_id as usize);
     self::uart16550::init();
+    self::dtables::init_primary();
     self::time::init_early();
     self::mem::init_mmio_num();
     axlog::ax_println!("primary_init_early OK!!!");
