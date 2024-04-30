@@ -261,5 +261,5 @@ pub(super) fn init_primary() {
 
 #[cfg(feature = "smp")]
 pub(super) fn init_secondary() {
-    unsafe { local_apic().enable() };
+    // unsafe { local_apic().enable() };
 }

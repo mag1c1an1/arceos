@@ -412,8 +412,8 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
                     "Core [{}] unexpected NMI, something very bad happened",
                     current_cpu_id
                 );
-                warn!("VCPU ctx:\n{:?}", vcpu);
-                Err(HyperError::BadState)
+                warn!("VCPU ctx:\n{:#x?}", vcpu);
+                Ok(0)
             }
         }
     }
@@ -467,7 +467,7 @@ pub struct X64VmDevices<H: HyperCraftHal> {
 impl<H: HyperCraftHal> X64VmDevices<H> {
     fn handle_external_interrupt(vcpu: &VCpu<H>) -> HyperResult {
         let int_info = vcpu.interrupt_exit_info()?;
-        trace!("VM-exit: external interrupt: {:#x?}", int_info);
+        debug!("VM-exit: external interrupt: {:#x?}", int_info);
 
         if int_info.vector != 0xf0 {
             panic!("VM-exit: external interrupt: {:#x?}", int_info);

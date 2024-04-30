@@ -28,10 +28,7 @@ pub mod console {
 }
 
 extern "C" {
-    #[cfg(not(feature = "type1_5"))]
     fn rust_main(cpu_id: usize, dtb: usize) -> !;
-    #[cfg(feature = "type1_5")]
-    fn rust_main(cpu_id: u32, linux_sp: usize) -> i32;
     #[cfg(feature = "smp")]
     fn rust_main_secondary(cpu_id: usize) -> !;
 }
@@ -68,10 +65,12 @@ unsafe extern "C" fn rust_entry_secondary(magic: usize) {
 }
 
 /// Initializes the platform devices for the primary CPU.
-#[cfg(not(feature = "type1_5"))]
 pub fn platform_init() {
     self::apic::init_primary();
-    self::time::init_primary();
+    #[cfg(not(feature = "type1_5"))]
+    {
+        self::time::init_primary();
+    }
 }
 
 #[cfg(feature = "type1_5")]
@@ -81,26 +80,17 @@ pub mod consts;
 #[cfg(feature = "type1_5")]
 pub mod header;
 
-/// Initializes the platform devices for the primary CPU.
 #[cfg(feature = "type1_5")]
-pub fn platform_init() {
-    // self::dtables::init_primary();
-    self::apic::init_primary();
-    // self::time::init_primary();
-}
-/// Initializes the platform devices for secondary CPUs.
-#[cfg(all(feature = "type1_5", feature = "smp"))]
-pub fn platform_init_secondary() {
-    // self::dtables::init_secondary();
-    // self::apic::init_secondary();
-    // self::time::init_primary();
-}
+pub mod context;
 
 /// Initializes the platform devices for secondary CPUs.
-#[cfg(all(not(feature = "type1_5"), feature = "smp"))]
+#[cfg(feature = "smp")]
 pub fn platform_init_secondary() {
-    self::apic::init_secondary();
-    self::time::init_secondary();
+    #[cfg(not(feature = "type1_5"))]
+    {
+        self::apic::init_secondary();
+        self::time::init_secondary();
+    }
 }
 
 #[cfg(feature = "type1_5")]
@@ -120,27 +110,43 @@ extern "sysv64" fn rust_entry_hv(cpu_id: u32, linux_sp: usize) -> i32 {
     }
 
     axlog::ax_println!("Core {} enter rust entry hv!!!", cpu_id);
+
     if cpu_id == 0 {
-        primary_init_early(cpu_id);
+        primary_init_early(cpu_id, linux_sp);
     } else {
         while INIT_EARLY_OK.load(Ordering::Acquire) < 1 {
             core::hint::spin_loop();
         }
-        crate::cpu::init_secondary(cpu_id as _);
-        self::dtables::init_secondary();
+        secondary_init_early(cpu_id, linux_sp);
     }
-    let ret = unsafe { rust_main(cpu_id, linux_sp) };
+    let ret = unsafe { rust_main(cpu_id as usize, 0) };
     ret
 }
 
 #[cfg(feature = "type1_5")]
-fn primary_init_early(cpu_id: u32) {
+fn primary_init_early(cpu_id: u32, linux_sp: usize) {
     // crate::mem::clear_bss();
     crate::cpu::init_primary(cpu_id as usize);
+
+    // This should be called after `percpu` is init.
+    // This should be called before operations related to dtables
+    // to get a clean unmodified Linux context.
+    context::save_linux_context(linux_sp);
+
     self::uart16550::init();
     self::dtables::init_primary();
     self::time::init_early();
     self::mem::init_mmio_num();
     axlog::ax_println!("primary_init_early OK!!!");
     INIT_EARLY_OK.store(1, Ordering::Release);
+}
+
+#[cfg(feature = "type1_5")]
+fn secondary_init_early(cpu_id: u32, linux_sp: usize) {
+    crate::cpu::init_secondary(cpu_id as _);
+    // This should be called after `percpu` is init.
+    // This should be called before operations related to dtables
+    // to get a clean unmodified Linux context.
+    context::save_linux_context(linux_sp);
+    self::dtables::init_secondary();
 }

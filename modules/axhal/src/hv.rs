@@ -2,6 +2,8 @@ use crate::mem::{phys_to_virt, virt_to_phys, PAGE_SIZE_4K};
 use axalloc::global_allocator;
 use hypercraft::{HostPhysAddr, HostVirtAddr, HyperCraftHal};
 
+pub use crate::platform::context::get_linux_context;
+
 /// An empty struct to implementate of `HyperCraftHal`
 pub struct HyperCraftHalImpl;
 

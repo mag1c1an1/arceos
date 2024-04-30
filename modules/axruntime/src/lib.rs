@@ -46,14 +46,12 @@ const LOGO: &str = r#"
 d88P     888 888      "Y8888P  "Y8888   "Y88888P"   "Y8888P"
 "#;
 use hypercraft::HyperResult;
-#[cfg(feature = "type1_5")]
-use hypercraft::LinuxContext;
 
 extern "C" {
     #[cfg(not(feature = "type1_5"))]
     fn main();
     #[cfg(feature = "type1_5")]
-    fn main(cpu_id: u32, linux_context: &LinuxContext);
+    fn main(cpu_id: usize);
 }
 
 struct LogIfImpl;
@@ -226,7 +224,7 @@ pub mod type1_5;
 
 #[cfg(feature = "type1_5")]
 #[cfg_attr(not(test), no_mangle)]
-pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
+pub extern "C" fn rust_main(cpu_id: usize, _dtb: usize) -> i32 {
     let is_primary = cpu_id == 0;
 
     if is_primary {
@@ -237,12 +235,8 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
         }
         debug!("CPU{} after primary early init ok", cpu_id);
     }
-    info!(
-        "CPU {} init finished, linux_sp = {:#x}. rust_main_type1_5",
-        cpu_id, linux_sp
-    );
-    let linux_context = LinuxContext::load_from(linux_sp);
-    trace!("CPU{} Linux: {:#x?}", cpu_id, linux_context);
+    info!("CPU {} init finished, rust_main_type1_5", cpu_id);
+
     type1_5::activate_hv_pt();
 
     if is_primary {
@@ -278,7 +272,7 @@ pub extern "C" fn rust_main(cpu_id: u32, linux_sp: usize) -> i32 {
     }
     debug!("CPU{} before into main", cpu_id);
     unsafe {
-        main(cpu_id, &linux_context);
+        main(cpu_id as usize);
     };
 
     0

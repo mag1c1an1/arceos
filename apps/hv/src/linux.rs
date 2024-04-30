@@ -1,15 +1,13 @@
 use axvm;
 
-use axvm::LinuxContext;
-
 #[cfg(feature = "type1_5")]
-pub fn boot_linux(hart_id: usize, linux_context: &LinuxContext) {
-    axvm::config_boot_linux(hart_id, linux_context);
+pub fn boot_linux() {
+    axvm::config_boot_linux();
 }
 
 #[cfg(not(feature = "type1_5"))]
-pub fn boot_linux(hart_id: usize) {
-    axvm::config_boot_linux(hart_id);
+pub fn boot_linux() {
+    axvm::config_boot_linux();
     use axprocess;
     loop {
         // if unsafe { axprocess::wait_pid(now_process_id, &mut exit_code as *mut i32) }.is_ok() {

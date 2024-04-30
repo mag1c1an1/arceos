@@ -50,7 +50,7 @@ fn init_percpu() {
         gdt.load_tss();
 
         // PAT0: WB, PAT1: WC, PAT2: UC
-        // x86::msr::wrmsr(x86::msr::IA32_PAT, 0x070106);
+        x86::msr::wrmsr(x86::msr::IA32_PAT, 0x070106);
         debug!("CPU{} finish init percpu", current_cpu_id());
     }
 }

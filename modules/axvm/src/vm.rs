@@ -1,7 +1,5 @@
 use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 
-#[cfg(feature = "type1_5")]
-use hypercraft::LinuxContext;
 use hypercraft::{VCpu, VmCpus, VM};
 
 use super::arch::new_vcpu;
@@ -9,7 +7,7 @@ use super::arch::new_vcpu;
 use super::device::{self, X64VcpuDevices, X64VmDevices};
 use crate::GuestPageTable;
 use alloc::sync::Arc;
-use axhal::hv::HyperCraftHalImpl;
+use axhal::{current_cpu_id, hv::HyperCraftHalImpl};
 
 use crate::config::entry::vm_cfg_entry;
 
@@ -17,7 +15,10 @@ use crate::config::entry::vm_cfg_entry;
 static INIT_GPM_OK: AtomicU32 = AtomicU32::new(0);
 static INITED_CPUS: AtomicUsize = AtomicUsize::new(0);
 
-pub fn config_boot_linux(hart_id: usize, linux_context: &LinuxContext) {
+pub fn config_boot_linux() {
+    let hart_id = current_cpu_id();
+    let linux_context = axhal::hv::get_linux_context();
+
     crate::arch::cpu_hv_hardware_enable(hart_id, linux_context)
         .expect("cpu_hv_hardware_enable failed");
 

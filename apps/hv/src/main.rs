@@ -5,16 +5,14 @@ extern crate alloc;
 #[macro_use]
 extern crate libax;
 
-use axvm::LinuxContext;
-
 mod linux;
 
 #[cfg(feature = "type1_5")]
 #[no_mangle]
-fn main(cpu_id: u32, linux_context: &LinuxContext) {
+fn main(cpu_id: u32) {
     info!("Hello, hv!");
     info!("Currently Linux inside VM is on Core {}", cpu_id);
-    linux::boot_linux(cpu_id as usize, linux_context);
+    linux::boot_linux();
 
     panic!("Should never return!!!");
 }
