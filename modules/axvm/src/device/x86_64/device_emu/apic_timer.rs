@@ -249,6 +249,10 @@ impl VirtLocalApic {
     }
 
     fn read_msr(&mut self, msr: u32) -> HyperResult<u64> {
+        // let value = unsafe { x86::msr::rdmsr(msr) };
+        // // debug!("handle x2apic msr read {:#x} get value {:#x}", msr, value);
+        // return Ok(value);
+
         let apic_timer = &mut self.inner;
         let offset = msr - 0x800;
         match offset {
@@ -272,6 +276,10 @@ impl VirtLocalApic {
     }
 
     fn write_msr(&mut self, msr: u32, value: u64) -> HyperResult {
+        // // debug!("handle x2apic msr write {:#x} value {:#x}", msr, value);
+        // unsafe { x86::msr::wrmsr(msr, value) };
+        // return Ok(());
+
         let apic_timer = &mut self.inner;
         let offset = msr - 0x800;
 

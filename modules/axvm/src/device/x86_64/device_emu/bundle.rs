@@ -54,14 +54,17 @@ impl Bundle {
     }
 
     fn read_system_control_a(&mut self, _port: u16, _access_size: u8) -> HyperResult<u32> {
+        debug!("SystemControlPortA read port {_port:#x} size {_access_size:#x}");
         Ok(0)
     }
 
     fn write_system_control_a(&mut self, _port: u16, _access_size: u8, _value: u32) -> HyperResult {
+        debug!("SystemControlPortA write port {_port:#x} value {_value:#x} size {_access_size:#x}");
         Err(HyperError::NotSupported)
     }
 
     fn read_system_control_b(&mut self, _port: u16, _access_size: u8) -> HyperResult<u32> {
+        debug!("SystemControlPortB read port {_port:#x} size {_access_size:#x}");
         let mut result = self.scp_b_writable;
 
         if self.pit.read_output(1)? {
@@ -76,6 +79,7 @@ impl Bundle {
     }
 
     fn write_system_control_b(&mut self, _port: u16, _access_size: u8, value: u32) -> HyperResult {
+        debug!("SystemControlPortB write port {_port:#x} value {value:#x} size {_access_size:#x}");
         let value = SystemControlPortB::from_bits_truncate(value as u8)
             & !SystemControlPortB::READONLY_MASK;
 
@@ -87,6 +91,7 @@ impl Bundle {
     }
 
     fn read_cmos(&mut self, port: u16, _access_size: u8) -> HyperResult<u32> {
+        debug!("read_cmos port {port:#x} size {_access_size:#x}");
         if port == PORT_CMOS_ADDRESS {
             Err(HyperError::NotSupported)
         } else {
@@ -94,7 +99,7 @@ impl Bundle {
                 None => Err(HyperError::InvalidParam),
                 Some(selected) => {
                     self.cmos_selected_reg = None;
-                    debug!("cmos read from reg {:#x} ignored", selected);
+                    warn!("cmos read from reg {:#x} ignored", selected);
                     Ok(0)
                 }
             }
@@ -102,6 +107,7 @@ impl Bundle {
     }
 
     fn write_cmos(&mut self, port: u16, _access_size: u8, value: u32) -> HyperResult {
+        debug!("write_cmos port {port:#x} value {value:#x} size {_access_size:#x}");
         if port == PORT_CMOS_ADDRESS {
             self.cmos_selected_reg = Some((value & 0x7f) as u8);
             self.nmi_enabled = (value & 0x80) == 0;
@@ -113,7 +119,7 @@ impl Bundle {
                 None => Err(HyperError::InvalidParam),
                 Some(selected) => {
                     self.cmos_selected_reg = None;
-                    debug!(
+                    warn!(
                         "cmos write to reg {:#x}(value {:#x}) ignored",
                         selected, value
                     );
@@ -124,7 +130,7 @@ impl Bundle {
     }
 
     fn read_pit(&mut self, port: u16, _access_size: u8) -> HyperResult<u32> {
-        // debug!("pit read, port {port:#x}");
+        debug!("read_pit port {port:#x} size {_access_size:#x}");
 
         if port == PORT_PIT_COMMAND {
             Ok(0)
@@ -136,6 +142,7 @@ impl Bundle {
     }
 
     fn write_pit(&mut self, port: u16, _access_size: u8, value: u32) -> HyperResult {
+        debug!("write_pit port {port:#x} value {value:#x} size {_access_size:#x}");
         let value = value as u8;
 
         // debug!("pit write, port {port:#x}, value {value:#x}");

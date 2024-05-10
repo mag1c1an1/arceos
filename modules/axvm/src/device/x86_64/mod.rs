@@ -429,17 +429,17 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
             Some(last) => {
                 let now = axhal::time::current_time_nanos();
                 if now > 1_000_000 + last {
-                    debug!(
-                        "vcpu [{}] check events current {} last {} tick {} ns",
-                        vcpu.vcpu_id(),
-                        now,
-                        last,
-                        now - last,
-                    );
+                    // debug!(
+                    //     "vcpu [{}] check events current {} last {} tick {} ns",
+                    //     vcpu.vcpu_id(),
+                    //     now,
+                    //     last,
+                    //     now - last,
+                    // );
                     if !self.pic[0].lock().mask().get_bit(0) {
                         vcpu.queue_event(0x30, None);
                         let _mask = self.pic[0].lock().mask();
-                        debug!("0x30 queued, mask {_mask:#x}");
+                        // debug!("0x30 queued, mask {_mask:#x}");
                     }
                     self.last = Some(now);
                 }
@@ -447,9 +447,8 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
             None => {
                 self.last = Some(axhal::time::current_time_nanos() + 10_000_000_000);
                 debug!(
-                    "vcpu [{}] check events current {} last {} ns",
+                    "vcpu [{}] check events last set to {} ns",
                     vcpu.vcpu_id(),
-                    axhal::time::current_time_nanos(),
                     self.last.unwrap()
                 );
             }

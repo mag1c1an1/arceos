@@ -20,7 +20,14 @@ impl PioOps for I8259Pic {
     }
 
     fn read(&mut self, port: u16, _access_size: u8) -> HyperResult<u32> {
-        debug!("reading from pic port {port:#x} size {_access_size:#x}");
+        // let pic_name = if self.port_base == 0x20 {
+        //     "Primary PIC"
+        // } else if self.port_base == 0xa0 {
+        //     "Secondary PIC"
+        // } else {
+        //     "Unknown"
+        // };
+        // debug!("reading from {pic_name} port {port:#x} size {_access_size:#x}");
         match port - self.port_base {
             1 => Ok(self.mask as u32),
             _ => Err(HyperError::NotSupported),
@@ -28,7 +35,15 @@ impl PioOps for I8259Pic {
     }
 
     fn write(&mut self, port: u16, _access_size: u8, value: u32) -> HyperResult {
-        debug!("writing to pic port {port:#x}: {value:#x} size {_access_size:#x}");
+        // let pic_name = if self.port_base == 0x20 {
+        //     "Primary PIC"
+        // } else if self.port_base == 0xa0 {
+        //     "Secondary PIC"
+        // } else {
+        //     "Unknown"
+        // };
+
+        // debug!("writing to {pic_name} port {port:#x}: {value:#x} size {_access_size:#x}");
 
         let value = value as u8;
         match port - self.port_base {
@@ -43,6 +58,7 @@ impl PioOps for I8259Pic {
             }
             1 => {
                 if !self.icw_left {
+                    // debug!("set PIC mask {value:#x}");
                     self.mask = value;
                 } else {
                     match self.icw_written {
