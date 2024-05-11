@@ -224,6 +224,33 @@ const CUR_COUNT: u32 = 0x39;
 /// Divide Configuration register.
 const DIV_CONF: u32 = 0x3E;
 
+/// Proxy LocalApic operation in x2apic mode.
+pub struct ProxyLocalApic {}
+
+impl ProxyLocalApic {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl VirtMsrOps for ProxyLocalApic {
+    fn msr_range(&self) -> core::ops::Range<u32> {
+        0x800..0x840
+    }
+
+    fn read(&mut self, msr: u32) -> HyperResult<u64> {
+        let value = unsafe { x86::msr::rdmsr(msr) };
+        debug!("ProxyLocalApic msr read {:#x} get value {:#x}", msr, value);
+        return Ok(value);
+    }
+
+    fn write(&mut self, msr: u32, value: u64) -> HyperResult {
+        debug!("ProxyLocalApic msr write {:#x} value {:#x}", msr, value);
+        unsafe { x86::msr::wrmsr(msr, value) };
+        return Ok(());
+    }
+}
+
 pub struct VirtLocalApic {
     pub inner: ApicTimer,
 }
@@ -249,10 +276,6 @@ impl VirtLocalApic {
     }
 
     fn read_msr(&mut self, msr: u32) -> HyperResult<u64> {
-        // let value = unsafe { x86::msr::rdmsr(msr) };
-        // // debug!("handle x2apic msr read {:#x} get value {:#x}", msr, value);
-        // return Ok(value);
-
         let apic_timer = &mut self.inner;
         let offset = msr - 0x800;
         match offset {
@@ -276,10 +299,6 @@ impl VirtLocalApic {
     }
 
     fn write_msr(&mut self, msr: u32, value: u64) -> HyperResult {
-        // // debug!("handle x2apic msr write {:#x} value {:#x}", msr, value);
-        // unsafe { x86::msr::wrmsr(msr, value) };
-        // return Ok(());
-
         let apic_timer = &mut self.inner;
         let offset = msr - 0x800;
 

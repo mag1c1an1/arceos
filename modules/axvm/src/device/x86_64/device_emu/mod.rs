@@ -12,7 +12,7 @@ extern crate alloc;
 
 use crate::Result as HyperResult;
 
-pub use apic_timer::{ApicBaseMsrHandler, VirtLocalApic};
+pub use apic_timer::{ApicBaseMsrHandler, VirtLocalApic, ProxyLocalApic};
 pub use bundle::Bundle;
 pub use debug_port::DebugPort;
 pub use dummy::Dummy;

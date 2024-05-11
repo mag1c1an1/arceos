@@ -324,7 +324,6 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x3e8))), // COM3
             // 0x2e8, 0x2e8 + 8
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2e8))), // COM4
-
             // 0x20, 0x20 + 2
             pic[0].clone(), // PIC1
             // 0xa0, 0xa0 + 2
@@ -359,7 +358,7 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         ];
         devices.add_port_io_devices(&mut pmio_devices);
 
-        devices.add_msr_device(Arc::new(Mutex::new(VirtLocalApic::msr_proxy(&apic_timer))));
+        devices.add_msr_device(Arc::new(Mutex::new(device_emu::ProxyLocalApic::new())));
         devices.add_msr_device(Arc::new(Mutex::new(ApicBaseMsrHandler {})));
         // linux read this amd-related msr on my intel cpu for some unknown reason... make it happy
         devices.add_msr_device(Arc::new(Mutex::new(device_emu::MsrDummy::new(0xc0011029))));
