@@ -14,8 +14,9 @@ qemu_args := \
   -cpu host,-kvm-asyncpf,-kvm-pv-eoi,-kvm-pv-ipi,-kvm-pv-sched-yield,-kvm-pv-unhalt,-kvm-steal-time,-kvmclock \
   -drive file=$(qemu_image) \
   -net user,id=net,hostfwd=tcp::$(PORT)-:22 -net nic,model=e1000e \
+  -D qemu.log -d in_asm,int,mmu,pcall,cpu_reset,guest_errors \
   -serial mon:stdio \
-  -D qemu.log -d in_asm,int,mmu,pcall,cpu_reset,guest_errors
+  -serial telnet:localhost:4321,server,wait
 
 $(qemu_image):
 	wget https://cloud-images.ubuntu.com/releases/focal/release/$(qemu_image)

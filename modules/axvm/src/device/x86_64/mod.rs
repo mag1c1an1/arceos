@@ -315,12 +315,16 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         let mut devices = DeviceList::new();
 
         let mut pmio_devices: Vec<Arc<Mutex<dyn PioOps>>> = vec![
+            // These are all fully emulated consoles!!!
+            // 0x3f8, 0x3f8 + 8
+            Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x3f8))), // COM1
             // 0x2f8, 0x2f8 + 8
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2f8))), // COM2
             // 0x3e8, 0x3e8 + 8
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x3e8))), // COM3
             // 0x2e8, 0x2e8 + 8
             Arc::new(Mutex::new(<device_emu::Uart16550>::new(0x2e8))), // COM4
+
             // 0x20, 0x20 + 2
             pic[0].clone(), // PIC1
             // 0xa0, 0xa0 + 2
@@ -424,7 +428,7 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
         }
 
         // it's naive but it works.
-        // inject 0x30(irq 0) every 1 ms after 10 seconds after booting.
+        // inject 0x30(irq 0) every 1 ms after 5 seconds after booting.
         match self.last {
             Some(last) => {
                 let now = axhal::time::current_time_nanos();
@@ -445,7 +449,7 @@ impl<H: HyperCraftHal> PerCpuDevices<H> for X64VcpuDevices<H> {
                 }
             }
             None => {
-                self.last = Some(axhal::time::current_time_nanos() + 10_000_000_000);
+                self.last = Some(axhal::time::current_time_nanos() + 5_000_000_000);
                 debug!(
                     "vcpu [{}] check events last set to {} ns",
                     vcpu.vcpu_id(),

@@ -17,6 +17,8 @@ static inline void outb(uint8_t value, uint16_t port) {
 }
 
 #define COM1 0x3f8
+#define COM2 0x2f8
+
 static inline void putchar(char c) {
     outb((uint8_t)c, COM1);
 }

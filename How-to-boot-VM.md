@@ -29,6 +29,14 @@ Execute this command only for subsequent runs.
 make qemu
 ```
 
+Note that when starting QEMU, you need to **open another terminal and use telnet to connect to the corresponding port**. The QEMU we use provides two serial ports for the upper-level virtual machine: COM0 at 0x3f8 and COM1 at 0x2f8. COM0 is connected to mon:std, while COM1 is bound to the lo loopback interface, here TCP port 4321.
+
+```bash
+telnet localhost 4321
+```
+
+See this [script](scripts/host/Makefile) for details.
+
 ## Compile ArceOS-HV
 
 Then, compile the ArceOS-HV itself in its root directory.
@@ -55,7 +63,7 @@ For specific information, please refer to `scripts/host/Makefile`.
 
 **The remaining steps need to be performed within the Linux environment that we just booted.**
 
-You can log in to the Linux CLI using the SSH script prepared in `scripts/host`, this way, you can access the Linux environment using the SSH port instead of the QEMU serial port, as the QEMU serial port will be occupied by ArceOS-HV and guest VMs.
+You can log in to the Linux CLI using the SSH script prepared in `scripts/host`, this way, you can access the Linux environment using the SSH port instead of the QEMU serial port (COM1, bind to local loopback interface as we mensioned before).
 
 * On host
 
@@ -69,7 +77,17 @@ make ssh
 ```bash
 # Execute in guest /home/ubuntu directory.
 ./setup.sh
+```
 
+After this step, the console of the host Linux is modified to ttyS1, which corresponds to COM1 at 0x2f8.
+
+## Boot arceos-hypervisor
+
+
+We have prepared a script to boot the arceos-hypervisor. Run this command in user space on the host Linux.
+
+```bash
+# Execute in guest /home/ubuntu directory.
 ./enable-arceos-hv.sh
 ```
 

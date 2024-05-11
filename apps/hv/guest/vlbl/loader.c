@@ -59,7 +59,7 @@ void cpy4(void *dst, const void *src, uint32_t size) {
 }
 
 
-const char cmd[256] = "console=uart8250,io,0x3f8,115200n8 debug\0";
+const char cmd[256] = "root=/dev/ram0 rw rootfstype=ext4 console=uart8250,io,0x3f8,115200n8 debug init=/linuxrc\0";
 // const char cmd[256] = "console=uart8250,io,0x3f8,115200n8 debug\0";
 
 /*
