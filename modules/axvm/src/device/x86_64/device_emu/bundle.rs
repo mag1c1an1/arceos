@@ -5,6 +5,8 @@ use super::{pmio_proxy_factory, pmio_proxy_struct};
 use crate::{Error as HyperError, Result as HyperResult};
 use bit_field::BitField;
 
+use x86::io;
+
 pub const PORT_SYSTEM_CONTROL_A: u16 = 0x92;
 pub const PORT_SYSTEM_CONTROL_B: u16 = 0x61;
 
@@ -54,13 +56,14 @@ impl Bundle {
     }
 
     fn read_system_control_a(&mut self, _port: u16, _access_size: u8) -> HyperResult<u32> {
-        debug!("SystemControlPortA read port {_port:#x} size {_access_size:#x}");
-        Ok(0)
+        let value = unsafe { io::inb(_port) };
+        debug!("SystemControlPortA read port {_port:#x} size {_access_size:#x} value {value:#x}");
+        Ok(value as u32)
     }
 
     fn write_system_control_a(&mut self, _port: u16, _access_size: u8, _value: u32) -> HyperResult {
-        debug!("SystemControlPortA write port {_port:#x} value {_value:#x} size {_access_size:#x}");
-        Err(HyperError::NotSupported)
+        debug!("SystemControlPortA write port {_port:#x} value {_value:#x} ignored, size {_access_size:#x}");
+        Ok(())
     }
 
     fn read_system_control_b(&mut self, _port: u16, _access_size: u8) -> HyperResult<u32> {
