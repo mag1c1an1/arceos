@@ -3,6 +3,7 @@ use core::{
     clone,
     fmt::{Debug, Display, Formatter, Result},
 };
+use memory_addr::PAGE_SIZE_4K;
 
 use hypercraft::{GuestPageTableTrait, GuestPhysAddr, HostPhysAddr, HyperCraftHal};
 
@@ -16,7 +17,7 @@ pub const fn is_aligned(addr: usize) -> bool {
     (addr & (HyperCraftHalImpl::PAGE_SIZE - 1)) == 0
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum Mapper {
     Offset(usize),
 }
@@ -43,6 +44,7 @@ impl Display for GuestMemoryRegion {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct MapRegion {
     pub start: GuestPhysAddr,
     pub size: usize,
@@ -57,6 +59,33 @@ impl MapRegion {
         size: usize,
         flags: MappingFlags,
     ) -> Self {
+        let start_gpa = if is_aligned(start_gpa) {
+            start_gpa
+        } else {
+            let new_start_gpa = memory_addr::align_down_4k(start_gpa);
+            warn!(
+                "start_gpa {:#x} aligned down to {:#x}",
+                start_gpa, new_start_gpa
+            );
+            new_start_gpa
+        };
+        let start_hpa = if is_aligned(start_hpa) {
+            start_hpa
+        } else {
+            let new_start_hpa = memory_addr::align_down_4k(start_hpa);
+            warn!(
+                "start_hpa {:#x} aligned down to {:#x}",
+                start_hpa, new_start_hpa
+            );
+            new_start_hpa
+        };
+        let size = if is_aligned(size) {
+            size
+        } else {
+            let new_size = memory_addr::align_up_4k(size);
+            warn!("size {:#x} aligned up to {:#x}", size, new_size);
+            new_size
+        };
         assert!(is_aligned(start_gpa));
         assert!(is_aligned(start_hpa));
         assert!(is_aligned(size));
@@ -86,6 +115,7 @@ impl MapRegion {
     fn map_to(&self, npt: &mut GuestPageTable) -> HyperResult {
         let mut start = self.start;
         let end = start + self.size;
+        debug!("Mapped Region [{:#x}-{:#x}] {:?}", start, end, self.flags);
         while start < end {
             let target = self.target(start);
             npt.map(start, target, self.flags)?;
@@ -171,20 +201,33 @@ impl GuestPhysMemorySet {
     }
 
     pub fn map_region(&mut self, region: MapRegion) -> HyperResult {
-        if region.size == 0 {
+        let mut mapped_region = region;
+        while mapped_region.size != 0 {
+            if !self.test_free_area(&mapped_region) {
+                warn!(
+                    "MapRegion({:#x}..{:#x}) overlapped in:\n{:#x?}",
+                    region.start,
+                    region.start + region.size,
+                    self
+                );
+                mapped_region.start += PAGE_SIZE_4K;
+                mapped_region.size -= PAGE_SIZE_4K;
+                // return Err(Error::InvalidParam);
+            } else {
+                break;
+            }
+        }
+
+        if mapped_region.size == 0 {
+            debug!(
+                "MapRegion({:#x}..{:#x}) is mapped or zero, just return",
+                region.start,
+                region.start + region.size
+            );
             return Ok(());
         }
-        if !self.test_free_area(&region) {
-            warn!(
-                "MapRegion({:#x}..{:#x}) overlapped in:\n{:#x?}",
-                region.start,
-                region.start + region.size,
-                self
-            );
-            return Err(Error::InvalidParam);
-        }
-        region.map_to(&mut self.npt)?;
-        self.regions.insert(region.start, region);
+        mapped_region.map_to(&mut self.npt)?;
+        self.regions.insert(mapped_region.start, mapped_region);
         Ok(())
     }
 

@@ -4,9 +4,6 @@
 /// Pointer of the `HvHeader` structure.
 pub const HV_HEADER_PTR: *const HvHeader = sheader as _;
 
-/// Size of the per-CPU data (stack and other CPU-local data).
-pub const PER_CPU_SIZE: usize = 512 * 1024; // 512 KB
-
 const HEADER_SIGNATURE: [u8; 8] = *b"AOSIMAGE";
 
 #[repr(C)]
@@ -56,7 +53,7 @@ extern "C" {
 static HEADER_STUFF: HvHeaderStuff = HvHeaderStuff {
     signature: HEADER_SIGNATURE,
     core_size: __core_size,
-    percpu_size: PER_CPU_SIZE,
+    percpu_size: super::consts::PER_CPU_SIZE,
     entry: __entry_offset,
     console_page: 0,
     gcov_info_head: 0,

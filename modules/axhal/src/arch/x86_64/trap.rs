@@ -1,10 +1,13 @@
 use x86::{controlregs::cr2, irq::*};
 
+use crate::current_cpu_id;
+
 use super::context::TrapFrame;
 
 core::arch::global_asm!(include_str!("trap.S"));
 
 pub const SYSCALL_VECTOR: u8 = 0x80;
+pub const NMI_VECTOR: u8 = 0x2;
 
 const IRQ_VECTOR_START: u8 = 0x20;
 const IRQ_VECTOR_END: u8 = 0xff;
@@ -30,6 +33,14 @@ fn x86_trap_handler(tf: &mut TrapFrame) {
                 tf,
             );
         }
+        NMI_VECTOR => warn!(
+            "Unhandled NMI exception {} on Core {} (error_code = {:#x}) @ {:#x}:\n{:#x?}",
+            tf.vector,
+            current_cpu_id(),
+            tf.error_code,
+            tf.rip,
+            tf
+        ),
         BREAKPOINT_VECTOR => debug!("#BP @ {:#x} ", tf.rip),
         GENERAL_PROTECTION_FAULT_VECTOR => {
             panic!(

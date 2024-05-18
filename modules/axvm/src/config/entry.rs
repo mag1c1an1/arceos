@@ -109,6 +109,9 @@ pub struct VMCfgEntry {
     vm_type: VmType,
 
     cmdline: String,
+    /// The cpu_set here refers to the `core_id` from Linux's perspective. \
+    /// Therefore, when looking for the corresponding `cpu_id`, 
+    /// we need to perform a conversion using `core_id_to_cpu_id`.
     cpu_set: usize,
 
     img_cfg: VMImgCfg,

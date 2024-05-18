@@ -24,12 +24,9 @@ pub fn setup_root_gpm() -> HyperResult<GuestPhysMemorySet> {
     let hv_phys_start = sys_config.hypervisor_memory.phys_start as usize;
     let hv_phys_size = sys_config.hypervisor_memory.size as usize;
     let offset = hv_phys_start - hv_phys_start;
-    trace!(
+    debug!(
         "gpm mapped gpa:{:#x} hpa: {:#x} offset:{:#x} size: {:#x}",
-        hv_phys_start,
-        hv_phys_start,
-        offset,
-        hv_phys_size
+        hv_phys_start, hv_phys_start, offset, hv_phys_size
     );
 
     gpm.map_region(
@@ -41,17 +38,43 @@ pub fn setup_root_gpm() -> HyperResult<GuestPhysMemorySet> {
         }
         .into(),
     )?;
-    for region in cell_config.mem_regions() {
+    let mem_regions = cell_config.mem_regions();
+    let mem_region_size = mem_regions.len();
+    let mut index = 0;
+    while (index < mem_region_size) {
+        let region = mem_regions[index];
         let start_gpa = region.virt_start as usize;
         let start_hpa = region.phys_start as usize;
-        let region_size = region.size as usize;
+        let mut region_size = region.size as usize;
+        let mut end_gpa = start_gpa + region_size;
         let offset = start_gpa - start_hpa;
-        trace!(
+        assert!(
+            offset == 0,
+            "Mem_regions from Root cell_config should have a zero offset!!!"
+        );
+        let mut next_i = index + 1;
+        while next_i < mem_region_size {
+            if mem_regions[next_i].virt_start as usize == end_gpa {
+                let next_gpa = mem_regions[next_i].virt_start as usize;
+                let next_size = mem_regions[next_i].size as usize;
+                debug!(
+                    "gpm mem region gpa:[{:#x}-{:#x}] is combined with [{:#x}-{:#x}]",
+                    next_gpa,
+                    next_gpa + next_size,
+                    start_gpa,
+                    start_gpa + region_size
+                );
+                end_gpa += next_size;
+                region_size += next_size;
+                next_i += 1;
+                index += 1;
+            } else {
+                break;
+            }
+        }
+        debug!(
             "gpm mapped gpa:{:#x} hpa: {:#x} offset:{:#x} size:{:#x}",
-            start_gpa,
-            start_hpa,
-            offset,
-            region_size
+            start_gpa, start_hpa, offset, region_size
         );
         gpm.map_region(
             GuestMemoryRegion {
@@ -62,6 +85,7 @@ pub fn setup_root_gpm() -> HyperResult<GuestPhysMemorySet> {
             }
             .into(),
         )?;
+        index += 1;
     }
     Ok(gpm)
 }

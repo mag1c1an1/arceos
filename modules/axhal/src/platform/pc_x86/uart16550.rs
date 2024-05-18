@@ -18,6 +18,14 @@ bitflags::bitflags! {
     }
 }
 
+macro_rules! wait_for {
+    ($cond:expr) => {
+        while !$cond {
+            core::hint::spin_loop()
+        }
+    };
+}
+
 struct Uart16550 {
     data: Port<u8>,
     int_en: PortWriteOnly<u8>,
@@ -73,8 +81,20 @@ impl Uart16550 {
     }
 
     fn putchar(&mut self, c: u8) {
-        while !self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY) {}
-        unsafe { self.data.write(c) };
+        match c {
+            8 | 0x7F => {
+                wait_for!(self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY));
+                unsafe { self.data.write(8) };
+                wait_for!(self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY));
+                unsafe { self.data.write(b' ') };
+                wait_for!(self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY));
+                unsafe { self.data.write(8) };
+            }
+            _ => {
+                wait_for!(self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY));
+                unsafe { self.data.write(c) };
+            }
+        }
     }
 
     fn getchar(&mut self) -> Option<u8> {

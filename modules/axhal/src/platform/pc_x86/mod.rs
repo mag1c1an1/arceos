@@ -33,6 +33,30 @@ extern "C" {
     fn rust_main_secondary(cpu_id: usize) -> !;
 }
 
+const MAX_CORE_ID: u32 = 254;
+
+/**
+ * In ArceOS, the `cpu_id` refers to the APIC ID.
+ * However, Linux has its own perspective on `core_id`.
+ * Here, we perform a simple conversion using a global array.
+ */
+static mut CORE_ID_TO_CPU_ID: [usize; MAX_CORE_ID as usize + 1] =
+    [usize::MAX; MAX_CORE_ID as usize + 1];
+
+pub fn set_core_id_to_cpu_id(core_id: usize, cpu_id: usize) {
+    unsafe { CORE_ID_TO_CPU_ID[core_id as usize] = cpu_id };
+}
+
+pub fn core_id_to_cpu_id(core_id: usize) -> Option<usize> {
+    let cpu_id = unsafe { CORE_ID_TO_CPU_ID[core_id as usize] };
+    if cpu_id == usize::MAX {
+        warn!("Core [{}] not registered!!!", core_id);
+        None
+    } else {
+        Some(cpu_id)
+    }
+}
+
 pub fn current_cpu_id() -> usize {
     match raw_cpuid::CpuId::new().get_feature_info() {
         Some(finfo) => finfo.initial_local_apic_id() as usize,

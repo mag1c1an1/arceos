@@ -171,10 +171,28 @@ fn ax_hvc_boot_vm(vm_id: usize) {
     let msg = NmiMessage::BootVm(vm_id);
     for i in 0..num_bits {
         if cpuset & (1 << i) != 0 {
-            info!("CPU{} send nmi ipi to CPU{} ", current_cpu, i);
-            // axhal::irq::send_nmi_to(i);
-            nmi_send_msg(i, msg);
-            // todo!();
+            let target_cpu_id = axhal::core_id_to_cpu_id(i);
+
+            match target_cpu_id {
+                Some(target_cpu_id) => {
+                    if target_cpu_id == current_cpu {
+                        warn!(
+                            "CPU{} try send nmi to self, something is wrong",
+                            current_cpu
+                        );
+                        continue;
+                    }
+                    info!(
+                        "CPU {} send nmi ipi to CPU{} (Linux processor ID {})",
+                        current_cpu, target_cpu_id, i
+                    );
+                    nmi_send_msg(target_cpu_id, msg);
+                }
+                None => {
+                    warn!("Core {} not existed, just skip it", i);
+                    continue;
+                }
+            }
         }
     }
 }

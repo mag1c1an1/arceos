@@ -68,7 +68,8 @@ impl axlog::LogIf for LogIfImpl {
 
     fn current_cpu_id() -> Option<usize> {
         #[cfg(feature = "smp")]
-        if is_init_ok() {
+        if true { // Alway true so we can get cpu id of current info.
+            // if is_init_ok() {
             Some(axhal::cpu::this_cpu_id())
         } else {
             None

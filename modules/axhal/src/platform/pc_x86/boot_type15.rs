@@ -1,9 +1,11 @@
 use super::consts::{PER_CPU_ARRAY_PTR, PER_CPU_SIZE};
 use super::current_cpu_id;
+use super::set_core_id_to_cpu_id;
 
-unsafe extern "sysv64" fn switch_stack(linux_sp: usize) -> i32 {
+unsafe extern "sysv64" fn switch_stack(core_id: usize, linux_sp: usize) -> i32 {
     let linux_tp = x86::msr::rdmsr(x86::msr::IA32_GS_BASE) as u64;
     let cpu_id = current_cpu_id();
+    set_core_id_to_cpu_id(core_id, cpu_id);
     let per_cpu_array_ptr: usize = PER_CPU_ARRAY_PTR as usize + cpu_id as usize * PER_CPU_SIZE;
     let hv_sp = per_cpu_array_ptr + PER_CPU_SIZE - 8;
     let ret;
@@ -41,7 +43,7 @@ pub unsafe extern "C" fn _start() -> i32 {
         push r15
         push 0  // skip gs_base
 
-        mov rdi, rsp
+        mov rsi, rsp
         call {0}
 
         pop r15 // skip gs_base
