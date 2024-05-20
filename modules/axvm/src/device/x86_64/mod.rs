@@ -258,7 +258,6 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> DeviceList<H, B> {
                 let (op_kind, op) = get_instr_data(instr.clone(), is_write)
                     .expect("Failed to get instruction data");
                 if let Some(operand) = op {
-                    debug!("operand: {} access size:{:#x}", operand, access_size);
                     if is_write {
                         let value = match op_kind {
                             OpKind::Immediate8
@@ -285,9 +284,11 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> DeviceList<H, B> {
                             },
                             _ => return Err(HyperError::InvalidParam),
                         };
+                        debug!("[handle_mmio_instruction_to_device] write value:{:#x} to fault addr:{:#x} access_size:{:#x}", value, fault_addr, access_size);
                         device.lock().write(fault_addr, access_size, value)?;
                     } else {
                         let value = device.lock().read(fault_addr, access_size)?;
+                        debug!("[handle_mmio_instruction_to_device] read from fault addr:{:#x} value:{:#x} access_size:{:#x}", fault_addr, value, access_size);
                         if op_kind != OpKind::Register {
                             return Err(HyperError::InvalidParam);
                         }
@@ -666,7 +667,7 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerVmDevices<H> for NimbosVmD
         // init pci device
         devices.init_pci_host();
         devices.add_port_io_device(devices.pci_devices.clone().unwrap());
-        // devices.add_pci_device(String::from("pcitest"), Arc::new(AtomicU16::new(0)), 0x18)?;
+        devices.add_pci_device(String::from("pcitest"), Arc::new(AtomicU16::new(0)), 0x18)?;
 
         // Create a virtio dummy device
         // let virtio_device_dummy = DummyVirtioDevice::new(VIRTIO_TYPE_BLOCK, 1, 4);

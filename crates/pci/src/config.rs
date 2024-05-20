@@ -429,6 +429,7 @@ impl MmioOps for Bar {
                 1 => &value_bytes[0..1],
                 2 => &value_bytes[0..2],
                 4 => &value_bytes[0..4],
+                8 => &value_bytes[0..8],
                 _ => return Err(HyperError::InValidMmioWrite),
             };
             write_func(offset, access_size, value_byte)
@@ -768,6 +769,7 @@ impl<B: BarAllocTrait> PciConfig<B> {
             return;
         }
 
+        // write data to config space.
         let cloned_data = data.to_vec();
         let old_offset = offset;
         for data in &cloned_data {

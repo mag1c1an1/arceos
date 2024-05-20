@@ -7,7 +7,9 @@ use pci::config::{
     BarAllocTrait, RegionType, DEVICE_ID, PCI_CAP_ID_VNDR, PCI_CAP_VNDR_AND_NEXT_SIZE, REVISION_ID,
     SUBSYSTEM_ID, SUBSYSTEM_VENDOR_ID, SUB_CLASS_CODE, VENDOR_ID,
 };
-use pci::{le_write_u16, le_write_u32, AsAny, PciBus, PciConfig, PciDevBase, PciDevOps};
+use pci::{
+    le_write_u16, le_write_u32, msix::init_msix, AsAny, PciBus, PciConfig, PciDevBase, PciDevOps,
+};
 use spin::Mutex;
 
 #[derive(Clone)]
@@ -86,9 +88,9 @@ impl<B: BarAllocTrait + 'static> PciDevOps<B> for DummyPciDevice<B> {
         le_write_u16(&mut self.base.config.config, SUBSYSTEM_VENDOR_ID, 0x1a1a)?;
         let subsysid = 0x40 + device_type as u16;
         le_write_u16(&mut self.base.config.config, SUBSYSTEM_ID, subsysid)?;
-        // do not have real msi interrupt
-        let cap_offset = self.base.config.add_pci_cap(0x5, 12 as usize)?;
-        debug!("this is msi cap offset: {:#x}", cap_offset);
+
+        // suppose bar1 is the msi-x table
+        init_msix(&mut self.base, 0x1, 1, self.dev_id.clone(), None)?;
 
         self.base
             .config
@@ -119,5 +121,16 @@ impl<B: BarAllocTrait + 'static> PciDevOps<B> for DummyPciDevice<B> {
         self.base
             .config
             .write(offset, data, self.dev_id.load(Ordering::Relaxed));
+        if offset == 0xd {
+            debug!("write to msi-x control register");
+            let cloned_msix = self.base.config.msix.as_ref().unwrap().clone();
+            let dev_id = self.dev_id.clone();
+            let mut locked_msix = cloned_msix.lock();
+            if locked_msix.enabled {
+                locked_msix.notify(0, dev_id.load(Ordering::Acquire));
+            } else {
+                error!("MSI-X is not enabled, failed to notify interrupt.");
+            }
+        }
     }
 }

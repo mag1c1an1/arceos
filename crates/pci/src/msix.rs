@@ -298,7 +298,7 @@ impl Msix {
 
     pub fn send_msix(&self, vector: u16, dev_id: u16) {
         let msix_vector = self.get_msix_vector(vector);
-
+        // debug!("Send msix vector: {:#?}.", msix_vector);
         let irq_manager = self.msi_irq_manager.as_ref().unwrap();
         if let Err(e) = irq_manager.trigger(msix_vector, dev_id as u32) {
             error!("Send msix error: {:?}", e);
@@ -310,7 +310,8 @@ impl Msix {
             warn!("Invalid msix vector {}.", vector);
             return;
         }
-
+        // let masked = self.is_vector_masked(vector);
+        // debug!("Vector {} is masked: {}.", vector, masked);
         if self.is_vector_masked(vector) {
             self.set_pending_vector(vector);
             return;
@@ -325,6 +326,7 @@ impl Msix {
         // Only care about the bits Masked(14) & Enabled(15) in msix control register.
         // SAFETY: msix_cap_control_off is less than u16::MAX.
         // Offset and len have been checked in call function PciConfig::write.
+        // debug!("msix enabled: {:?} func_masked: {:?}", self.enabled, self.func_masked);
         if !ranges_overlap(offset, len, msix_cap_control_off + 1, 1).unwrap() {
             return;
         }
@@ -338,6 +340,7 @@ impl Msix {
         self.enabled = enabled;
 
         if mask_state_changed && (self.enabled && !self.func_masked) {
+            // debug!("msix state changed because of message control");
             let max_vectors_nr: u16 = self.table.len() as u16 / MSIX_TABLE_ENTRY_SIZE;
             for v in 0..max_vectors_nr {
                 if !self.is_vector_masked(v) && self.is_vector_pending(v) {
@@ -370,13 +373,13 @@ impl Msix {
                 }
                 // deal with pba read
                 let offset = offset as usize;
-                data.copy_from_slice(
+                data[0..access_size as usize].copy_from_slice(
                     &cloned_msix.lock().pba[offset..(offset + access_size as usize)],
                 );
                 return Ok(u64::from_le_bytes(data));
             }
             // msix table read
-            data.copy_from_slice(
+            data[0..access_size as usize].copy_from_slice(
                 &cloned_msix.lock().table
                     [offset as usize..(offset as usize + access_size as usize)],
             );
@@ -403,7 +406,7 @@ impl Msix {
             let vector: u16 = offset as u16 / MSIX_TABLE_ENTRY_SIZE;
             let was_masked: bool = locked_msix.is_vector_masked(vector);
             let offset = offset as usize;
-            locked_msix.table[offset..(offset + 4)].copy_from_slice(data);
+            locked_msix.table[offset..(offset + data.len())].copy_from_slice(data);
 
             let is_masked: bool = locked_msix.is_vector_masked(vector);
 
