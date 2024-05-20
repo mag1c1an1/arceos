@@ -11,7 +11,7 @@ pub const PER_CPU_ARRAY_PTR: *mut HvSystemConfig = __core_end as _;
 const HV_CELL_NAME_MAXLEN: usize = 31;
 const HV_MAX_IOMMU_UNITS: usize = 8;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct MemFlags(u64);
 
 bitflags! {

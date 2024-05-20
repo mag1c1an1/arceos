@@ -45,6 +45,7 @@ pub fn setup_root_gpm() -> HyperResult<GuestPhysMemorySet> {
         let region = mem_regions[index];
         let start_gpa = region.virt_start as usize;
         let start_hpa = region.phys_start as usize;
+        let expected_flags = region.flags;
         let mut region_size = region.size as usize;
         let mut end_gpa = start_gpa + region_size;
         let offset = start_gpa - start_hpa;
@@ -54,7 +55,8 @@ pub fn setup_root_gpm() -> HyperResult<GuestPhysMemorySet> {
         );
         let mut next_i = index + 1;
         while next_i < mem_region_size {
-            if mem_regions[next_i].virt_start as usize == end_gpa {
+            let cur_flags = mem_regions[next_i].flags;
+            if mem_regions[next_i].virt_start as usize == end_gpa && cur_flags == expected_flags {
                 let next_gpa = mem_regions[next_i].virt_start as usize;
                 let next_size = mem_regions[next_i].size as usize;
                 debug!(

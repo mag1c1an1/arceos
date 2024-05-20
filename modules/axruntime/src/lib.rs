@@ -68,7 +68,8 @@ impl axlog::LogIf for LogIfImpl {
 
     fn current_cpu_id() -> Option<usize> {
         #[cfg(feature = "smp")]
-        if true { // Alway true so we can get cpu id of current info.
+        if true {
+            // Alway true so we can get cpu id of current info.
             // if is_init_ok() {
             Some(axhal::cpu::this_cpu_id())
         } else {
@@ -268,7 +269,7 @@ pub extern "C" fn rust_main(cpu_id: usize, _dtb: usize) -> i32 {
         INIT_SYNC.fetch_add(1, Ordering::Release);
     }
 
-    while INIT_SYNC.load(Ordering::Acquire) < 2 {
+    while INIT_SYNC.load(Ordering::Acquire) < axconfig::SMP as u32 {
         core::hint::spin_loop();
     }
     debug!("CPU{} before into main", cpu_id);
