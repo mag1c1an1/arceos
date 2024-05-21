@@ -43,7 +43,6 @@ pub fn init_hv_page_table() -> Result<(), axhal::paging::PagingError> {
         );
     }
 
-    info!("create PageTable.");
     let mut page_table = PageTable::try_new().unwrap();
 
     for (i, r) in memory_regions().enumerate() {
@@ -65,27 +64,27 @@ pub fn init_hv_page_table() -> Result<(), axhal::paging::PagingError> {
         } else {
             // let flags = r.flags;
 
-            if r.flags.contains(MemRegionFlags::DMA) {
-                let hv_virt_start = phys_to_virt(r.paddr);
-                if hv_virt_start < VirtAddr::from(r.paddr.as_usize()) {
-                    let virt_start = r.paddr;
-                    panic!("Guest physical address {:#x} is too large", virt_start);
-                }
-                info!(
-                    "  [{:x?}, {:x?}) {} ({:?})",
-                    r.paddr,
-                    r.paddr + r.size,
-                    r.name,
-                    r.flags
-                );
-                page_table.map_region(
-                    phys_to_virt(r.paddr),
-                    r.paddr,
-                    r.size,
-                    r.flags.into(),
-                    false,
-                );
+            // if r.flags.contains(MemRegionFlags::DMA) {
+            let hv_virt_start = phys_to_virt(r.paddr);
+            if hv_virt_start < VirtAddr::from(r.paddr.as_usize()) {
+                let virt_start = r.paddr;
+                panic!("Guest physical address {:#x} is too large", virt_start);
             }
+            // info!(
+            //     "  [{:x?}, {:x?}) {} ({:?})",
+            //     r.paddr,
+            //     r.paddr + r.size,
+            //     r.name,
+            //     r.flags
+            // );
+            page_table.map_region(
+                phys_to_virt(r.paddr),
+                r.paddr,
+                r.size,
+                r.flags.into(),
+                false,
+            );
+            // }
         }
     }
     info!("Hypervisor page table init end.");

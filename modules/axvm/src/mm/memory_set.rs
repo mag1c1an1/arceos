@@ -63,27 +63,27 @@ impl MapRegion {
             start_gpa
         } else {
             let new_start_gpa = memory_addr::align_down_4k(start_gpa);
-            warn!(
-                "start_gpa {:#x} aligned down to {:#x}",
-                start_gpa, new_start_gpa
-            );
+            // warn!(
+            //     "start_gpa {:#x} aligned down to {:#x}",
+            //     start_gpa, new_start_gpa
+            // );
             new_start_gpa
         };
         let start_hpa = if is_aligned(start_hpa) {
             start_hpa
         } else {
             let new_start_hpa = memory_addr::align_down_4k(start_hpa);
-            warn!(
-                "start_hpa {:#x} aligned down to {:#x}",
-                start_hpa, new_start_hpa
-            );
+            // warn!(
+            //     "start_hpa {:#x} aligned down to {:#x}",
+            //     start_hpa, new_start_hpa
+            // );
             new_start_hpa
         };
         let size = if is_aligned(size) {
             size
         } else {
             let new_size = memory_addr::align_up_4k(size);
-            warn!("size {:#x} aligned up to {:#x}", size, new_size);
+            // warn!("size {:#x} aligned up to {:#x}", size, new_size);
             new_size
         };
         assert!(is_aligned(start_gpa));
@@ -204,12 +204,12 @@ impl GuestPhysMemorySet {
         let mut mapped_region = region;
         while mapped_region.size != 0 {
             if !self.test_free_area(&mapped_region) {
-                warn!(
-                    "MapRegion({:#x}..{:#x}) overlapped in:\n{:#x?}",
-                    region.start,
-                    region.start + region.size,
-                    self
-                );
+                // warn!(
+                //     "MapRegion({:#x}..{:#x}) overlapped in:\n{:#x?}",
+                //     region.start,
+                //     region.start + region.size,
+                //     self
+                // );
                 mapped_region.start += PAGE_SIZE_4K;
                 mapped_region.size -= PAGE_SIZE_4K;
                 // return Err(Error::InvalidParam);
@@ -219,11 +219,11 @@ impl GuestPhysMemorySet {
         }
 
         if mapped_region.size == 0 {
-            debug!(
-                "MapRegion({:#x}..{:#x}) is mapped or zero, just return",
-                region.start,
-                region.start + region.size
-            );
+            // debug!(
+            //     "MapRegion({:#x}..{:#x}) is mapped or zero, just return",
+            //     region.start,
+            //     region.start + region.size
+            // );
             return Ok(());
         }
         mapped_region.map_to(&mut self.npt)?;

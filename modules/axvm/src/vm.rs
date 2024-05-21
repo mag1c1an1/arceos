@@ -52,13 +52,6 @@ pub fn config_boot_linux() {
             core::hint::spin_loop();
         }
     }
-    info!("CPU{} after init_gpm", hart_id);
-
-    debug!(
-        "CPU{} type 1.5 gpm: {:#x?}",
-        hart_id,
-        super::config::root_gpm()
-    );
 
     let ept = super::config::root_gpm().nest_page_table();
     let ept_root = super::config::root_gpm().nest_page_table_root();

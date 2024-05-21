@@ -523,8 +523,7 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerCpuDevices<H> for X64VcpuD
 
     fn nmi_handler(&mut self, vcpu: &mut VCpu<H>) -> HyperResult<u32> {
         let current_cpu_id = current_cpu_id();
-        debug!("nmi handler on CPU {}!", current_cpu_id);
-        // let mut cpu_nmi_list = CPU_NMI_LIST[].lock();
+
         let msg = CPU_NMI_LIST[current_cpu_id].lock().pop();
         match msg {
             Some(NmiMessage::BootVm(vm_id)) => {
@@ -533,10 +532,31 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerCpuDevices<H> for X64VcpuD
             }
             None => {
                 warn!(
-                    "Core [{}] unexpected NMI, something very bad happened",
+                    "Core [{}] NMI VM-Exit",
                     current_cpu_id
                 );
-                warn!("VCPU ctx:\n{:#x?}", vcpu);
+                let int_info = vcpu.interrupt_exit_info()?;
+                warn!(
+                    "interrupt_exit_info:{:#x}\n{:#x?}\n{:#x?}",
+                    vcpu.raw_interrupt_exit_info()?,
+                    int_info,
+                    vcpu
+                );
+                // System Control Port A (0x92)
+                // BIT	Description
+                // 4*	Watchdog timer status
+
+                let value = unsafe { x86::io::inb(0x92) };
+                warn!("System Control Port A value {:#x}", value);
+                // System Control Port B (0x61)
+                // Bit	Description
+                // 6*	Channel check
+                // 7*	Parity check
+                // The Channel Check bit indicates a failure on the bus,
+                // probably by a peripheral device such as a modem, sound card, NIC, etc,
+                // while the Parity check bit indicates a memory read or write failure.
+                let value = unsafe { x86::io::inb(0x61) };
+                warn!("System Control Port B value {:#x}", value);
                 Ok(0)
             }
         }
@@ -570,11 +590,11 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerCpuDevices<H> for X64VcpuD
             }
             None => {
                 self.last = Some(axhal::time::current_time_nanos() + 5_000_000_000);
-                debug!(
-                    "vcpu [{}] check events last set to {} ns",
-                    vcpu.vcpu_id(),
-                    self.last.unwrap()
-                );
+                // debug!(
+                //     "vcpu [{}] check events last set to {} ns",
+                //     vcpu.vcpu_id(),
+                //     self.last.unwrap()
+                // );
             }
         }
 
