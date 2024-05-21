@@ -81,20 +81,8 @@ impl Uart16550 {
     }
 
     fn putchar(&mut self, c: u8) {
-        match c {
-            8 | 0x7F => {
-                wait_for!(self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY));
-                unsafe { self.data.write(8) };
-                wait_for!(self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY));
-                unsafe { self.data.write(b' ') };
-                wait_for!(self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY));
-                unsafe { self.data.write(8) };
-            }
-            _ => {
-                wait_for!(self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY));
-                unsafe { self.data.write(c) };
-            }
-        }
+        wait_for!(self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY));
+        unsafe { self.data.write(c) };
     }
 
     fn getchar(&mut self) -> Option<u8> {
