@@ -6,7 +6,8 @@ platform = "pc-x86-hv-type15"
 # Base address of the whole physical memory.
 phys-memory-base = "0x10000_0000"
 # Size of the whole physical memory.
-phys-memory-size = "0x10000_0000"     # 4G
+# phys-memory-size = "0x10000_0000"     # 4G
+phys-memory-size = "0x4000_0000"     # 1G
 # Size of the shared memory data region for syscall forward.
 syscall-data-buf-size = "0x10_0000" # 1M
 # Size of the shared memory queue region for syscall forward.

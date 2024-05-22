@@ -137,31 +137,31 @@ static BOOTED_CPUS: AtomicU32 = AtomicU32::new(0);
 
 #[cfg(feature = "type1_5")]
 // hypervisor start
-extern "sysv64" fn rust_entry_hv(cpu_id: u32, linux_sp: usize) -> i32 {
+extern "sysv64" fn rust_entry_hv(core_id: u32, linux_sp: usize) -> i32 {
     BOOTED_CPUS.fetch_add(1, Ordering::SeqCst);
 
     while BOOTED_CPUS.load(Ordering::Acquire) < crate::header::HvHeader::get().online_cpus {
         core::hint::spin_loop();
     }
 
-    axlog::ax_println!("Core {} enter rust entry hv!!!", cpu_id);
+    axlog::ax_println!("Core {} enter rust entry hv!!!", core_id);
 
-    if cpu_id == 0 {
-        primary_init_early(cpu_id, linux_sp);
+    if core_id == 0 {
+        primary_init_early(core_id, linux_sp);
     } else {
         while INIT_EARLY_OK.load(Ordering::Acquire) < 1 {
             core::hint::spin_loop();
         }
-        secondary_init_early(cpu_id, linux_sp);
+        secondary_init_early(core_id, linux_sp);
     }
-    let ret = unsafe { rust_main(cpu_id as usize, 0) };
+    let ret = unsafe { rust_main(core_id as usize, 0) };
     ret
 }
 
 #[cfg(feature = "type1_5")]
-fn primary_init_early(cpu_id: u32, linux_sp: usize) {
+fn primary_init_early(core_id: u32, linux_sp: usize) {
     // crate::mem::clear_bss();
-    crate::cpu::init_primary(cpu_id as usize);
+    crate::cpu::init_primary(core_id as usize);
 
     // This should be called after `percpu` is init.
     // This should be called before operations related to dtables
@@ -177,8 +177,8 @@ fn primary_init_early(cpu_id: u32, linux_sp: usize) {
 }
 
 #[cfg(feature = "type1_5")]
-fn secondary_init_early(cpu_id: u32, linux_sp: usize) {
-    crate::cpu::init_secondary(cpu_id as _);
+fn secondary_init_early(core_id: u32, linux_sp: usize) {
+    crate::cpu::init_secondary(core_id as _);
     // This should be called after `percpu` is init.
     // This should be called before operations related to dtables
     // to get a clean unmodified Linux context.
