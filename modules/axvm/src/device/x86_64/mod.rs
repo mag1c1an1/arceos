@@ -36,23 +36,33 @@ pub struct DeviceList<H: HyperCraftHal, B: BarAllocTrait> {
     memory_io_devices: Vec<Arc<Mutex<dyn MmioOps>>>,
     msr_devices: Vec<Arc<Mutex<dyn VirtMsrOps>>>,
     pci_devices: Option<Arc<Mutex<PciHost<B>>>>,
+    vm_id: Option<u32>,
+    vcpu_id: Option<u32>,
     marker: core::marker::PhantomData<H>,
 }
 
 impl<H: HyperCraftHal, B: BarAllocTrait + 'static> DeviceList<H, B> {
-    pub fn new() -> Self {
+    pub fn new(vcpu_id: Option<u32>, vm_id: Option<u32>) -> Self {
         Self {
             port_io_devices: vec![],
             memory_io_devices: vec![],
             msr_devices: vec![],
             pci_devices: None,
+            vm_id,
+            vcpu_id,
             marker: core::marker::PhantomData,
         }
     }
 
     fn init_pci_host(&mut self) {
-        let pci_host = PciHost::new(Some(Arc::new(super::virtio::VirtioMsiIrqManager {})));
+        if let Some(vm_id) = self.vm_id {
+            let pci_host = PciHost::new(Some(Arc::new(super::virtio::VirtioMsiIrqManager {
+            vm_id: self.vm_id.expect("None vm for pci host"),
+        })));
         self.pci_devices = Some(Arc::new(Mutex::new(pci_host)));
+        }else {
+            panic!("this is not vm devicelist. vm_id is None");
+        }
     }
 
     fn add_pci_device(
@@ -415,7 +425,7 @@ pub struct X64VcpuDevices<H: HyperCraftHal, B: BarAllocTrait> {
 }
 
 impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerCpuDevices<H> for X64VcpuDevices<H, B> {
-    fn new(_vcpu: &VCpu<H>) -> HyperResult<Self> {
+    fn new(vcpu: &VCpu<H>) -> HyperResult<Self> {
         let apic_timer = Arc::new(Mutex::new(VirtLocalApic::new()));
         let bundle = Arc::new(Mutex::new(Bundle::new()));
         let pic: [Arc<Mutex<device_emu::I8259Pic>>; 2] = [
@@ -423,7 +433,7 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerCpuDevices<H> for X64VcpuD
             Arc::new(Mutex::new(device_emu::I8259Pic::new(0xA0))),
         ];
 
-        let mut devices = DeviceList::new();
+        let mut devices = DeviceList::new(Some(vcpu.vcpu_id() as u32), None);
 
         let mut pmio_devices: Vec<Arc<Mutex<dyn PioOps>>> = vec![
             // These are all fully emulated consoles!!!
@@ -593,8 +603,8 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> X64VmDevices<H, B> {
 }
 
 impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerVmDevices<H> for X64VmDevices<H, B> {
-    fn new() -> HyperResult<Self> {
-        let mut devices = DeviceList::new();
+    fn new(vm_id: u32) -> HyperResult<Self> {
+        let mut devices = DeviceList::new(None, Some(vm_id));
 
         Ok(Self {
             marker: PhantomData,
@@ -662,8 +672,8 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> NimbosVmDevices<H, B> {
 }
 
 impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerVmDevices<H> for NimbosVmDevices<H, B> {
-    fn new() -> HyperResult<Self> {
-        let mut devices = DeviceList::new();
+    fn new(vm_id: u32) -> HyperResult<Self> {
+        let mut devices = DeviceList::new(None, Some(vm_id));
         // init pci device
         devices.init_pci_host();
         devices.add_port_io_device(devices.pci_devices.clone().unwrap());

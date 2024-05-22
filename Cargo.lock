@@ -546,6 +546,7 @@ dependencies = [
  "bitflags 2.4.1",
  "byteorder",
  "fdt",
+ "hashbrown 0.14.3",
  "hypercraft",
  "iced-x86",
  "lazy_init",

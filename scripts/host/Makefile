@@ -1,5 +1,6 @@
 QEMU ?= qemu-system-x86_64
 PORT ?= 2333
+TELNET_PORT ?= 4321
 WORKSPACE ?= $(shell pwd)/../../..
 target_bin := $(WORKSPACE)/arceos/apps/hv/hv_pc-x86.bin
 jailhouse := $(WORKSPACE)/jailhouse-arceos
@@ -16,7 +17,7 @@ qemu_args := \
   -net user,id=net,hostfwd=tcp::$(PORT)-:22 -net nic,model=e1000e \
   -D qemu.log -d in_asm,int,mmu,pcall,cpu_reset,guest_errors \
   -serial mon:stdio \
-  -serial telnet:localhost:4321,server,nowait
+  -serial telnet:localhost:$(TELNET_PORT),server,nowait
 
 $(qemu_image):
 	wget https://cloud-images.ubuntu.com/releases/focal/release/$(qemu_image)

@@ -26,18 +26,36 @@ use hypercraft::{HyperError, HyperResult as Result, VirtioError};
 use pci::util::byte_code::ByteCode;
 use pci::util::num_ops::{read_u32, write_u32};
 use pci::util::AsAny;
-use pci::{MsiAddrReg, MsiDataReg, MsiIrqManager, MsiVector, MSI_ADDR_BASE};
-pub struct VirtioMsiIrqManager {}
+use pci::{MsiAddrReg, MsiDataReg, MsiIrqManager, MsiVector, MSI_ADDR_BASE, MSI_ADDR_DESTMODE_PHYS};
+
+use crate::vcpu2pcpu;
+
+pub struct VirtioMsiIrqManager {
+    pub vm_id: u32,
+}
 impl MsiIrqManager for VirtioMsiIrqManager {
     fn trigger(&self, vector: MsiVector, dev_id: u32) -> Result<()> {
         debug!("Trigger MSI: {:#?}", vector);
         let msi_addr_reg: MsiAddrReg = vector.msi_addr.into();
+        let is_phys = msi_addr_reg.dest_mode() == MSI_ADDR_DESTMODE_PHYS;
+        let dest: u32;
+        if is_phys {
+            let vdest = msi_addr_reg.dest_field();
+            // suppose only one core
+            let dest_option = vcpu2pcpu(self.vm_id, vdest);
+            if dest_option.is_none() {
+                error!("Invalid vdest: {}", vdest);
+                return Err(HyperError::BadState);
+            }
+            dest = dest_option.unwrap() as u32;
+        }else {
+            panic!("MSI_ADDR_DESTMODE_LOGICAL is not supported");
+        }
+        debug!("MSI Dest:{:#x}", dest);
         if msi_addr_reg.addr_base() == MSI_ADDR_BASE {
             let msi_data_reg: MsiDataReg = (vector.msi_data as u32).into();
-            // todo: just let the vcpu id is equal to pcpu id and send it to the only corresponding pcpu?
-            let vdest = msi_addr_reg.dest_field();
             let mut icr = ApicIcr::new(0);
-            icr.set_dest_field(vdest);
+            icr.set_dest_field(dest);
             icr.set_vector(msi_data_reg.vector());
             icr.set_delivery_mode(msi_data_reg.delivery_mode());
             unsafe { wrmsr(IA32_X2APIC_ICR, icr.value()) };

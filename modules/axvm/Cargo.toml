@@ -21,6 +21,7 @@ bitflags = "2.2"
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 fdt = { version = "0.1.5" }
 arrayvec = { version = "0.7.2", default-features = false }
+hashbrown = "0.14"
 
 # ax modules
 axhal = { path = "../axhal" }
