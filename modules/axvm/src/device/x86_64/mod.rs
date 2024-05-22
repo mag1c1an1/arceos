@@ -359,7 +359,11 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> DeviceList<H, B> {
                         vcpu, exit_info, dev, instr,
                     ));
                 }
-                return Some(Ok(()));
+                warn!(
+                    "VM exit Error: EPT violation @ {:#x}\nFault_paddr={:#x} access_flags=({:?}), vcpu: {:#x?}",
+                    exit_info.guest_rip, fault_info.fault_guest_paddr, fault_info.access_flags, vcpu
+                );
+                return Some(Err(HyperError::InValidMmio));
             }
             Err(_err) => panic!(
                 "VM exit: EPT violation with unknown fault info @ {:#x}, vcpu: {:#x?}",
@@ -531,10 +535,7 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerCpuDevices<H> for X64VcpuD
                 Ok(0)
             }
             None => {
-                warn!(
-                    "Core [{}] NMI VM-Exit",
-                    current_cpu_id
-                );
+                warn!("Core [{}] NMI VM-Exit", current_cpu_id);
                 let int_info = vcpu.interrupt_exit_info()?;
                 warn!(
                     "interrupt_exit_info:{:#x}\n{:#x?}\n{:#x?}",
