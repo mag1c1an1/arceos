@@ -84,26 +84,40 @@ pub(crate) fn memory_region_at(idx: usize) -> Option<MemRegion> {
             paddr: PhysAddr::from(hv_phys_start),
             size: header.core_size,
             flags: MemRegionFlags::READ | MemRegionFlags::WRITE | MemRegionFlags::EXECUTE,
-            name: "core size",
+            name: "hv kernel memory",
         })
     } else if idx == 1 {
         Some(MemRegion {
             paddr: PhysAddr::from(hv_phys_start + header.core_size),
             size: hv_phys_size - header.core_size,
             flags: MemRegionFlags::READ | MemRegionFlags::WRITE,
-            name: "hv phys size",
+            name: "hv free memory",
         })
     } else if idx < num {
         let mem_regions = cell_config.mem_regions();
         let region = mem_regions[idx - 2];
-        let region_paddr = region.phys_start as usize;
-        let region_size = region.size as usize;
+        let mut region_paddr = region.phys_start as usize;
+        let mut region_size = region.size as usize;
         let region_flag = region.flags.into();
+        if (region_paddr..region_paddr + region_size).contains(&hv_phys_start) {
+            if region_paddr == hv_phys_start {
+                region_paddr = hv_phys_start + hv_phys_size;
+                region_size -= hv_phys_size;
+            } else {
+                region_size = hv_phys_start - region_paddr;
+            }
+            debug!(
+                "Linux region {:#x?} contains hv memory, decrease to [{:#x}-{:#x}]",
+                region,
+                region_paddr,
+                region_paddr + region_size,
+            );
+        }
         Some(MemRegion {
             paddr: PhysAddr::from(region_paddr),
             size: region_size,
             flags: region_flag,
-            name: "mmio",
+            name: "Host Linux region",
         })
     } else {
         None
