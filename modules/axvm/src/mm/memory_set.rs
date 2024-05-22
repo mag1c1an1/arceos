@@ -115,7 +115,10 @@ impl MapRegion {
     fn map_to(&self, npt: &mut GuestPageTable) -> HyperResult {
         let mut start = self.start;
         let end = start + self.size;
-        debug!("Mapped Region [{:#x}-{:#x}] {:?}", start, end, self.flags);
+        debug!(
+            "GPM Mapped Region [{:#x}-{:#x}] {:?}",
+            start, end, self.flags
+        );
         while start < end {
             let target = self.target(start);
             npt.map(start, target, self.flags)?;
@@ -202,6 +205,12 @@ impl GuestPhysMemorySet {
 
     pub fn map_region(&mut self, region: MapRegion) -> HyperResult {
         let mut mapped_region = region;
+        debug!(
+            "GPM Mapping Region [{:#x}-{:#x}] {:?}",
+            region.start,
+            region.start + region.size,
+            region.flags
+        );
         while mapped_region.size != 0 {
             if !self.test_free_area(&mapped_region) {
                 // warn!(

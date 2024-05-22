@@ -2,6 +2,8 @@ use axhal::config::{CellConfig, HvSystemConfig};
 use hypercraft::{GuestPageTableTrait, GuestPhysAddr, HostPhysAddr, HostVirtAddr, HyperCraftHal};
 use memory_addr::align_down_4k;
 use page_table_entry::MappingFlags;
+use ranges::Ranges;
+use x86::current;
 
 use crate::mm::{GuestMemoryRegion, GuestPhysMemorySet};
 use crate::{phys_to_virt, virt_to_phys};
@@ -24,6 +26,8 @@ pub fn setup_root_gpm() -> HyperResult<GuestPhysMemorySet> {
     let hv_phys_start = sys_config.hypervisor_memory.phys_start as usize;
     let hv_phys_size = sys_config.hypervisor_memory.size as usize;
     let offset = hv_phys_start - hv_phys_start;
+
+    let hv_range = Ranges::from(hv_phys_start..hv_phys_start + hv_phys_size);
 
     gpm.map_region(
         GuestMemoryRegion {
@@ -70,15 +74,41 @@ pub fn setup_root_gpm() -> HyperResult<GuestPhysMemorySet> {
                 break;
             }
         }
-        gpm.map_region(
-            GuestMemoryRegion {
-                gpa: start_gpa as GuestPhysAddr,
-                hpa: start_hpa as HostPhysAddr,
-                size: region_size,
-                flags: region.flags.into(),
-            }
-            .into(),
-        )?;
+        // Check if overlapped with arceos-hv region.
+        let mut current_range = Ranges::from(start_gpa..start_gpa + region_size);
+
+        let overlap = current_range & hv_range.clone();
+        if overlap.is_empty() {
+            gpm.map_region(
+                GuestMemoryRegion {
+                    gpa: start_gpa as GuestPhysAddr,
+                    hpa: start_hpa as HostPhysAddr,
+                    size: region_size,
+                    flags: region.flags.into(),
+                }
+                .into(),
+            )?;
+        } else {
+            gpm.map_region(
+                GuestMemoryRegion {
+                    gpa: start_gpa as GuestPhysAddr,
+                    hpa: start_hpa as HostPhysAddr,
+                    size: hv_phys_start - start_gpa,
+                    flags: region.flags.into(),
+                }
+                .into(),
+            )?;
+            gpm.map_region(
+                GuestMemoryRegion {
+                    gpa: (hv_phys_start + hv_phys_size) as GuestPhysAddr,
+                    hpa: (hv_phys_start + hv_phys_size) as HostPhysAddr,
+                    size: start_gpa + region_size - (hv_phys_start + hv_phys_size),
+                    flags: region.flags.into(),
+                }
+                .into(),
+            )?;
+        }
+
         index += 1;
     }
     Ok(gpm)

@@ -107,8 +107,9 @@ pub(crate) fn memory_region_at(idx: usize) -> Option<MemRegion> {
                 region_size = hv_phys_start - region_paddr;
             }
             debug!(
-                "Linux region {:#x?} contains hv memory, decrease to [{:#x}-{:#x}]",
-                region,
+                "Linux region [{:#x}-{:#x}] contains hv memory, decrease to [{:#x}-{:#x}]",
+                region.phys_start as usize,
+                (region.phys_start + region.size) as usize,
                 region_paddr,
                 region_paddr + region_size,
             );

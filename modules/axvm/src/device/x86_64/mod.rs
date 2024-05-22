@@ -528,10 +528,6 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerCpuDevices<H> for X64VcpuD
     fn nmi_handler(&mut self, vcpu: &mut VCpu<H>) -> HyperResult<u32> {
         let current_cpu_id = current_cpu_id();
         let current_core_id = axhal::cpu_id_to_core_id(current_cpu_id);
-        warn!(
-            "CPU [{}] (Processor [{}])NMI VM-Exit",
-            current_cpu_id, current_core_id
-        );
         let msg = CORE_NMI_LIST[current_core_id].lock().pop();
         match msg {
             Some(NmiMessage::BootVm(vm_id)) => {

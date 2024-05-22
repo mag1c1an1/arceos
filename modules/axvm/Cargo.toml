@@ -18,6 +18,7 @@ libc = "0.2"
 bit_field = "0.10"
 byteorder = { version = "1.4.3", default-features = false }
 bitflags = "2.2"
+ranges = "0.3.3"
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 fdt = { version = "0.1.5" }
 arrayvec = { version = "0.7.2", default-features = false }
