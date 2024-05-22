@@ -99,3 +99,5 @@ pub mod consts {
 pub use platform::current_cpu_id;
 #[cfg(target_arch="x86_64")]
 pub use platform::core_id_to_cpu_id;
+#[cfg(target_arch="x86_64")]
+pub use platform::cpu_id_to_core_id;

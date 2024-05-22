@@ -6,7 +6,7 @@ use hypercraft::{GuestPhysAddr, HostPhysAddr};
 
 use crate::config::entry::{vm_cfg_add_vm_entry, vm_cfg_entry, VMCfgEntry, VmType};
 use crate::Error;
-use crate::{nmi::nmi_send_msg, nmi::NmiMessage, HyperCraftHal, Result, VCpu};
+use crate::{nmi::nmi_send_msg_by_core_id, nmi::NmiMessage, HyperCraftHal, Result, VCpu};
 // use axhal::hv::HyperCraftHalImpl;
 
 pub const HVC_SHADOW_PROCESS_INIT: usize = 0x53686477;
@@ -166,33 +166,11 @@ fn ax_hvc_boot_vm(vm_id: usize) {
 
     info!("boot VM {} {:?} on cpuset {:#x}", vm_id, vm_type, cpuset);
 
-    let current_cpu = current_cpu_id();
     let num_bits = core::mem::size_of::<u32>() * 8;
     let msg = NmiMessage::BootVm(vm_id);
     for i in 0..num_bits {
         if cpuset & (1 << i) != 0 {
-            let target_cpu_id = axhal::core_id_to_cpu_id(i);
-
-            match target_cpu_id {
-                Some(target_cpu_id) => {
-                    if target_cpu_id == current_cpu {
-                        warn!(
-                            "CPU{} try send nmi to self, something is wrong",
-                            current_cpu
-                        );
-                        continue;
-                    }
-                    info!(
-                        "CPU {} send nmi ipi to CPU{} (Linux processor ID {})",
-                        current_cpu, target_cpu_id, i
-                    );
-                    nmi_send_msg(target_cpu_id, msg);
-                }
-                None => {
-                    warn!("Core {} not existed, just skip it", i);
-                    continue;
-                }
-            }
+            nmi_send_msg_by_core_id(i, msg);
         }
     }
 }

@@ -57,6 +57,17 @@ pub fn core_id_to_cpu_id(core_id: usize) -> Option<usize> {
     }
 }
 
+pub fn cpu_id_to_core_id(cpu_id: usize) -> usize {
+    let mut core_id: usize = 0;
+    while core_id < MAX_CORE_ID as usize {
+        if unsafe { CORE_ID_TO_CPU_ID[core_id] } == cpu_id {
+            return core_id;
+        }
+        core_id += 1;
+    }
+    panic!("CPU [{}] not registered!!!", cpu_id);
+}
+
 pub fn current_cpu_id() -> usize {
     match raw_cpuid::CpuId::new().get_feature_info() {
         Some(finfo) => finfo.initial_local_apic_id() as usize,

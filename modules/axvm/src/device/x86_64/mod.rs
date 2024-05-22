@@ -8,7 +8,7 @@ use super::virtio::{
 };
 use crate::device::BarAllocImpl;
 use crate::{
-    nmi::NmiMessage, nmi::CPU_NMI_LIST, HyperCraftHal, PerCpuDevices, PerVmDevices,
+    nmi::NmiMessage, nmi::CORE_NMI_LIST, HyperCraftHal, PerCpuDevices, PerVmDevices,
     Result as HyperResult, VCpu, VmExitInfo, VmxExitReason,
 };
 use crate::{Error as HyperError, GuestPageTable, VmExitInfo as VmxExitInfo};
@@ -21,7 +21,7 @@ use core::any::Any;
 use core::marker::PhantomData;
 use core::sync::atomic::{AtomicU16, Ordering};
 use device_emu::{ApicBaseMsrHandler, Bundle, VirtLocalApic};
-use hypercraft::{GuestPageTableTrait, MmioOps, PioOps, VirtMsrOps};
+use hypercraft::{GuestPageTableTrait, MmioOps, PioOps, VirtMsrOps, VmxInterruptionType};
 use iced_x86::{Code, Instruction, OpKind, Register};
 use page_table_entry::MappingFlags;
 use pci::{AsAny, BarAllocTrait, PciDevOps, PciHost};
@@ -527,15 +527,22 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerCpuDevices<H> for X64VcpuD
 
     fn nmi_handler(&mut self, vcpu: &mut VCpu<H>) -> HyperResult<u32> {
         let current_cpu_id = current_cpu_id();
-
-        let msg = CPU_NMI_LIST[current_cpu_id].lock().pop();
+        let current_core_id = axhal::cpu_id_to_core_id(current_cpu_id);
+        warn!(
+            "CPU [{}] (Processor [{}])NMI VM-Exit",
+            current_cpu_id, current_core_id
+        );
+        let msg = CORE_NMI_LIST[current_core_id].lock().pop();
         match msg {
             Some(NmiMessage::BootVm(vm_id)) => {
                 crate::vm::boot_vm(vm_id);
                 Ok(0)
             }
             None => {
-                warn!("Core [{}] NMI VM-Exit", current_cpu_id);
+                warn!(
+                    "CPU [{}] (Processor [{}])NMI VM-Exit",
+                    current_cpu_id, current_core_id
+                );
                 let int_info = vcpu.interrupt_exit_info()?;
                 warn!(
                     "interrupt_exit_info:{:#x}\n{:#x?}\n{:#x?}",
@@ -543,21 +550,32 @@ impl<H: HyperCraftHal, B: BarAllocTrait + 'static> PerCpuDevices<H> for X64VcpuD
                     int_info,
                     vcpu
                 );
-                // System Control Port A (0x92)
-                // BIT	Description
-                // 4*	Watchdog timer status
 
-                let value = unsafe { x86::io::inb(0x92) };
-                warn!("System Control Port A value {:#x}", value);
-                // System Control Port B (0x61)
-                // Bit	Description
-                // 6*	Channel check
-                // 7*	Parity check
-                // The Channel Check bit indicates a failure on the bus,
-                // probably by a peripheral device such as a modem, sound card, NIC, etc,
-                // while the Parity check bit indicates a memory read or write failure.
-                let value = unsafe { x86::io::inb(0x61) };
-                warn!("System Control Port B value {:#x}", value);
+                if int_info.int_type == VmxInterruptionType::NMI {
+                    unsafe { core::arch::asm!("int 2") }
+                } else {
+                    // Reinject the event straight away.
+                    debug!(
+                        "reinject to VM on CPU {} Processor {}",
+                        current_cpu_id, current_core_id
+                    );
+                    vcpu.queue_event(int_info.vector, int_info.err_code);
+                }
+                // // System Control Port A (0x92)
+                // // BIT	Description
+                // // 4*	Watchdog timer status
+
+                // let value = unsafe { x86::io::inb(0x92) };
+                // warn!("System Control Port A value {:#x}", value);
+                // // System Control Port B (0x61)
+                // // Bit	Description
+                // // 6*	Channel check
+                // // 7*	Parity check
+                // // The Channel Check bit indicates a failure on the bus,
+                // // probably by a peripheral device such as a modem, sound card, NIC, etc,
+                // // while the Parity check bit indicates a memory read or write failure.
+                // let value = unsafe { x86::io::inb(0x61) };
+                // warn!("System Control Port B value {:#x}", value);
                 Ok(0)
             }
         }
