@@ -1,5 +1,6 @@
 QEMU ?= qemu-system-x86_64
 PORT ?= 2333
+TELNET_PORT ?= 4321
 WORKSPACE ?= $(shell pwd)/../../..
 target_bin := $(WORKSPACE)/arceos/apps/hv/hv_pc-x86.bin
 jailhouse := $(WORKSPACE)/jailhouse-arceos
@@ -9,14 +10,14 @@ OUT_ELF ?= ../../apps/hv/hv_pc-x86.elf
 
 qemu_image := ubuntu-20.04-server-cloudimg-amd64.img
 qemu_args := \
-  -smp 2 -m 8G -accel kvm -nographic \
+  -smp 4 -m 8G -accel kvm -nographic \
   -machine q35,kernel_irqchip=split \
   -cpu host,-kvm-asyncpf,-kvm-pv-eoi,-kvm-pv-ipi,-kvm-pv-sched-yield,-kvm-pv-unhalt,-kvm-steal-time,-kvmclock \
   -drive file=$(qemu_image) \
   -net user,id=net,hostfwd=tcp::$(PORT)-:22 -net nic,model=e1000e \
   -D qemu.log -d in_asm,int,mmu,pcall,cpu_reset,guest_errors \
   -serial mon:stdio \
-  -serial telnet:localhost:4321,server,nowait
+  -serial telnet:localhost:$(TELNET_PORT),server,nowait
 
 $(qemu_image):
 	wget https://cloud-images.ubuntu.com/releases/focal/release/$(qemu_image)

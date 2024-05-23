@@ -33,6 +33,41 @@ extern "C" {
     fn rust_main_secondary(cpu_id: usize) -> !;
 }
 
+const MAX_CORE_ID: u32 = 254;
+
+/**
+ * In ArceOS, the `cpu_id` refers to the APIC ID.
+ * However, Linux has its own perspective on `core_id`.
+ * Here, we perform a simple conversion using a global array.
+ */
+static mut CORE_ID_TO_CPU_ID: [usize; MAX_CORE_ID as usize + 1] =
+    [usize::MAX; MAX_CORE_ID as usize + 1];
+
+pub fn set_core_id_to_cpu_id(core_id: usize, cpu_id: usize) {
+    unsafe { CORE_ID_TO_CPU_ID[core_id as usize] = cpu_id };
+}
+
+pub fn core_id_to_cpu_id(core_id: usize) -> Option<usize> {
+    let cpu_id = unsafe { CORE_ID_TO_CPU_ID[core_id as usize] };
+    if cpu_id == usize::MAX {
+        warn!("Core [{}] not registered!!!", core_id);
+        None
+    } else {
+        Some(cpu_id)
+    }
+}
+
+pub fn cpu_id_to_core_id(cpu_id: usize) -> usize {
+    let mut core_id: usize = 0;
+    while core_id < MAX_CORE_ID as usize {
+        if unsafe { CORE_ID_TO_CPU_ID[core_id] } == cpu_id {
+            return core_id;
+        }
+        core_id += 1;
+    }
+    panic!("CPU [{}] not registered!!!", cpu_id);
+}
+
 pub fn current_cpu_id() -> usize {
     match raw_cpuid::CpuId::new().get_feature_info() {
         Some(finfo) => finfo.initial_local_apic_id() as usize,
@@ -102,31 +137,31 @@ static BOOTED_CPUS: AtomicU32 = AtomicU32::new(0);
 
 #[cfg(feature = "type1_5")]
 // hypervisor start
-extern "sysv64" fn rust_entry_hv(cpu_id: u32, linux_sp: usize) -> i32 {
+extern "sysv64" fn rust_entry_hv(core_id: u32, linux_sp: usize) -> i32 {
     BOOTED_CPUS.fetch_add(1, Ordering::SeqCst);
 
     while BOOTED_CPUS.load(Ordering::Acquire) < crate::header::HvHeader::get().online_cpus {
         core::hint::spin_loop();
     }
 
-    axlog::ax_println!("Core {} enter rust entry hv!!!", cpu_id);
+    axlog::ax_println!("Core {} enter rust entry hv!!!", core_id);
 
-    if cpu_id == 0 {
-        primary_init_early(cpu_id, linux_sp);
+    if core_id == 0 {
+        primary_init_early(core_id, linux_sp);
     } else {
         while INIT_EARLY_OK.load(Ordering::Acquire) < 1 {
             core::hint::spin_loop();
         }
-        secondary_init_early(cpu_id, linux_sp);
+        secondary_init_early(core_id, linux_sp);
     }
-    let ret = unsafe { rust_main(cpu_id as usize, 0) };
+    let ret = unsafe { rust_main(core_id as usize, 0) };
     ret
 }
 
 #[cfg(feature = "type1_5")]
-fn primary_init_early(cpu_id: u32, linux_sp: usize) {
+fn primary_init_early(core_id: u32, linux_sp: usize) {
     // crate::mem::clear_bss();
-    crate::cpu::init_primary(cpu_id as usize);
+    crate::cpu::init_primary(core_id as usize);
 
     // This should be called after `percpu` is init.
     // This should be called before operations related to dtables
@@ -142,8 +177,8 @@ fn primary_init_early(cpu_id: u32, linux_sp: usize) {
 }
 
 #[cfg(feature = "type1_5")]
-fn secondary_init_early(cpu_id: u32, linux_sp: usize) {
-    crate::cpu::init_secondary(cpu_id as _);
+fn secondary_init_early(core_id: u32, linux_sp: usize) {
+    crate::cpu::init_secondary(core_id as _);
     // This should be called after `percpu` is init.
     // This should be called before operations related to dtables
     // to get a clean unmodified Linux context.

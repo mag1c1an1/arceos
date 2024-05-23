@@ -68,7 +68,9 @@ impl axlog::LogIf for LogIfImpl {
 
     fn current_cpu_id() -> Option<usize> {
         #[cfg(feature = "smp")]
-        if is_init_ok() {
+        if true {
+            // Alway true so we can get cpu id of current info.
+            // if is_init_ok() {
             Some(axhal::cpu::this_cpu_id())
         } else {
             None
@@ -224,8 +226,8 @@ pub mod type1_5;
 
 #[cfg(feature = "type1_5")]
 #[cfg_attr(not(test), no_mangle)]
-pub extern "C" fn rust_main(cpu_id: usize, _dtb: usize) -> i32 {
-    let is_primary = cpu_id == 0;
+pub extern "C" fn rust_main(core_id: usize, _dtb: usize) -> i32 {
+    let is_primary = core_id == 0;
 
     if is_primary {
         runtime_init_early().expect("runtime init early failed");
@@ -233,9 +235,9 @@ pub extern "C" fn rust_main(cpu_id: usize, _dtb: usize) -> i32 {
         while INIT_EARLY_OK.load(Ordering::Acquire) < 1 {
             core::hint::spin_loop();
         }
-        debug!("CPU{} after primary early init ok", cpu_id);
+        debug!("CPU{} after primary early init ok", core_id);
     }
-    info!("CPU {} init finished, rust_main_type1_5", cpu_id);
+    info!("CPU {} init finished, rust_main_type1_5", core_id);
 
     type1_5::activate_hv_pt();
 
@@ -267,12 +269,12 @@ pub extern "C" fn rust_main(cpu_id: usize, _dtb: usize) -> i32 {
         INIT_SYNC.fetch_add(1, Ordering::Release);
     }
 
-    while INIT_SYNC.load(Ordering::Acquire) < 2 {
+    while INIT_SYNC.load(Ordering::Acquire) < axconfig::SMP as u32 {
         core::hint::spin_loop();
     }
-    debug!("CPU{} before into main", cpu_id);
+    debug!("CPU{} before into main", core_id);
     unsafe {
-        main(cpu_id as usize);
+        main(core_id as usize);
     };
 
     0

@@ -546,6 +546,7 @@ dependencies = [
  "bitflags 2.4.1",
  "byteorder",
  "fdt",
+ "hashbrown 0.14.3",
  "hypercraft",
  "iced-x86",
  "lazy_init",
@@ -556,6 +557,7 @@ dependencies = [
  "page_table_entry",
  "pci",
  "percpu",
+ "ranges",
  "raw-cpuid 11.0.1",
  "spin 0.9.8",
  "x2apic",
@@ -1583,8 +1585,11 @@ dependencies = [
  "byteorder",
  "hashbrown 0.14.3",
  "hypercraft",
+ "lazy_static",
  "log",
  "spin 0.9.8",
+ "x86",
+ "x86_64",
 ]
 
 [[package]]
@@ -1728,6 +1733,12 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
 ]
+
+[[package]]
+name = "ranges"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f781d391cd4838df77e09fd26e33a87e0ac9bf2edf6ff770cfc65f83d50e3948"
 
 [[package]]
 name = "ratio"

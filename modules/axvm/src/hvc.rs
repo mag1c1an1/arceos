@@ -6,7 +6,7 @@ use hypercraft::{GuestPhysAddr, HostPhysAddr};
 
 use crate::config::entry::{vm_cfg_add_vm_entry, vm_cfg_entry, VMCfgEntry, VmType};
 use crate::Error;
-use crate::{nmi::nmi_send_msg, nmi::NmiMessage, HyperCraftHal, Result, VCpu};
+use crate::{nmi::nmi_send_msg_by_core_id, nmi::NmiMessage, HyperCraftHal, Result, VCpu};
 // use axhal::hv::HyperCraftHalImpl;
 
 pub const HVC_SHADOW_PROCESS_INIT: usize = 0x53686477;
@@ -166,15 +166,11 @@ fn ax_hvc_boot_vm(vm_id: usize) {
 
     info!("boot VM {} {:?} on cpuset {:#x}", vm_id, vm_type, cpuset);
 
-    let current_cpu = current_cpu_id();
     let num_bits = core::mem::size_of::<u32>() * 8;
     let msg = NmiMessage::BootVm(vm_id);
     for i in 0..num_bits {
         if cpuset & (1 << i) != 0 {
-            info!("CPU{} send nmi ipi to CPU{} ", current_cpu, i);
-            // axhal::irq::send_nmi_to(i);
-            nmi_send_msg(i, msg);
-            // todo!();
+            nmi_send_msg_by_core_id(i, msg);
         }
     }
 }

@@ -9,9 +9,9 @@ mod linux;
 
 #[cfg(feature = "type1_5")]
 #[no_mangle]
-fn main(cpu_id: u32) {
+fn main(core_id: u32) {
     info!("Hello, hv!");
-    info!("Currently Linux inside VM is on Core {}", cpu_id);
+    info!("Currently Linux inside VM is on Core {}", core_id);
     linux::boot_linux();
 
     panic!("Should never return!!!");

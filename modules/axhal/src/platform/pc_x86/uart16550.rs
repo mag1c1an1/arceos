@@ -18,6 +18,14 @@ bitflags::bitflags! {
     }
 }
 
+macro_rules! wait_for {
+    ($cond:expr) => {
+        while !$cond {
+            core::hint::spin_loop()
+        }
+    };
+}
+
 struct Uart16550 {
     data: Port<u8>,
     int_en: PortWriteOnly<u8>,
@@ -73,7 +81,7 @@ impl Uart16550 {
     }
 
     fn putchar(&mut self, c: u8) {
-        while !self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY) {}
+        wait_for!(self.line_sts().contains(LineStsFlags::OUTPUT_EMPTY));
         unsafe { self.data.write(c) };
     }
 

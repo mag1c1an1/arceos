@@ -83,6 +83,22 @@ After this step, the console of the host Linux is modified to ttyS1, which corre
 
 ## Boot arceos-hypervisor
 
+Before starting arceos-hypervisor, pay attention to the `gen-config.sh` file in the [jailhouse-arceos](https://github.com/arceos-hypervisor/jailhouse-arceos) folder. 
+
+Here, you need to set the reserved memory space size for arceos-hypervisor based on the hardware memory information.
+
+Current script defaults to reserving 4GB of memory for arceos-hypervisor, just like this:
+```bash
+# Line 2
+sudo python3 ./tools/jailhouse-config-create --mem-hv 4G ./configs/x86/qemu-arceos.c
+# ...
+# Line 13
+cmdline='memmap=0x100000000\\\\\\$0x100000000 console=ttyS1'
+```
+**If your hardware doesn't have that much memory, remember to reduce this memory size!!!**.
+
+The size of the reserved memory space needs to be larger than the physical memory size specified in the arceos [configuration file](modules/axconfig/src/platform/pc-x86-hv-type15.toml).
+
 
 We have prepared a script to boot the arceos-hypervisor. Run this command in user space on the host Linux.
 
@@ -102,7 +118,7 @@ Then you can start another guest VM through jailhouse cmd tool.
 sudo ${PATH_TO_JAILHOUSE_TOOL} axvm create CPU_MASK VM_TYPE BIOS_IMG KERNEL_IMG RAMDISK_IMG
 ```
 
-There is also a script for it.
+There is also some scripts for it.
 
 ```bash
 # Execute in guest /home/ubuntu directory.
@@ -110,6 +126,19 @@ There is also a script for it.
 ./boot_linux.sh
 ```
 
-Currently only [Nimbos](https://github.com/equation314/nimbos) is well supported, you can find its bios [here](apps/hv/guest/nimbos/bios).
+## Boot Guest VM
 
-WIP on booting Linux.
+### [NimbOS](https://github.com/equation314/nimbos)
+You can find its bios [here](apps/hv/guest/nimbos/bios).
+
+### Linux
+Currently, the vanilla Linux kernel is not supported (though I hope it will be).
+
+This modified Linux kernel [linux-5.10.35](https://github.com/arceos-hypervisor/linux-5.10.35-rt/tree/tracing) with RT patch can run on arceos-hypervisor.
+
+You need [vlbl](apps/hv/guest/vlbl) for bootloader, you can find vlbl.bin in its target dir.
+You need to build your own ramdisk image, you can find helpful guides [here](https://github.com/OS-F-4/usr-intr/blob/main/ppt/%E5%B1%95%E7%A4%BA%E6%96%87%E6%A1%A3/linux-kernel.md#%E5%88%9B%E5%BB%BA%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%BB%A5busybox%E4%B8%BA%E4%BE%8B).
+
+## Emulated Devices
+
+We are working on virtio devices...

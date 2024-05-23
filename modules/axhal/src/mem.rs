@@ -48,6 +48,19 @@ pub struct MemRegion {
     pub name: &'static str,
 }
 
+impl MemRegion {
+    pub fn check_overlap(&self, target: &MemRegion) -> bool {
+        let target_start = target.paddr;
+        let target_end = target.paddr + target.size;
+        let self_start = self.paddr;
+        let self_end = self.paddr + self.size;
+
+        return (target_start >= self_start && target_start < self_end)
+            || (target_end >= self_start && target_end < self_end)
+            || (target_start <= self_start && target_end >= self_end);
+    }
+}
+
 /// The iterator over all physical memory regions.
 struct MemRegionIter {
     idx: usize,
