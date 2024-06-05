@@ -5,29 +5,28 @@ extern crate alloc;
 #[macro_use]
 extern crate libax;
 
-#[cfg(target_arch = "riscv64")]
-use dtb_riscv64::MachineMeta;
-#[cfg(target_arch = "aarch64")]
-use dtb_aarch64::MachineMeta;
 #[cfg(target_arch = "aarch64")]
 use aarch64_config::GUEST_KERNEL_BASE_VADDR;
+#[cfg(target_arch = "aarch64")]
+use dtb_aarch64::MachineMeta;
+#[cfg(target_arch = "riscv64")]
+use dtb_riscv64::MachineMeta;
 #[cfg(target_arch = "aarch64")]
 use libax::{
     hv::{
         self, GuestPageTable, GuestPageTableTrait, HyperCraftHalImpl, PerCpu,
-        Result, VCpu, VmCpus, VM,
+        Result, VCpu, VM, VmCpus,
     },
     info,
 };
 #[cfg(not(target_arch = "aarch64"))]
 use libax::{
     hv::{
-        self, GuestPageTable, GuestPageTableTrait, HyperCallMsg, HyperCraftHalImpl, PerCpu, Result,
-        VCpu, VmCpus, VmExitInfo, VM, phys_to_virt,
+        self, GuestPageTable, GuestPageTableTrait, HyperCallMsg, HyperCraftHalImpl, PerCpu, phys_to_virt,
+        Result, VCpu, VM, VmCpus, VmExitInfo,
     },
     info,
 };
-
 use page_table_entry::MappingFlags;
 
 #[cfg(target_arch = "riscv64")]
@@ -40,6 +39,7 @@ mod aarch64_config;
 #[cfg(target_arch = "x86_64")]
 mod x64;
 
+mod smp;
 #[no_mangle]
 fn main(hart_id: usize) {
     println!("Hello, hv!");
@@ -75,7 +75,7 @@ fn main(hart_id: usize) {
         let pcpu = PerCpu::<HyperCraftHalImpl>::this_cpu();
 
         // create vcpu, need to change addr for aarch64!
-        let gpt = setup_gpm(0x7000_0000, 0x7020_0000).unwrap();  
+        let gpt = setup_gpm(0x7000_0000, 0x7020_0000).unwrap();
         let vcpu = pcpu.create_vcpu(0).unwrap();
         let mut vcpus = VmCpus::new();
 
@@ -90,7 +90,7 @@ fn main(hart_id: usize) {
     }
     #[cfg(target_arch = "x86_64")]
     {
-        println!("into main {}", hart_id);
+        println!("into main [hart_id: {}]", hart_id);
 
         let mut p = PerCpu::<HyperCraftHalImpl>::new(hart_id);
         p.hardware_enable().unwrap();
@@ -210,7 +210,7 @@ pub fn setup_gpm(dtb: usize, kernel_entry: usize) -> Result<GuestPageTable> {
         0x4000,
         MappingFlags::READ | MappingFlags::WRITE | MappingFlags::USER,
     )?;
-    
+
     if let Some(pl011) = meta.pl011 {
         gpt.map_region(
             pl011.base_address,
@@ -270,14 +270,14 @@ pub fn setup_gpm(dtb: usize, kernel_entry: usize) -> Result<GuestPageTable> {
         meta.physical_memory_offset,
         meta.physical_memory_offset + meta.physical_memory_size
     );
-    
+
     gpt.map_region(
         meta.physical_memory_offset,
         meta.physical_memory_offset,
         meta.physical_memory_size,
         MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE | MappingFlags::USER,
     )?;
-    
+
     gpt.map_region(
         GUEST_KERNEL_BASE_VADDR,
         kernel_entry,
@@ -285,7 +285,7 @@ pub fn setup_gpm(dtb: usize, kernel_entry: usize) -> Result<GuestPageTable> {
         MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE | MappingFlags::USER,
     )?;
 
-    let gaddr:usize = 0x40_1000_0000;
+    let gaddr: usize = 0x40_1000_0000;
     let paddr = gpt.translate(gaddr).unwrap();
     debug!("this is paddr for 0x{:X}: 0x{:X}", gaddr, paddr);
     Ok(gpt)

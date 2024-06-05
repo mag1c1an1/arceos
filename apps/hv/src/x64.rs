@@ -1,8 +1,7 @@
 use alloc::collections::BTreeMap;
 use core::fmt::{Debug, Formatter, Result};
 
-use libax::hv::{HyperCraftHal, HyperCraftHalImpl, GuestPhysAddr, HostPhysAddr, phys_to_virt, virt_to_phys, Result as HyperResult, Error, GuestPageTable, GuestPageTableTrait};
-
+use libax::hv::{Error, GuestPageTable, GuestPageTableTrait, GuestPhysAddr, HostPhysAddr, HyperCraftHal, HyperCraftHalImpl, phys_to_virt, Result as HyperResult, virt_to_phys};
 use page_table_entry::MappingFlags;
 
 // about guests

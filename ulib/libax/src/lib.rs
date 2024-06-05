@@ -45,21 +45,20 @@
 #![feature(naked_functions)]
 #![feature(result_option_inspect)]
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
 #[allow(unused_imports)]
 #[macro_use]
 extern crate axlog;
-
-pub use axlog::{debug, error, info, trace, warn};
-
 #[cfg(not(test))]
 extern crate axruntime;
 
 #[cfg(feature = "alloc")]
-extern crate alloc;
-
-#[cfg(feature = "alloc")]
 #[doc(no_inline)]
 pub use alloc::{boxed, format, string, vec};
+
+pub use axlog::{debug, error, info, trace, warn};
+
 
 #[cfg(feature = "hv")]
 pub mod hv;

@@ -1,4 +1,5 @@
 use core::{arch::asm, fmt};
+
 use memory_addr::VirtAddr;
 
 /// Saved registers when a trap (interrupt or exception) occurs.
@@ -184,7 +185,7 @@ impl TaskContext {
             next_ctx.ext_state.restore();
         }
         unsafe {
-            // TODO: swtich tls
+            // TODO: switch tls
             context_switch(&mut self.rsp, &next_ctx.rsp)
         }
     }
@@ -193,7 +194,7 @@ impl TaskContext {
 #[naked]
 unsafe extern "C" fn context_switch(_current_stack: &mut u64, _next_stack: &u64) {
     asm!(
-        "
+    "
         push    rbp
         push    rbx
         push    r12
@@ -210,6 +211,6 @@ unsafe extern "C" fn context_switch(_current_stack: &mut u64, _next_stack: &u64)
         pop     rbx
         pop     rbp
         ret",
-        options(noreturn),
+    options(noreturn),
     )
 }

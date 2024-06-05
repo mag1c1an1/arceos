@@ -1,6 +1,7 @@
+use core::sync::atomic::{AtomicUsize, Ordering};
+
 use axconfig::{SMP, TASK_STACK_SIZE};
 use axhal::mem::{virt_to_phys, VirtAddr};
-use core::sync::atomic::{AtomicUsize, Ordering};
 
 #[link_section = ".bss.stack"]
 static mut SECONDARY_BOOT_STACK: [[u8; TASK_STACK_SIZE]; SMP - 1] = [[0; TASK_STACK_SIZE]; SMP - 1];
@@ -25,6 +26,12 @@ pub fn start_secondary_cpus(primary_cpu_id: usize) {
         }
     }
 }
+
+#[cfg(feature = "hv")]
+extern "C" {
+    fn hv_main_secondary(cpu_id: usize);
+}
+
 
 /// The main entry point of the ArceOS runtime for secondary CPUs.
 ///
@@ -56,9 +63,14 @@ pub extern "C" fn rust_main_secondary(cpu_id: usize) -> ! {
     while !super::is_init_ok() {
         core::hint::spin_loop();
     }
-
     #[cfg(feature = "irq")]
     axhal::arch::enable_irqs();
+
+    #[cfg(feature = "hv")]
+    unsafe {
+        hv_main_secondary(cpu_id);
+    }
+
 
     #[cfg(feature = "multitask")]
     axtask::run_idle();

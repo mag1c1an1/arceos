@@ -141,7 +141,7 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
     #[cfg(all(feature = "hv", target_arch = "riscv64"))]
     hypercraft::init_hv_runtime();
 
-    info!("Found physcial memory regions:");
+    info!("Found physical memory regions:");
     for r in axhal::mem::memory_regions() {
         info!(
             "  [{:x?}, {:x?}) {} ({:?})",
@@ -189,7 +189,7 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
     }
 
     #[cfg(feature = "smp")]
-    self::mp::start_secondary_cpus(cpu_id);
+    mp::start_secondary_cpus(cpu_id);
 
     #[cfg(feature = "irq")]
     {
