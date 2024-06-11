@@ -1,7 +1,7 @@
 mod device_emu;
 
-use hypercraft::{VmxExitReason, VCpu as HVCpu, HyperResult, HyperError, VmxExitInfo};
 use device_emu::VirtLocalApic;
+use hypercraft::{HyperError, HyperResult, VCpu as HVCpu, VmxExitInfo, VmxExitReason};
 
 type VCpu = HVCpu<super::HyperCraftHalImpl>;
 
@@ -19,7 +19,8 @@ fn handle_external_interrupt(vcpu: &mut VCpu) -> HyperResult {
         axhal::irq::dispatch_irq(int_info.vector as usize);
         Ok(())
     }
-    #[cfg(not(feature = "irq"))] {
+    #[cfg(not(feature = "irq"))]
+    {
         panic!("cannot handle EXTERNAL_INTERRUPT vmexit because \"irq\" is not enabled")
     }
 }
@@ -174,13 +175,17 @@ fn handle_msr_write(vcpu: &mut VCpu) -> HyperResult {
 
 pub fn vmexit_handler(vcpu: &mut VCpu) -> HyperResult {
     let exit_info = vcpu.exit_info()?;
-    
+
     match exit_info.exit_reason {
         VmxExitReason::EXTERNAL_INTERRUPT => handle_external_interrupt(vcpu),
         VmxExitReason::CPUID => handle_cpuid(vcpu),
         VmxExitReason::IO_INSTRUCTION => handle_io_instruction(vcpu, &exit_info),
         VmxExitReason::MSR_READ => handle_msr_read(vcpu),
         VmxExitReason::MSR_WRITE => handle_msr_write(vcpu),
-        _ => panic!("vmexit reason not supported {:?}:\n{:?}", exit_info.exit_reason, vcpu)
+        VmxExitReason::SIPI => todo!("todo sipi"),
+        _ => panic!(
+            "vmexit reason not supported {:?}:\n{:?}",
+            exit_info.exit_reason, vcpu
+        ),
     }
 }

@@ -11,30 +11,30 @@ use aarch64_config::GUEST_KERNEL_BASE_VADDR;
 use dtb_aarch64::MachineMeta;
 #[cfg(target_arch = "riscv64")]
 use dtb_riscv64::MachineMeta;
-#[cfg(target_arch = "aarch64")]
-use libax::{
-    hv::{
-        self, GuestPageTable, GuestPageTableTrait, HyperCraftHalImpl, PerCpu,
-        Result, VCpu, VM, VmCpus,
-    },
-    info,
-};
 #[cfg(not(target_arch = "aarch64"))]
 use libax::{
     hv::{
-        self, GuestPageTable, GuestPageTableTrait, HyperCallMsg, HyperCraftHalImpl, PerCpu, phys_to_virt,
-        Result, VCpu, VM, VmCpus, VmExitInfo,
+        self, phys_to_virt, GuestPageTable, GuestPageTableTrait, HyperCallMsg, HyperCraftHalImpl,
+        PerCpu, Result, VCpu, VmCpus, VmExitInfo, VM,
+    },
+    info,
+};
+#[cfg(target_arch = "aarch64")]
+use libax::{
+    hv::{
+        self, GuestPageTable, GuestPageTableTrait, HyperCraftHalImpl, PerCpu, Result, VCpu, VmCpus,
+        VM,
     },
     info,
 };
 use page_table_entry::MappingFlags;
 
-#[cfg(target_arch = "riscv64")]
-mod dtb_riscv64;
-#[cfg(target_arch = "aarch64")]
-mod dtb_aarch64;
 #[cfg(target_arch = "aarch64")]
 mod aarch64_config;
+#[cfg(target_arch = "aarch64")]
+mod dtb_aarch64;
+#[cfg(target_arch = "riscv64")]
+mod dtb_riscv64;
 
 #[cfg(target_arch = "x86_64")]
 mod x64;
@@ -69,7 +69,7 @@ fn main(hart_id: usize) {
     #[cfg(target_arch = "aarch64")]
     {
         // boot cpu
-        PerCpu::<HyperCraftHalImpl>::init(0, 0x4000);   // change to pub const CPU_STACK_SIZE: usize = PAGE_SIZE * 128?
+        PerCpu::<HyperCraftHalImpl>::init(0, 0x4000); // change to pub const CPU_STACK_SIZE: usize = PAGE_SIZE * 128?
 
         // get current percpu
         let pcpu = PerCpu::<HyperCraftHalImpl>::this_cpu();
@@ -109,7 +109,11 @@ fn main(hart_id: usize) {
 
         return;
     }
-    #[cfg(not(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64")))]
+    #[cfg(not(any(
+        target_arch = "riscv64",
+        target_arch = "x86_64",
+        target_arch = "aarch64"
+    )))]
     {
         panic!("Other arch is not supported yet!")
     }
@@ -192,12 +196,12 @@ pub fn setup_gpm(dtb: usize) -> Result<GuestPageTable> {
 pub fn setup_gpm(dtb: usize, kernel_entry: usize) -> Result<GuestPageTable> {
     let mut gpt = GuestPageTable::new()?;
     let meta = MachineMeta::parse(dtb);
-    /* 
+    /*
     for virtio in meta.virtio.iter() {
         gpt.map_region(
             virtio.base_address,
             virtio.base_address,
-            0x1000, 
+            0x1000,
             MappingFlags::READ | MappingFlags::WRITE | MappingFlags::USER,
         )?;
         debug!("finish one virtio");

@@ -1,7 +1,10 @@
 use alloc::collections::BTreeMap;
 use core::fmt::{Debug, Formatter, Result};
 
-use libax::hv::{Error, GuestPageTable, GuestPageTableTrait, GuestPhysAddr, HostPhysAddr, HyperCraftHal, HyperCraftHalImpl, phys_to_virt, Result as HyperResult, virt_to_phys};
+use libax::hv::{
+    phys_to_virt, virt_to_phys, Error, GuestPageTable, GuestPageTableTrait, GuestPhysAddr,
+    HostPhysAddr, HyperCraftHal, HyperCraftHalImpl, Result as HyperResult,
+};
 use page_table_entry::MappingFlags;
 
 // about guests
@@ -201,7 +204,12 @@ fn load_guest_image(hpa: HostPhysAddr, load_gpa: GuestPhysAddr, size: usize) {
     let image_ptr = usize::from(phys_to_virt(hpa.into())) as *const u8;
     let image = unsafe { core::slice::from_raw_parts(image_ptr, size) };
 
-    trace!("loading to guest memory: host {:#x} to guest {:#x}, size {:#x}", image_ptr as usize, load_gpa, size);
+    trace!(
+        "loading to guest memory: host {:#x} to guest {:#x}, size {:#x}",
+        image_ptr as usize,
+        load_gpa,
+        size
+    );
 
     unsafe {
         core::slice::from_raw_parts_mut(gpa_as_mut_ptr(load_gpa), size).copy_from_slice(image)
@@ -222,7 +230,8 @@ pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
         GuestMemoryRegion {
             // RAM
             gpa: GUEST_PHYS_MEMORY_BASE,
-            hpa: virt_to_phys((gpa_as_mut_ptr(GUEST_PHYS_MEMORY_BASE) as HostVirtAddr).into()).into(),
+            hpa: virt_to_phys((gpa_as_mut_ptr(GUEST_PHYS_MEMORY_BASE) as HostVirtAddr).into())
+                .into(),
             size: GUEST_PHYS_MEMORY_SIZE,
             flags: MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
         },

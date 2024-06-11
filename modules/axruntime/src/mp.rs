@@ -27,12 +27,6 @@ pub fn start_secondary_cpus(primary_cpu_id: usize) {
     }
 }
 
-#[cfg(feature = "hv")]
-extern "C" {
-    fn hv_main_secondary(cpu_id: usize);
-}
-
-
 /// The main entry point of the ArceOS runtime for secondary CPUs.
 ///
 /// It is called from the bootstrapping code in [axhal].
@@ -65,12 +59,6 @@ pub extern "C" fn rust_main_secondary(cpu_id: usize) -> ! {
     }
     #[cfg(feature = "irq")]
     axhal::arch::enable_irqs();
-
-    #[cfg(feature = "hv")]
-    unsafe {
-        hv_main_secondary(cpu_id);
-    }
-
 
     #[cfg(feature = "multitask")]
     axtask::run_idle();

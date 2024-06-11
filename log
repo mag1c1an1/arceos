@@ -1,0 +1,102 @@
+c[?7l[2J[0mSeaBIOS (version 1.13.0-1ubuntu1.1)
+
+
+iPXE (http://ipxe.org) 00:02.0 CA00 PCI2.10 PnP PMM+7FF8C550+7FECC550 CA00
+Press Ctrl-B to configure iPXE (PCI 00:02.0)...                                                                               
+
+
+Booting from ROM..
+Initialize IDT & GDT...
+
+       d8888                            .d88888b.   .d8888b.
+      d88888                           d88P" "Y88b d88P  Y88b
+     d88P888                           888     888 Y88b.
+    d88P 888 888d888  .d8888b  .d88b.  888     888  "Y888b.
+   d88P  888 888P"   d88P"    d8P  Y8b 888     888     "Y88b.
+  d88P   888 888     888      88888888 888     888       "888
+ d8888888888 888     Y88b.    Y8b.     Y88b. .d88P Y88b  d88P
+d88P     888 888      "Y8888P  "Y8888   "Y88888P"   "Y8888P"
+
+arch = x86_64
+platform = pc-x86
+smp = 1
+build_mode = release
+log_level = info
+
+[37m[  0.002646 axruntime:137] [32mLogging is enabled.[m
+[m[37m[  0.002937 axruntime:138] [32mPrimary CPU 0 started, dtb = 0x0.[m
+[m[37m[  0.003291 axruntime:143] [32mFound physical memory regions:[m
+[m[37m[  0.003629 axruntime:145] [32m  [PA:0x0, PA:0x9f000) low memory (READ | WRITE | RESERVED)[m
+[m[37m[  0.004101 axruntime:145] [32m  [PA:0x200000, PA:0x219000) .text (READ | EXECUTE | RESERVED)[m
+[m[37m[  0.004585 axruntime:145] [32m  [PA:0x219000, PA:0x21d000) .rodata (READ | RESERVED)[m
+[m[37m[  0.005032 axruntime:145] [32m  [PA:0x21d000, PA:0x224000) .data (READ | WRITE | RESERVED)[m
+[m[37m[  0.005507 axruntime:145] [32m  [PA:0x224000, PA:0x225000) .percpu (READ | WRITE | RESERVED)[m
+[m[37m[  0.005993 axruntime:145] [32m  [PA:0x225000, PA:0x265000) boot stack (READ | WRITE | RESERVED)[m
+[m[37m[  0.006489 axruntime:145] [32m  [PA:0x265000, PA:0x2289000) .bss (READ | WRITE | RESERVED)[m
+[m[37m[  0.006966 axruntime:145] [32m  [PA:0xb0000000, PA:0xc0000000) mmio (READ | WRITE | DEVICE | RESERVED)[m
+[m[37m[  0.007496 axruntime:145] [32m  [PA:0xfe000000, PA:0xfec00000) mmio (READ | WRITE | DEVICE | RESERVED)[m
+[m[37m[  0.008028 axruntime:145] [32m  [PA:0xfec00000, PA:0xfec01000) mmio (READ | WRITE | DEVICE | RESERVED)[m
+[m[37m[  0.008557 axruntime:145] [32m  [PA:0xfed00000, PA:0xfed01000) mmio (READ | WRITE | DEVICE | RESERVED)[m
+[m[37m[  0.009087 axruntime:145] [32m  [PA:0xfee00000, PA:0xfee01000) mmio (READ | WRITE | DEVICE | RESERVED)[m
+[m[37m[  0.009616 axruntime:145] [32m  [PA:0x2289000, PA:0x8000000) free memory (READ | WRITE | FREE)[m
+[m[37m[  0.010112 axruntime:156] [32mInitialize global memory allocator...[m
+[m[37m[  0.010487 axruntime:169] [32mInitialize platform devices...[m
+[m[37m[  0.010827 axhal::platform::pc_x86::apic:87] [32mInitialize Local APIC...[m
+[m[37m[  0.011234 axhal::platform::pc_x86::apic:102] [32mUsing x2APIC.[m
+[m[37m[  0.011616 axhal::platform::pc_x86::apic:116] [32mInitialize IO APIC...[m
+[m[37m[  0.012015 axruntime:195] [32mInitialize interrupt handlers...[m
+[m[37m[  0.012367 axruntime:199] [32mPrimary CPU 0 init OK.[m
+[mHello, hv!
+into main [hart_id: 0]
+[37m[  0.012854 0 hypercraft::arch::percpu:31] [32mVMX enabled on cpu 0.[m
+[m[37m[  0.013349 0 arceos_hv:99] [32mGuestPhysMemorySet {
+    page_table_root: 0x2292000,
+    regions: {
+        0x0: MapRegion {
+            range: 0x0..0x2000000,
+            size: 0x2000000,
+            flags: MappingFlags(
+                READ | WRITE | EXECUTE,
+            ),
+            mapper: Offset(
+                0xffffffffffd9b000,
+            ),
+        },
+        0xfec00000: MapRegion {
+            range: 0xfec00000..0xfec01000,
+            size: 0x1000,
+            flags: MappingFlags(
+                READ | WRITE | DEVICE,
+            ),
+            mapper: Offset(
+                0x0,
+            ),
+        },
+        0xfed00000: MapRegion {
+            range: 0xfed00000..0xfed01000,
+            size: 0x1000,
+            flags: MappingFlags(
+                READ | WRITE | DEVICE,
+            ),
+            mapper: Offset(
+                0x0,
+            ),
+        },
+        0xfee00000: MapRegion {
+            range: 0xfee00000..0xfee01000,
+            size: 0x1000,
+            flags: MappingFlags(
+                READ | WRITE | DEVICE,
+            ),
+            mapper: Offset(
+                0x0,
+            ),
+        },
+    },
+}[m
+[m[37m[  0.019077 0 hypercraft::arch::vmx::vcpu:49] [32m[HV] created VmxVcpu(vmcs: 0x22b8000)[m
+[mRunning guest...
+[37m[  0.019657 0 axruntime::lang_items:5] [31mpanicked at 'vmexit reason not supported EPT_VIOLATION:
+VmxVcpu { guest_regs: GeneralRegisters { rax: 464367618, rcx: 2097152, rdx: 0, rbx: 0, _unused_rsp: 0, rbp: 0, rsi: 0, rdi: 0, r8: 0, r9: 0, r10: 0, r11: 0, r12: 0, r13: 0, r14: 0, r15: 0 }, rip: 2097152, rsp: 28672, rflags: 65538, cr0: 49, cr3: 0, cr4: 8192, cs: 8, fs_base: 0, gs_base: 0, tss: 0 }', modules/axruntime/src/hv/vmx/mod.rs:185:14[m
+[mQEMU: Terminated
+

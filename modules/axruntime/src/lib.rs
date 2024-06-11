@@ -42,7 +42,6 @@ pub use gpm::GuestPageTable;
 #[cfg(feature = "hv")]
 pub use hv::HyperCraftHalImpl;
 
-
 const LOGO: &str = r#"
        d8888                            .d88888b.   .d8888b.
       d88888                           d88P" "Y88b d88P  Y88b
@@ -303,7 +302,7 @@ fn init_interrupt() {
         axtask::on_timer_tick();
     });
 
-    /* 
+    /*
     #[cfg(all(feature = "hv", target_arch = "aarch64"))]
     {
         hv::interrupt_register_for_aarch64_hv();
