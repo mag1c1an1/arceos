@@ -6,7 +6,7 @@ platform = "pc-x86-hv-guest"
 # Base address of the whole physical memory.
 phys-memory-base = "0"
 # Size of the whole physical memory.
-phys-memory-size = "0x100_0000" # 128M
+phys-memory-size = "0x100_0000" # 16M
 # Base physical address of the kernel image.
 kernel-base-paddr = "0x20_0000"
 # Base virtual address of the kernel image.
@@ -22,3 +22,6 @@ mmio-regions = [
 ]
 # VirtIO MMIO regions with format (`base_paddr`, `size`).
 virtio-mmio-regions = []
+
+# Timer interrupt frequencyin Hz.
+timer-frequency = "4_000_000_000"   # 4.0GHz

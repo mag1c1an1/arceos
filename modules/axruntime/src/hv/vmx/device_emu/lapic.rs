@@ -1,7 +1,7 @@
 //! Emulated Local APIC. (SDM Vol. 3A, Chapter 10)
 
 #![allow(dead_code)]
-use hypercraft::{VCpu as HVCpu, HyperResult, HyperError};
+use hypercraft::{HyperError, HyperResult, VCpu as HVCpu};
 
 type VCpu = HVCpu<crate::hv::HyperCraftHalImpl>;
 
@@ -84,6 +84,10 @@ impl VirtLocalApic {
             SIVR | LVT_THERMAL | LVT_PMI | LVT_LINT0 | LVT_LINT1 | LVT_ERR => {
                 Ok(()) // ignore these register writes
             }
+            ICR => {
+                debug!("in icr value: 0B{:b}", value);
+                Err(HyperError::NotSupported)
+            } // FIXME:
             LVT_TIMER => apic_timer.set_lvt_timer(value as u32),
             INIT_COUNT => apic_timer.set_initial_count(value as u32),
             DIV_CONF => apic_timer.set_divide(value as u32),

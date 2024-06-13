@@ -53,7 +53,8 @@ impl MapRegion {
         assert!(is_aligned(start_gpa));
         assert!(is_aligned(start_hpa));
         assert!(is_aligned(size));
-        let offset = start_gpa - start_hpa;
+        // let offset = start_gpa - start_hpa;
+        let offset = start_gpa.wrapping_sub(start_hpa);
         Self {
             start: start_gpa,
             size,

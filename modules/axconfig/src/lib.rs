@@ -16,14 +16,29 @@
 
 cfg_if::cfg_if! {
     // add `not(target_os = "none")` check to use in `build.rs`
-    if #[cfg(all(
+    if #[cfg(
+        any(target_arch = "x86_64", not(target_os = "none"))
+    )] {
+        cfg_if::cfg_if! {
+        if #[cfg(feature="platform-pc-x86-hv-guest")] {
+            #[rustfmt::skip]
+            #[path = "config_pc_x86_hv_guest.rs"]
+            mod config;
+        } else {
+            #[rustfmt::skip]
+            #[path = "config_pc_x86.rs"]
+            mod config;
+            }
+        }
+    } else if #[cfg(all(
         any(target_arch = "x86_64", not(target_os = "none")),
-        feature = "platform-pc-x86"
+        feature = "platform-pc-x86-hv-guest"
     ))] {
         #[rustfmt::skip]
-        #[path = "config_pc_x86.rs"]
+        #[path = "config_pc_x86_hv_guest.rs"]
         mod config;
-    } else if #[cfg(all(
+    }
+    else if #[cfg(all(
         any(target_arch = "riscv32", target_arch = "riscv64", not(target_os = "none")),
         feature = "platform-qemu-virt-riscv"
     ))] {
