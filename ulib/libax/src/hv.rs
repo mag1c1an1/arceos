@@ -10,4 +10,4 @@ pub use hypercraft::GuestPageTableTrait;
 pub use hypercraft::HyperCraftHal;
 pub use hypercraft::HyperError as Error;
 pub use hypercraft::HyperResult as Result;
-
+pub use hypercraft::smp::*;

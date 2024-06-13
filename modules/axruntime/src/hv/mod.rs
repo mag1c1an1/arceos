@@ -1,9 +1,9 @@
 use axalloc::global_allocator;
-use axhal::mem::{PAGE_SIZE_4K, phys_to_virt, virt_to_phys};
+use axhal::mem::{phys_to_virt, virt_to_phys, PAGE_SIZE_4K};
 use hypercraft::{HostPhysAddr, HostVirtAddr, HyperCraftHal, HyperResult, VCpu};
 
 #[cfg(target_arch = "x86_64")]
-mod vmx;
+pub mod vmx;
 
 /// An empty struct to implementate of `HyperCraftHal`
 pub struct HyperCraftHalImpl;
@@ -36,7 +36,7 @@ impl HyperCraftHal for HyperCraftHalImpl {
     }
 
     #[cfg(target_arch = "x86_64")]
-    fn current_time_nanos() -> u64 { 
+    fn current_time_nanos() -> u64 {
         axhal::time::current_time_nanos()
     }
 }

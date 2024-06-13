@@ -1,4 +1,5 @@
 mod device_emu;
+pub mod smp;
 
 use device_emu::VirtLocalApic;
 use hypercraft::{HyperError, HyperResult, VCpu as HVCpu, VmxExitInfo, VmxExitReason};
@@ -189,3 +190,6 @@ pub fn vmexit_handler(vcpu: &mut VCpu) -> HyperResult {
         ),
     }
 }
+
+/// ipi irq
+pub const HV_VIRT_IPI: usize = 233;

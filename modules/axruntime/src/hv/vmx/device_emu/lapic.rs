@@ -1,7 +1,33 @@
 //! Emulated Local APIC. (SDM Vol. 3A, Chapter 10)
 
 #![allow(dead_code)]
+
+use alloc::vec;
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicBool, Ordering};
+use spin::Mutex;
+use spin::once::Once;
+use x2apic::lapic::IpiAllShorthand::AllExcludingSelf;
+use axconfig::SMP;
+use crate::hv::vmx::smp::{DeliveryMode, Icr};
 use hypercraft::{HyperError, HyperResult, VCpu as HVCpu};
+use hypercraft::smp::{broadcast_message, Message, send_message, Signal};
+use crate::hv::vmx::HV_VIRT_IPI;
+
+
+pub static BOOT_VEC: AtomicBool = AtomicBool::new(false);
+
+
+// fn init_boot_vec(smp: usize) {
+//     BOOT_VEC.call_once(|| {
+//         let mut v = vec![];
+//         for i in 0..smp {
+//             v.push(false);
+//         }
+//         Mutex::new(v)
+//     });
+// }
+
 
 type VCpu = HVCpu<crate::hv::HyperCraftHalImpl>;
 
@@ -84,14 +110,46 @@ impl VirtLocalApic {
             SIVR | LVT_THERMAL | LVT_PMI | LVT_LINT0 | LVT_LINT1 | LVT_ERR => {
                 Ok(()) // ignore these register writes
             }
-            ICR => {
-                debug!("in icr value: 0B{:b}", value);
-                Err(HyperError::NotSupported)
-            } // FIXME:
+            ICR => send_ipi(value), // FIXME:
             LVT_TIMER => apic_timer.set_lvt_timer(value as u32),
             INIT_COUNT => apic_timer.set_initial_count(value as u32),
             DIV_CONF => apic_timer.set_divide(value as u32),
             _ => Err(HyperError::NotSupported),
+        }
+    }
+}
+
+fn send_ipi(value: u64) -> HyperResult {
+    unsafe {
+        let icr = Icr(value);
+        debug!("icr: {:?}", icr);
+        debug!("in icr value:  {:X}H", value);
+        let mode = DeliveryMode::try_from(icr.delivery_mode()).unwrap();
+        match mode {
+            DeliveryMode::Fixed => todo!(),
+            DeliveryMode::LowPriority => todo!(),
+            DeliveryMode::SMI => todo!(),
+            DeliveryMode::NMI => todo!(),
+            DeliveryMode::INIT => {
+                debug!("ignore INIT IPI");
+                Ok(())
+            }
+            DeliveryMode::StartUp => {
+                debug!("send start up ipi");
+                /// FIXME
+                /// just send a ipi to others
+                let msg = Message {
+                    dest: 0,
+                    signal: Signal::Start,
+                    args: vec![icr.vector() as usize],
+                };
+                if !BOOT_VEC.load(Ordering::Relaxed) {
+                    broadcast_message(msg);
+                    axhal::mp::send_ipi_all(HV_VIRT_IPI as u8, AllExcludingSelf);
+                    BOOT_VEC.store(true,Ordering::Relaxed);
+                }
+                Ok(())
+            }
         }
     }
 }

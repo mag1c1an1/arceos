@@ -1,3 +1,6 @@
+use alloc::vec;
+use x2apic::lapic::IpiAllShorthand;
+use axconfig::SMP;
 use crate::mem::{phys_to_virt, PhysAddr, PAGE_SIZE_4K};
 use crate::time::{busy_wait, Duration};
 
@@ -18,6 +21,7 @@ unsafe fn setup_startup_page(stack_top: PhysAddr) {
     const U64_PER_PAGE: usize = PAGE_SIZE_4K / 8;
 
     let start_page_ptr = phys_to_virt(START_PAGE_PADDR).as_mut_ptr() as *mut u64;
+    debug!("ap start addr {:x}", START_PAGE_PADDR);
     let start_page = core::slice::from_raw_parts_mut(start_page_ptr, U64_PER_PAGE);
     core::ptr::copy_nonoverlapping(
         ap_start as *const u64,
@@ -42,4 +46,18 @@ pub fn start_secondary_cpu(apic_id: usize, stack_top: PhysAddr) {
     unsafe { lapic.send_sipi(START_PAGE_IDX, apic_id) };
     busy_wait(Duration::from_micros(200)); // 200us
     unsafe { lapic.send_sipi(START_PAGE_IDX, apic_id) };
+}
+
+/// send ipi to all
+pub fn send_ipi_all(vector: u8, who: IpiAllShorthand) {
+    let lapic = super::apic::local_apic();
+    unsafe {
+        lapic.send_ipi_all(vector, who);
+    }
+}
+
+
+/// smp
+pub fn smp_num() -> usize {
+    SMP
 }

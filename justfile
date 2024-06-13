@@ -7,10 +7,10 @@ GUEST_ELF := "apps/helloworld/helloworld_pc-x86-hv-guest.elf"
 GUEST_BIN := "apps/helloworld/helloworld_pc-x86-hv-guest.bin"
 
 guest:
-  make ARCH=x86_64 A=apps/{{app}} PLATFORM=pc-x86-hv-guest LOG=debug SMP=2 build
+  make ARCH=x86_64 A=apps/{{app}} PLATFORM=pc-x86-hv-guest LOG=debug MODE=debug SMP=2 build
 
 build:
-  make ARCH=x86_64 A=apps/hv HV=y LOG=debug GUEST=nimbos SMP=2 build 
+  make ARCH=x86_64 A=apps/hv HV=y LOG=debug GUEST=nimbos MODE=debug SMP=2 build 
 
 hv-build:
   cargo rustc --target x86_64-unknown-none --target-dir target --features "libax/platform-pc-x86 libax/log-level-info libax/hv  libax/irq libax/bus-pci "  --manifest-path apps/hv/Cargo.toml -- -Clink-args="-T/home/maji/hv-related/arceos/modules/axhal/linker_pc-x86_hv.lds -no-pie"

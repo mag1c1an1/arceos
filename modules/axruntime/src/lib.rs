@@ -21,6 +21,7 @@
 
 #[macro_use]
 extern crate axlog;
+extern crate alloc;
 
 #[cfg(all(target_os = "none", not(test)))]
 mod lang_items;
@@ -302,12 +303,16 @@ fn init_interrupt() {
         axtask::on_timer_tick();
     });
 
-    /*
-    #[cfg(all(feature = "hv", target_arch = "aarch64"))]
+    #[cfg(all(feature = "hv", target_arch = "x86_64", feature = "smp"))]
     {
-        hv::interrupt_register_for_aarch64_hv();
+        debug!("hv virt ipi register");
+        axhal::irq::register_handler(hv::vmx::HV_VIRT_IPI, || unsafe {
+            extern "Rust" {
+                fn hv_virt_ipi_handler(hart_id: usize);
+            }
+            hv_virt_ipi_handler(axhal::cpu::this_cpu_id())
+        });
     }
-    */
     // Enable IRQs before starting app
     axhal::arch::enable_irqs();
 }

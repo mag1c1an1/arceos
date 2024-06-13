@@ -9,6 +9,8 @@ static mut SECONDARY_BOOT_STACK: [[u8; TASK_STACK_SIZE]; SMP - 1] = [[0; TASK_ST
 static ENTERED_CPUS: AtomicUsize = AtomicUsize::new(1);
 
 pub fn start_secondary_cpus(primary_cpu_id: usize) {
+    debug!("start secondary cpus");
+    debug!("smp is {}",SMP);
     let mut logic_cpu_id = 0;
     for i in 0..SMP {
         if i != primary_cpu_id {
