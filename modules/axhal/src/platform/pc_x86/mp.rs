@@ -1,4 +1,3 @@
-use alloc::vec;
 use x2apic::lapic::IpiAllShorthand;
 use axconfig::SMP;
 use crate::mem::{phys_to_virt, PhysAddr, PAGE_SIZE_4K};

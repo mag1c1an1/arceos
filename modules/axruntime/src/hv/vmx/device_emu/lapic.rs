@@ -3,15 +3,14 @@
 #![allow(dead_code)]
 
 use alloc::vec;
-use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
-use spin::Mutex;
+use cfg_if::cfg_if;
 use spin::once::Once;
 use x2apic::lapic::IpiAllShorthand::AllExcludingSelf;
 use axconfig::SMP;
 use crate::hv::vmx::smp::{DeliveryMode, Icr};
 use hypercraft::{HyperError, HyperResult, VCpu as HVCpu};
-use hypercraft::smp::{broadcast_message, Message, send_message, Signal};
+use hypercraft::smp::{broadcast_message, Message, Signal};
 use crate::hv::vmx::HV_VIRT_IPI;
 
 
@@ -110,7 +109,15 @@ impl VirtLocalApic {
             SIVR | LVT_THERMAL | LVT_PMI | LVT_LINT0 | LVT_LINT1 | LVT_ERR => {
                 Ok(()) // ignore these register writes
             }
-            ICR => send_ipi(value), // FIXME:
+            ICR => {
+                cfg_if! {
+                    if #[cfg(feature = "smp")] {
+                        send_ipi(value)
+                    }else {
+                        Err(HyperError::NotSupported)
+                    }
+                }
+            } // FIXME:
             LVT_TIMER => apic_timer.set_lvt_timer(value as u32),
             INIT_COUNT => apic_timer.set_initial_count(value as u32),
             DIV_CONF => apic_timer.set_divide(value as u32),
@@ -119,6 +126,7 @@ impl VirtLocalApic {
     }
 }
 
+#[cfg(feature = "smp")]
 fn send_ipi(value: u64) -> HyperResult {
     unsafe {
         let icr = Icr(value);
@@ -136,8 +144,8 @@ fn send_ipi(value: u64) -> HyperResult {
             }
             DeliveryMode::StartUp => {
                 debug!("send start up ipi");
-                /// FIXME
-                /// just send a ipi to others
+                // FIXME
+                // just send a ipi to others
                 let msg = Message {
                     dest: 0,
                     signal: Signal::Start,
@@ -146,7 +154,7 @@ fn send_ipi(value: u64) -> HyperResult {
                 if !BOOT_VEC.load(Ordering::Relaxed) {
                     broadcast_message(msg);
                     axhal::mp::send_ipi_all(HV_VIRT_IPI as u8, AllExcludingSelf);
-                    BOOT_VEC.store(true,Ordering::Relaxed);
+                    BOOT_VEC.store(true, Ordering::Relaxed);
                 }
                 Ok(())
             }

@@ -10,7 +10,7 @@ cfg_if::cfg_if! {
 cfg_if::cfg_if! {
     if #[cfg(all(
         target_arch = "x86_64",
-        feature = "platform-pc-x86"
+        any(feature = "platform-pc-x86",feature = "platform-pc-x86-hv-guest",feature = "platform-pc-x86-hv")
     ))] {
         mod pc_x86;
         pub use self::pc_x86::*;

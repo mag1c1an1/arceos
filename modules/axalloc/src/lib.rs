@@ -88,9 +88,10 @@ impl GlobalAllocator {
                 let expand_size = old_size.max(size).next_power_of_two().max(PAGE_SIZE);
                 let heap_ptr = self.alloc_pages(expand_size / PAGE_SIZE, PAGE_SIZE)?;
                 debug!(
-                    "expand heap memory: [{:#x}, {:#x})",
+                    "expand heap memory: [{:#x}, {:#x}) size: {}",
                     heap_ptr,
-                    heap_ptr + expand_size
+                    heap_ptr + expand_size,
+                    expand_size,
                 );
                 balloc.add_memory(heap_ptr, expand_size)?;
             }

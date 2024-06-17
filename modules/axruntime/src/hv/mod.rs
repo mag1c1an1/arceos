@@ -5,7 +5,7 @@ use hypercraft::{HostPhysAddr, HostVirtAddr, HyperCraftHal, HyperResult, VCpu};
 #[cfg(target_arch = "x86_64")]
 pub mod vmx;
 
-/// An empty struct to implementate of `HyperCraftHal`
+/// An empty struct to implement of `HyperCraftHal`
 pub struct HyperCraftHalImpl;
 
 impl HyperCraftHal for HyperCraftHalImpl {

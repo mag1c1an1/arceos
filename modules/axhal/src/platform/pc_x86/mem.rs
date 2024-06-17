@@ -27,7 +27,10 @@ pub(crate) fn memory_region_at(idx: usize) -> Option<MemRegion> {
             fn ekernel();
         }
         let start = virt_to_phys((ekernel as usize).into()).align_up_4k();
+        debug!("start(ekernel) {:?}", start);
+        debug!("phy mem size 0x{:x}",axconfig::PHYS_MEMORY_SIZE);
         let end = PhysAddr::from(axconfig::PHYS_MEMORY_END).align_down_4k();
+        debug!("end {:?}", end);
         Some(MemRegion {
             paddr: start,
             size: end.as_usize() - start.as_usize(),

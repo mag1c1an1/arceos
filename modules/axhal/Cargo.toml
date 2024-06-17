@@ -15,6 +15,8 @@ fp_simd = []
 paging = ["axalloc", "page_table"]
 irq = []
 platform-pc-x86 = ["axconfig/platform-pc-x86", "dep:ratio"]
+platform-pc-x86-hv = ["axconfig/platform-pc-x86-hv", "dep:ratio"]
+platform-pc-x86-hv-guest = ["axconfig/platform-pc-x86-hv-guest", "dep:ratio"]
 platform-qemu-virt-riscv = ["axconfig/platform-qemu-virt-riscv"]
 platform-qemu-virt-aarch64 = [
     "axconfig/platform-qemu-virt-aarch64",

@@ -32,7 +32,7 @@ endif
 
 qemu_args-x86_64 := \
   -machine q35 \
-  -kernel $(OUT_ELF)
+  -kernel $(OUT_BIN)
 
 qemu_args-riscv64 := \
   -machine virt \

@@ -386,6 +386,7 @@ dependencies = [
  "axtask",
  "bitfield",
  "bitflags 1.3.2",
+ "cfg-if",
  "crate_interface 0.1.1",
  "hypercraft",
  "kernel_guard",

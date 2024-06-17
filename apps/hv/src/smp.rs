@@ -1,8 +1,4 @@
-use alloc::vec::Vec;
-use spin::Mutex;
 use libax::hv::{HyperCraftHalImpl, PerCpu, receive_message};
-
-use spin::once::Once;
 use crate::x64;
 
 
@@ -32,7 +28,7 @@ fn ap_start(hart_id: usize, start_addr: usize) {
         .create_vcpu(start_addr, gpm.nest_page_table_root())
         .unwrap();
 
-    println!("Running guest...");
+    println!("[{}] Running guest...", hart_id);
     vcpu.run();
 
     p.hardware_disable().unwrap();

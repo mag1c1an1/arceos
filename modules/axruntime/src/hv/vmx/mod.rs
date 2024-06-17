@@ -185,8 +185,10 @@ pub fn vmexit_handler(vcpu: &mut VCpu) -> HyperResult {
         VmxExitReason::MSR_WRITE => handle_msr_write(vcpu),
         VmxExitReason::SIPI => todo!("todo sipi"),
         VmxExitReason::CR_ACCESS => handle_cr_access(vcpu, &exit_info),
+        // VmxExitReason::EPT_VIOLATION => ,
         _ => panic!(
-            "vmexit reason not supported {:?}:\n{:?}",
+            "[{}] vmexit reason not supported {:?}:\n{:?}",
+            vcpu.vcpu_id(),
             exit_info.exit_reason, vcpu
         ),
     }

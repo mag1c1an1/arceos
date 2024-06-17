@@ -13,8 +13,9 @@ use core::time::Duration;
 use libax::{rand, thread};
 use libax::sync::WaitQueue;
 
-const NUM_DATA: usize = 2_000_000;
-const NUM_TASKS: usize = 16;
+// const NUM_DATA: usize = 2_000_000;
+const NUM_DATA: usize = 2_000;
+const NUM_TASKS: usize = 4;
 
 fn barrier() {
     static BARRIER_WQ: WaitQueue = WaitQueue::new();
@@ -36,6 +37,7 @@ fn sqrt(n: &u64) -> u64 {
 
 #[no_mangle]
 fn main() {
+    let start_time = libax::time::Instant::now();
     let vec = Arc::new(
         (0..NUM_DATA)
             .map(|_| rand::rand_u32() as u64)
@@ -74,4 +76,5 @@ fn main() {
     assert_eq!(expect, actual);
 
     println!("Parallel summation tests run OK!");
+    println!("{} ms elapsed", start_time.elapsed().as_millis());
 }

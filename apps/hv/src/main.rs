@@ -27,7 +27,6 @@ use libax::{
     },
     info,
 };
-use libax::env::smp_num;
 use libax::hv::init_virt_ipi;
 use page_table_entry::MappingFlags;
 use crate::x64::load_bios_and_image;
@@ -43,7 +42,6 @@ mod dtb_riscv64;
 mod x64;
 
 mod smp;
-// mod gdbserver;
 
 #[no_mangle]
 fn main(hart_id: usize) {
@@ -97,7 +95,7 @@ fn main(hart_id: usize) {
     {
         println!("into main [hart_id: {}]", hart_id);
 
-        init_virt_ipi(hart_id, smp_num());
+        init_virt_ipi(hart_id, libax::env::smp_num());
 
         let mut p = PerCpu::<HyperCraftHalImpl>::new(hart_id);
         p.hardware_enable().unwrap();
@@ -110,7 +108,7 @@ fn main(hart_id: usize) {
             .create_vcpu(x64::BIOS_ENTRY, gpm.nest_page_table_root())
             .unwrap();
 
-        println!("Running guest...");
+        println!("[{}] Running guest...",hart_id);
         vcpu.run();
 
         p.hardware_disable().unwrap();
@@ -301,9 +299,4 @@ pub fn setup_gpm(dtb: usize, kernel_entry: usize) -> Result<GuestPageTable> {
     let paddr = gpt.translate(gaddr).unwrap();
     debug!("this is paddr for 0x{:X}: 0x{:X}", gaddr, paddr);
     Ok(gpt)
-}
-
-
-fn hv_second_entry() {
-    debug!("hv second entry")
 }
