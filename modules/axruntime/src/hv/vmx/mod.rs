@@ -184,6 +184,7 @@ pub fn vmexit_handler(vcpu: &mut VCpu) -> HyperResult {
         VmxExitReason::MSR_READ => handle_msr_read(vcpu),
         VmxExitReason::MSR_WRITE => handle_msr_write(vcpu),
         VmxExitReason::SIPI => todo!("todo sipi"),
+        VmxExitReason::CR_ACCESS => handle_cr_access(vcpu, &exit_info),
         _ => panic!(
             "vmexit reason not supported {:?}:\n{:?}",
             exit_info.exit_reason, vcpu
@@ -191,5 +192,11 @@ pub fn vmexit_handler(vcpu: &mut VCpu) -> HyperResult {
     }
 }
 
+
 /// ipi irq
 pub const HV_VIRT_IPI: usize = 233;
+
+fn handle_cr_access(vcpu: &mut VCpu, exit_info: &VmxExitInfo) -> HyperResult {
+    error!("{:?}",exit_info);
+    panic!("gg");
+}

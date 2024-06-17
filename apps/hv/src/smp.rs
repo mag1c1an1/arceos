@@ -1,37 +1,9 @@
-// use libax::hv::{HyperCraftHalImpl, PerCpu};
-
 use alloc::vec::Vec;
 use spin::Mutex;
 use libax::hv::{HyperCraftHalImpl, PerCpu, receive_message};
 
 use spin::once::Once;
 use crate::x64;
-
-
-
-#[no_mangle]
-fn hv_main_secondary(hart_id: usize) {
-    println!("[hart_id: {}] enter main secondary", hart_id);
-    // should hlt
-    // #[cfg(target_arch = "x86_64")]
-    // {
-    //     let mut p = PerCpu::<HyperCraftHalImpl>::new(hart_id);
-    //     p.hardware_enable().unwrap();
-
-    //     let gpm = x64::setup_gpm().unwrap();
-    //     info!("{:#x?}", gpm);
-
-    //     let mut vcpu = p
-    //         .create_vcpu(x64::BIOS_ENTRY, gpm.nest_page_table_root())
-    //         .unwrap();
-
-    //     println!("Running guest...");
-    //     vcpu.run();
-    //     p.hardware_disable().unwrap();
-
-    //     return;
-    // }
-}
 
 
 #[no_mangle]

@@ -30,6 +30,7 @@ use libax::{
 use libax::env::smp_num;
 use libax::hv::init_virt_ipi;
 use page_table_entry::MappingFlags;
+use crate::x64::load_bios_and_image;
 
 #[cfg(target_arch = "aarch64")]
 mod aarch64_config;
@@ -42,6 +43,7 @@ mod dtb_riscv64;
 mod x64;
 
 mod smp;
+// mod gdbserver;
 
 #[no_mangle]
 fn main(hart_id: usize) {
@@ -100,6 +102,7 @@ fn main(hart_id: usize) {
         let mut p = PerCpu::<HyperCraftHalImpl>::new(hart_id);
         p.hardware_enable().unwrap();
 
+        load_bios_and_image();
         let gpm = x64::setup_gpm().unwrap();
         info!("{:#x?}", gpm);
 

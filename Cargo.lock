@@ -93,6 +93,7 @@ version = "0.1.0"
 dependencies = [
  "arrayvec",
  "fdt",
+ "gdbstub",
  "libax",
  "page_table_entry",
  "spin 0.9.8",
@@ -844,6 +845,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
 dependencies = [
  "num-traits",
+]
+
+[[package]]
+name = "gdbstub"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6341b3480afbb34eaefc7f92713bc92f2d83e338aaa1c44192f9c2956f4a4903"
+dependencies = [
+ "bitflags 2.3.2",
+ "cfg-if",
+ "log",
+ "managed",
+ "num-traits",
+ "paste",
 ]
 
 [[package]]

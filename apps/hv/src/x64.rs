@@ -217,13 +217,18 @@ fn load_guest_image(hpa: HostPhysAddr, load_gpa: GuestPhysAddr, size: usize) {
     }
 }
 
+/// load
+pub fn load_bios_and_image() {
+    load_guest_image(BIOS_PADDR, BIOS_ENTRY, BIOS_SIZE);
+    load_guest_image(GUEST_IMAGE_PADDR, GUEST_ENTRY, GUEST_IMAGE_SIZE);
+}
+
+
 #[cfg(target_arch = "x86_64")]
 pub fn setup_gpm() -> HyperResult<GuestPhysMemorySet> {
     // copy BIOS and guest images
 
     use libax::hv::HostVirtAddr;
-    load_guest_image(BIOS_PADDR, BIOS_ENTRY, BIOS_SIZE);
-    load_guest_image(GUEST_IMAGE_PADDR, GUEST_ENTRY, GUEST_IMAGE_SIZE);
 
     // create nested page table and add mapping
     let mut gpm = GuestPhysMemorySet::new()?;
