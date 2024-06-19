@@ -3,5 +3,3 @@
 #[cfg(feature = "fs")]
 pub use axfs::api::{current_dir, set_current_dir};
 
-#[cfg(feature = "smp")]
-pub use axhal::mp::smp_num;

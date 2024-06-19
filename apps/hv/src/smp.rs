@@ -1,5 +1,5 @@
 use libax::hv::{HyperCraftHalImpl, PerCpu, receive_message};
-use crate::x64;
+use crate::{GUEST_PHY_MEMORY_SET, x64};
 
 
 #[no_mangle]
@@ -25,7 +25,7 @@ fn ap_start(hart_id: usize, start_addr: usize) {
     info!("{:#x?}", gpm);
 
     let mut vcpu = p
-        .create_vcpu(start_addr, gpm.nest_page_table_root())
+        .create_vcpu(start_addr, GUEST_PHY_MEMORY_SET.get().unwrap().nest_page_table_root())
         .unwrap();
 
     println!("[{}] Running guest...", hart_id);

@@ -54,9 +54,3 @@ pub fn send_ipi_all(vector: u8, who: IpiAllShorthand) {
         lapic.send_ipi_all(vector, who);
     }
 }
-
-
-/// smp
-pub fn smp_num() -> usize {
-    SMP
-}

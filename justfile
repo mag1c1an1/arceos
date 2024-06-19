@@ -1,7 +1,7 @@
 app_path := "apps/task/" + app_name
 app_name := "parallel"
 
-smp := "1"
+smp := "3"
 
 log := "debug"
 mode := "debug"
@@ -33,4 +33,4 @@ run *flags: build guest
 
 gdb:
 	gdb {{HV_ELF}} \
-	  -ex 'target remote localhost:1234' \
+	  -ex 'target remote localhost:1234'

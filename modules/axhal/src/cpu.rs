@@ -91,3 +91,9 @@ pub(crate) fn init_secondary(cpu_id: usize) {
         IS_BSP.write_current_raw(false);
     }
 }
+
+
+pub fn num_cpus() -> usize
+{
+    axconfig::SMP
+}
