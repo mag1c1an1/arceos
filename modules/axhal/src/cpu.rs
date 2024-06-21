@@ -93,7 +93,7 @@ pub(crate) fn init_secondary(cpu_id: usize) {
 }
 
 
-pub fn num_cpus() -> usize
+pub const fn num_cpus() -> usize
 {
     axconfig::SMP
 }

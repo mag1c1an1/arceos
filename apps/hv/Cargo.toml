@@ -7,8 +7,9 @@ edition = "2021"
 
 [dependencies]
 libax = { path = "../../ulib/libax", features = ["alloc", "hv", "smp"] }
+bitvec = { version = "1", default-features = false, features = ["alloc"] }
 page_table_entry = { path = "../../crates/page_table_entry" }
 fdt = { version = "0.1.5" }
 arrayvec = { version = "0.7.2", default-features = false }
 spin = "0.9"
-gdbstub = {version = "0.7", default-features = false, features = ["alloc"]}
+gdbstub = { version = "0.7", default-features = false, features = ["alloc"] }

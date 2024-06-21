@@ -28,7 +28,7 @@ use libax::{
     },
     info,
 };
-use libax::hv::init_virt_ipi;
+use libax::hv::{create_vm, init_virt_ipi, nimbos_config};
 use page_table_entry::MappingFlags;
 use crate::x64::{GuestPhysMemorySet, load_bios_and_image};
 
@@ -43,6 +43,10 @@ mod dtb_riscv64;
 mod x64;
 
 mod smp;
+// pub mod vcpu;
+// pub mod pcpu;
+// pub mod vm;
+// pub mod utils;
 
 
 // FIXME
@@ -102,26 +106,30 @@ fn main(hart_id: usize) {
     {
         println!("into main [hart_id: {}]", hart_id);
 
-        init_virt_ipi(hart_id, libax::prelude::num_cpus());
+        let config = nimbos_config();
+        error!("xx");
+        let vm_id = create_vm(config);
+        error!("yy");
+        // init_virt_ipi(hart_id, libax::prelude::num_cpus());
+        //
+        // let mut p = PerCpu::<HyperCraftHalImpl>::new(hart_id);
+        // p.hardware_enable().unwrap();
+        //
+        // load_bios_and_image();
+        //
+        //
+        // let gpm = GUEST_PHY_MEMORY_SET.call_once(|| x64::setup_gpm().unwrap());
+        //
+        // info!("{:#x?}", gpm);
+        //
+        // let mut vcpu = p
+        //     .create_vcpu(x64::BIOS_ENTRY, gpm.nest_page_table_root())
+        //     .unwrap();
+        //
+        // println!("[{}] Running guest...", hart_id);
+        // vcpu.run();
 
-        let mut p = PerCpu::<HyperCraftHalImpl>::new(hart_id);
-        p.hardware_enable().unwrap();
-
-        load_bios_and_image();
-
-
-        let gpm = GUEST_PHY_MEMORY_SET.call_once(|| x64::setup_gpm().unwrap());
-
-        info!("{:#x?}", gpm);
-
-        let mut vcpu = p
-            .create_vcpu(x64::BIOS_ENTRY, gpm.nest_page_table_root())
-            .unwrap();
-
-        println!("[{}] Running guest...", hart_id);
-        vcpu.run();
-
-        p.hardware_disable().unwrap();
+        // p.hardware_disable().unwrap();
 
         return;
     }

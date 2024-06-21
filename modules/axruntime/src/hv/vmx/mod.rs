@@ -1,6 +1,7 @@
 mod device_emu;
 pub mod smp;
 
+use axhal::cpu::this_cpu_id;
 use device_emu::VirtLocalApic;
 use hypercraft::{HyperError, HyperResult, VCpu as HVCpu, VmxExitInfo, VmxExitReason};
 
@@ -33,8 +34,8 @@ fn handle_cpuid(vcpu: &mut VCpu) -> HyperResult {
     const LEAF_HYPERVISOR_INFO: u32 = 0x4000_0000;
     const LEAF_HYPERVISOR_FEATURE: u32 = 0x4000_0001;
     const VENDOR_STR: &[u8; 12] = b"RVMRVMRVMRVM";
-    let vendor_regs = unsafe { &*(VENDOR_STR.as_ptr() as *const [u32; 3]) };
 
+    let vendor_regs = unsafe { &*(VENDOR_STR.as_ptr() as *const [u32; 3]) };
     let regs = vcpu.regs_mut();
     let function = regs.rax as u32;
     let res = match function {
@@ -58,7 +59,10 @@ fn handle_cpuid(vcpu: &mut VCpu) -> HyperResult {
             ecx: 0,
             edx: 0,
         },
-        _ => cpuid!(regs.rax, regs.rcx),
+        _ => {
+            debug!("host [{}] passthrough cpuid", this_cpu_id());
+            cpuid!(regs.rax, regs.rcx)
+        }
     };
 
     debug!(

@@ -1,23 +1,24 @@
 app_path := "apps/task/" + app_name
 app_name := "parallel"
 
-smp := "3"
+smp := "1"
 
 log := "debug"
 mode := "debug"
 
-HV_ELF := "apps/hv/hv_pc-x86.elf"
-HV_BIN := "apps/hv/hv_pc-x86.bin"
+HV_ELF := "apps/hv/hv_pc-x86-hv.elf"
+HV_BIN := "apps/hv/hv_pc-x86-hv.bin"
 GUEST_ELF := app_path + "/" + app_name + "_pc-x86.elf"
 GUEST_BIN := app_path + "/" + app_name + "_pc-x86.bin"
 
 clean:
   make A={{app_path}} clean
+  make A=apps/hv clean
 
 guest:
   make ARCH=x86_64 A={{app_path}} PLATFORM=pc-x86 LOG={{log}} MODE={{mode}} SMP={{smp}} build
 
-guest_run:
+guest-run:
   make ARCH=x86_64 A={{app_path}} PLATFORM=pc-x86 LOG={{log}} MODE={{mode}} SMP={{smp}} run
 
 build:
@@ -29,8 +30,8 @@ hv-build:
   rust-objcopy --binary-architecture=x86_64 apps/hv/hv_pc-x86.elf --strip-all -O binary apps/hv/hv_pc-x86.bin
 
 run *flags: build guest
-  qemu-system-x86_64 -m 3G -smp {{smp}} -machine q35 -kernel apps/hv/hv_pc-x86-hv.elf -device loader,addr=0x4000000,file=apps/hv/guest/nimbos/rvm-bios.bin,force-raw=on -device loader,addr=0x4001000,file={{GUEST_BIN}},force-raw=on -nographic -cpu host -accel kvm {{flags}}
+  qemu-system-x86_64 -m 3G -smp {{smp}} -machine q35 -kernel apps/hv/hv_pc-x86-hv.elf -device loader,addr=0x4000000,file=apps/hv/guest/nimbos/rvm-bios.bin,force-raw=on -device loader,addr=0x4001000,file={{GUEST_BIN}},force-raw=on -nographic -no-reboot -cpu host -accel kvm {{flags}}
 
 gdb:
-	gdb {{HV_ELF}} \
+	gdb-multiarch {{HV_ELF}} \
 	  -ex 'target remote localhost:1234'

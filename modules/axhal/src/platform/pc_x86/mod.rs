@@ -1,3 +1,6 @@
+use crate::cpu;
+use crate::cpu::this_cpu_id;
+
 mod apic;
 mod boot;
 mod dtables;
@@ -34,35 +37,35 @@ fn current_cpu_id() -> usize {
 
 unsafe extern "C" fn rust_entry(magic: usize, _mbi: usize) {
     // TODO: handle multiboot info
-    if magic == self::boot::MULTIBOOT_BOOTLOADER_MAGIC {
+    if magic == boot::MULTIBOOT_BOOTLOADER_MAGIC {
         crate::mem::clear_bss();
-        crate::cpu::init_primary(current_cpu_id());
-        self::uart16550::init();
-        self::dtables::init_primary();
-        self::time::init_early();
-        rust_main(current_cpu_id(), 0);
+        cpu::init_primary(current_cpu_id());
+        uart16550::init();
+        dtables::init_primary();
+        time::init_early();
+        rust_main(this_cpu_id(), 0);
     }
 }
 
 #[allow(unused_variables)]
 unsafe extern "C" fn rust_entry_secondary(magic: usize) {
     #[cfg(feature = "smp")]
-    if magic == self::boot::MULTIBOOT_BOOTLOADER_MAGIC {
-        crate::cpu::init_secondary(current_cpu_id());
-        self::dtables::init_secondary();
-        rust_main_secondary(current_cpu_id());
+    if magic == boot::MULTIBOOT_BOOTLOADER_MAGIC {
+        cpu::init_secondary(current_cpu_id());
+        dtables::init_secondary();
+        rust_main_secondary(this_cpu_id());
     }
 }
 
 /// Initializes the platform devices for the primary CPU.
 pub fn platform_init() {
-    self::apic::init_primary();
-    self::time::init_primary();
+    apic::init_primary();
+    time::init_primary();
 }
 
 /// Initializes the platform devices for secondary CPUs.
 #[cfg(feature = "smp")]
 pub fn platform_init_secondary() {
-    self::apic::init_secondary();
-    self::time::init_secondary();
+    apic::init_secondary();
+    time::init_secondary();
 }

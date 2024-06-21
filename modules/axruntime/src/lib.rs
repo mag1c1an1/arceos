@@ -41,7 +41,7 @@ mod hv;
 #[cfg(feature = "hv")]
 pub use gpm::GuestPageTable;
 #[cfg(feature = "hv")]
-pub use hv::HyperCraftHalImpl;
+pub use hv::*;
 
 const LOGO: &str = r#"
        d8888                            .d88888b.   .d8888b.
