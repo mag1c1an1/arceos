@@ -1,9 +1,9 @@
 use alloc::sync::{Arc, Weak};
 use spin::{Mutex, Once};
-use hypercraft::{VCpu, VmCpuMode};
-use crate::hv::utils::CpuSet;
-use crate::HyperCraftHalImpl;
-use crate::vm::VirtMach;
+use hypercraft::{VCpu, VmCpuMode, VmExitInfo};
+use crate::hv::HyperCraftHalImpl;
+use crate::hv::vm::VirtMach;
+use crate::utils::CpuSet;
 
 const MAX_VCPUS: usize = 4;
 const BSP_CPU_ID: usize = 0;
@@ -25,7 +25,7 @@ pub struct VirtCpu {
     phy_cpu_affinity: CpuSet,
     vcpu_state: VirtCpuState,
     // arch specific vcpu
-    arch_vcpu: VCpu<HyperCraftHalImpl>,
+    inner_vcpu: VCpu<HyperCraftHalImpl>,
     vm: Weak<VirtMach>,
 }
 
@@ -35,7 +35,7 @@ impl VirtCpu {
         self.vcpu_id == BSP_CPU_ID
     }
     pub fn vcpu_mode(&self) -> VmCpuMode {
-        self.arch_vcpu.cpu_mode
+        self.inner_vcpu.cpu_mode
     }
     pub fn phy_cpu_id(&self) {
         todo!()
@@ -46,6 +46,9 @@ impl VirtCpu {
     pub fn launch(&self) {}
     pub fn kick(&self) {}
     pub fn prepare(&self) {}
+    pub fn run(&mut self) -> Option<VmExitInfo> {
+        self.inner_vcpu.run()
+    }
 }
 
 

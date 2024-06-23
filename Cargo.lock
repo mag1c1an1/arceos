@@ -115,7 +115,7 @@ dependencies = [
  "gdbstub",
  "libax",
  "page_table_entry",
- "spin 0.9.8",
+ "spin",
 ]
 
 [[package]]
@@ -175,7 +175,7 @@ dependencies = [
 name = "arm_gic"
 version = "0.1.0"
 dependencies = [
- "spin 0.9.8",
+ "spin",
  "tock-registers",
 ]
 
@@ -300,7 +300,7 @@ version = "0.1.0"
 dependencies = [
  "axfs_vfs",
  "log",
- "spin 0.9.8",
+ "spin",
 ]
 
 [[package]]
@@ -309,7 +309,7 @@ version = "0.1.0"
 dependencies = [
  "axfs_vfs",
  "log",
- "spin 0.9.8",
+ "spin",
 ]
 
 [[package]]
@@ -405,20 +405,15 @@ dependencies = [
  "axtask",
  "bitfield",
  "bitflags 1.3.2",
- "bitvec",
  "cfg-if",
  "crate_interface 0.1.1",
- "hashbrown 0.14.5",
- "hypercraft",
  "kernel_guard",
  "lazy_init",
  "lazy_static",
  "num_enum",
- "page_table",
- "page_table_entry",
  "percpu",
  "raw-cpuid 11.0.1",
- "spin 0.9.8",
+ "spin",
  "spinlock",
  "x2apic",
  "x86",
@@ -438,20 +433,35 @@ dependencies = [
 name = "axtask"
 version = "0.1.0"
 dependencies = [
+ "axalloc",
  "axconfig",
  "axhal",
  "axtask",
+ "bitfield",
+ "bitflags 1.3.2",
+ "bitvec",
  "cfg-if",
  "crate_interface 0.1.1",
+ "hashbrown 0.14.5",
+ "hypercraft",
  "kernel_guard",
  "lazy_init",
+ "lazy_static",
  "log",
  "memory_addr",
+ "num_enum",
+ "page_table",
+ "page_table_entry",
  "percpu",
  "rand",
+ "raw-cpuid 11.0.1",
  "scheduler",
+ "spin",
  "spinlock",
  "timer_list",
+ "x2apic",
+ "x86",
+ "x86_64",
 ]
 
 [[package]]
@@ -760,7 +770,7 @@ name = "driver_net"
 version = "0.1.0"
 dependencies = [
  "driver_common",
- "spin 0.9.8",
+ "spin",
 ]
 
 [[package]]
@@ -956,7 +966,7 @@ dependencies = [
  "atomic-polyfill",
  "hash32",
  "rustc_version 0.4.0",
- "spin 0.9.8",
+ "spin",
  "stable_deref_trait",
 ]
 
@@ -1002,7 +1012,7 @@ dependencies = [
  "riscv-decode",
  "sbi-rt",
  "sbi-spec 0.0.6",
- "spin 0.9.8",
+ "spin",
  "spinlock",
  "tock-registers",
  "x86",
@@ -1091,11 +1101,11 @@ version = "0.1.0"
 
 [[package]]
 name = "lazy_static"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 dependencies = [
- "spin 0.5.2",
+ "spin",
 ]
 
 [[package]]
@@ -1126,7 +1136,7 @@ dependencies = [
  "flatten_objects",
  "hypercraft",
  "lazy_static",
- "spin 0.9.8",
+ "spin",
  "spinlock",
  "static_assertions",
 ]
@@ -1321,7 +1331,7 @@ dependencies = [
  "cfg-if",
  "kernel_guard",
  "percpu_macros",
- "spin 0.9.8",
+ "spin",
  "x86",
 ]
 
@@ -1682,12 +1692,6 @@ dependencies = [
  "log",
  "managed",
 ]
-
-[[package]]
-name = "spin"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "spin"

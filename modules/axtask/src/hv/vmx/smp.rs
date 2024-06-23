@@ -59,14 +59,3 @@ impl Default for Icr {
         Icr(0)
     }
 }
-
-// /// sender
-// pub struct VirtIPISender {
-//     bsp: usize,
-//     start_sended: Vec<usize>,
-// }
-//
-// impl VirtIPISender {
-//
-// }
-//

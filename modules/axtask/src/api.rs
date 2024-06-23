@@ -9,7 +9,7 @@ pub use crate::task::{CurrentTask, TaskId, TaskInner};
 #[doc(cfg(feature = "multitask"))]
 pub use crate::wait_queue::WaitQueue;
 
-/// The reference type of a task.
+/// The reference type of task.
 pub type AxTaskRef = Arc<AxTask>;
 
 cfg_if::cfg_if! {
@@ -32,15 +32,15 @@ struct KernelGuardIfImpl;
 #[cfg(feature = "preempt")]
 #[crate_interface::impl_interface]
 impl kernel_guard::KernelGuardIf for KernelGuardIfImpl {
-    fn disable_preempt() {
-        if let Some(curr) = current_may_uninit() {
-            curr.disable_preempt();
-        }
-    }
-
     fn enable_preempt() {
         if let Some(curr) = current_may_uninit() {
             curr.enable_preempt(true);
+        }
+    }
+
+    fn disable_preempt() {
+        if let Some(curr) = current_may_uninit() {
+            curr.disable_preempt();
         }
     }
 }
@@ -161,5 +161,11 @@ pub fn run_idle() -> ! {
         debug!("idle task: waiting for IRQs...");
         #[cfg(feature = "irq")]
         axhal::arch::wait_for_irqs();
+    }
+}
+
+cfg_if::cfg_if! {
+    if #[cfg(feature = "hv")]{
+        pub use hypercraft::init_hv_runtime;
     }
 }

@@ -77,7 +77,7 @@ fn handle_cpuid(vcpu: &mut VCpu) -> HyperResult {
     Ok(())
 }
 
-fn handle_io_instruction(vcpu: &mut VCpu, exit_info: &VmxExitInfo) -> HyperResult {
+fn handle_io_instruction(vcpu: &mut VCpu, exit_info: &VmxExitInfo) -> HyperResult<> {
     let io_info = vcpu.io_exit_info()?;
     trace!(
         "VM exit: I/O instruction @ {:#x}: {:#x?}",
@@ -200,7 +200,7 @@ pub fn vmexit_handler(vcpu: &mut VCpu) -> HyperResult {
 
 
 /// ipi irq
-pub const HV_VIRT_IPI: usize = 233;
+pub const HV_IPI: usize = 233;
 
 fn handle_cr_access(vcpu: &mut VCpu, exit_info: &VmxExitInfo) -> HyperResult {
     error!("{:?}",exit_info);

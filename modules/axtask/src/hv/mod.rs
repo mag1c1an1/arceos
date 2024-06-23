@@ -5,14 +5,12 @@ use hypercraft::{HostPhysAddr, HostVirtAddr, HyperCraftHal, HyperResult, VCpu};
 #[cfg(target_arch = "x86_64")]
 pub mod vmx;
 
-
 pub mod vm;
 pub mod vcpu;
 pub mod mm;
 
 pub mod pcpu;
-pub mod utils;
-pub mod sched;
+pub mod gpm;
 
 
 

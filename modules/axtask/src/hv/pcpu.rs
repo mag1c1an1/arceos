@@ -3,7 +3,7 @@ use spin::Once;
 use axconfig::SMP;
 use hypercraft::PerCpu;
 use spinlock::SpinNoIrq;
-use crate::HyperCraftHalImpl;
+use crate::hv::HyperCraftHalImpl;
 
 pub static PHY_CPU_SET: Once<SpinNoIrq<PhyCpuSet>> = Once::new();
 

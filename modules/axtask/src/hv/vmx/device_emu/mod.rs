@@ -1,8 +1,11 @@
 mod i8259_pic;
 mod lapic;
 mod uart16550;
+mod shutdown;
+
 
 extern crate alloc;
+
 use alloc::{sync::Arc, vec, vec::Vec};
 use hypercraft::HyperResult;
 
@@ -32,6 +35,7 @@ lazy_static::lazy_static! {
             Arc::new(uart16550::Uart16550::new(0x3f8)), // COM1
             Arc::new(i8259_pic::I8259Pic::new(0x20)), // PIC1
             Arc::new(i8259_pic::I8259Pic::new(0xA0)), // PIC2
+            Arc::new(shutdown::Shutdown),
         ],
     };
 }

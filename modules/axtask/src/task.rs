@@ -77,6 +77,7 @@ impl From<u8> for TaskState {
 }
 
 unsafe impl Send for TaskInner {}
+
 unsafe impl Sync for TaskInner {}
 
 impl TaskInner {
@@ -355,7 +356,7 @@ impl Deref for CurrentTask {
 }
 
 extern "C" fn task_entry() -> ! {
-    // release the lock that was implicitly held across the reschedule
+    // release the lock that was implicitly held across the rescheduling
     unsafe { crate::RUN_QUEUE.force_unlock() };
     #[cfg(feature = "irq")]
     axhal::arch::enable_irqs();

@@ -4,8 +4,8 @@ use alloc::vec::Vec;
 use axconfig::SMP;
 use hypercraft::{GuestPhysAddr, HostPhysAddr};
 use page_table_entry::MappingFlags;
-use crate::hv::utils::CpuSet;
-use crate::mm::GuestMemoryRegion;
+use crate::utils::CpuSet;
+use crate::hv::mm::GuestMemoryRegion;
 
 pub struct VmConfig {
     pub name: String,

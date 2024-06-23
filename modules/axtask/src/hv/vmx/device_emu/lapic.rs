@@ -11,22 +11,10 @@ use axconfig::SMP;
 use crate::hv::vmx::smp::{DeliveryMode, Icr};
 use hypercraft::{HyperError, HyperResult, VCpu as HVCpu};
 use hypercraft::smp::{broadcast_message, Message, Signal};
-use crate::hv::vmx::HV_VIRT_IPI;
+use crate::hv::vmx::HV_IPI;
 
 
 pub static BOOT_VEC: AtomicBool = AtomicBool::new(false);
-
-
-// fn init_boot_vec(smp: usize) {
-//     BOOT_VEC.call_once(|| {
-//         let mut v = vec![];
-//         for i in 0..smp {
-//             v.push(false);
-//         }
-//         Mutex::new(v)
-//     });
-// }
-
 
 type VCpu = HVCpu<crate::hv::HyperCraftHalImpl>;
 
@@ -126,7 +114,6 @@ impl VirtLocalApic {
     }
 }
 
-#[cfg(feature = "smp")]
 fn send_ipi(value: u64) -> HyperResult {
     unsafe {
         let icr = Icr(value);
@@ -153,7 +140,7 @@ fn send_ipi(value: u64) -> HyperResult {
                 };
                 if !BOOT_VEC.load(Ordering::Relaxed) {
                     broadcast_message(msg);
-                    axhal::mp::send_ipi_all(HV_VIRT_IPI as u8, AllExcludingSelf);
+                    axhal::mp::send_ipi_all(HV_IPI as u8, AllExcludingSelf);
                     BOOT_VEC.store(true, Ordering::Relaxed);
                 }
                 Ok(())

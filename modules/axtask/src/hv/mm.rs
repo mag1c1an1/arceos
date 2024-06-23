@@ -4,7 +4,8 @@ use axhal::mem::phys_to_virt;
 use hypercraft::{GuestPageTableTrait, GuestPhysAddr, HostPhysAddr, HyperCraftHal, HyperError, HyperResult};
 
 use page_table_entry::MappingFlags;
-use crate::{GuestPageTable, HyperCraftHalImpl};
+use crate::hv::gpm::GuestPageTable;
+use crate::hv::HyperCraftHalImpl;
 
 pub const fn is_aligned(addr: usize) -> bool {
     (addr & (HyperCraftHalImpl::PAGE_SIZE - 1)) == 0

@@ -18,7 +18,7 @@
 //! - `sched_rr`: Use the [Round-robin preemptive scheduler][2]. It also enables
 //!   the `multitask` and `preempt` features if it is enabled.
 //! - `sched_cfs`: Use the [Completely Fair Scheduler][3]. It also enables the
-//!   the `multitask` and `preempt` features if it is enabled.
+//!   `multitask` and `preempt` features if it is enabled.
 //!
 //! [1]: scheduler::FifoScheduler
 //! [2]: scheduler::RRScheduler
@@ -39,8 +39,13 @@ cfg_if::cfg_if! {
 
         #[cfg(feature = "irq")]
         mod timers;
+        #[cfg(feature = "hv")]
+        pub mod hv;
     }
 }
+
+mod utils;
+
 
 #[cfg_attr(not(feature = "multitask"), path = "api_s.rs")]
 mod api;

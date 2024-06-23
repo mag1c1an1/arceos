@@ -22,6 +22,7 @@ sched_fifo = ["multitask"]
 sched_rr = ["multitask", "preempt"]
 sched_cfs = ["multitask", "preempt"]
 default = ["sched_fifo"]
+hv = ["dep:axalloc", "dep:hypercraft", "axhal/hv", "dep:page_table", "dep:page_table_entry", "dep:hashbrown"]
 
 [dependencies]
 cfg-if = "1.0"
@@ -36,8 +37,27 @@ scheduler = { path = "../../crates/scheduler", optional = true }
 timer_list = { path = "../../crates/timer_list", optional = true }
 kernel_guard = { path = "../../crates/kernel_guard" }
 crate_interface = { path = "../../crates/crate_interface" }
+hypercraft = { path = "../../crates/hypercraft", optional = true }
+page_table = { path = "../../crates/page_table", optional = true }
+page_table_entry = { path = "../../crates/page_table_entry", features = ["hv"], optional = true }
+bitvec = { version = "1.0", default-features = false, features = ["alloc"] }
+hashbrown = { version = "0.14", optional = true }
+axalloc = { path = "../axalloc", optional = true }
+bitflags = "1.3"
+spin = "0.9"
+lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
+
 
 [dev-dependencies]
 rand = "0.8"
 axhal = { path = "../axhal", features = ["fp_simd"] }
 axtask = { path = ".", features = ["test"] }
+
+
+[target.'cfg(target_arch = "x86_64")'.dependencies]
+x86 = "0.52"
+x86_64 = "0.14"
+x2apic = "0.4"
+raw-cpuid = "11.0"
+bitfield = "0.15"
+num_enum = { version = "0.7", default-features = false }

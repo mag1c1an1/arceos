@@ -8,16 +8,15 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use spin::{Mutex};
 use axhal::mem::{MemRegion, virt_to_phys, VirtAddr};
-use crate::hv::mm:: GuestMemoryRegion;
+use crate::hv::mm::{GuestMemoryRegion, GuestPhysMemorySet, load_guest_image};
 
 mod config;
 
 pub use config::VmConfig;
 pub use config::nimbos_config;
-use hypercraft::{HostVirtAddr, HyperResult, PerCpu};
+use hypercraft::{HostVirtAddr, HyperError, HyperResult, PerCpu, VmxExitInfo};
 use page_table_entry::MappingFlags;
-use crate::HyperCraftHalImpl;
-use crate::mm::{GuestPhysMemorySet, load_guest_image};
+use crate::hv::{HyperCraftHalImpl, vmx};
 
 /// global virtual machine hashmap
 lazy_static! {
@@ -104,7 +103,26 @@ pub fn create_vm(conf: VmConfig) -> HyperResult<usize> {
     p.hardware_enable()?;
     let mut vcpu = p.create_vcpu(bios_entry, root)?;
 
-    vcpu.run();
+    vcpu.bind_to_current_cpu().unwrap();
+
+    loop {
+        match vcpu.run() {
+            None => {}
+            Some(_) => {
+                match vmx::vmexit_handler(&mut vcpu) {
+                    Ok(_) => { continue }
+                    Err(e) => {
+                        if matches!(e, HyperError::Shutdown) {
+                            debug!("shutdown");
+                            break;
+                        } else {
+                            panic!("hyper error{:?}", e);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Ok(vm_id)
 }

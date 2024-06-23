@@ -35,13 +35,6 @@ pub use self::mp::rust_main_secondary;
 
 #[cfg(feature = "hv")]
 mod gpm;
-#[cfg(feature = "hv")]
-mod hv;
-
-#[cfg(feature = "hv")]
-pub use gpm::GuestPageTable;
-#[cfg(feature = "hv")]
-pub use hv::*;
 
 const LOGO: &str = r#"
        d8888                            .d88888b.   .d8888b.
@@ -306,7 +299,7 @@ fn init_interrupt() {
     #[cfg(all(feature = "hv", target_arch = "x86_64", feature = "smp"))]
     {
         debug!("hv virt ipi register");
-        axhal::irq::register_handler(hv::vmx::HV_VIRT_IPI, || unsafe {
+        axhal::irq::register_handler(233, || unsafe {
             extern "Rust" {
                 fn hv_virt_ipi_handler(hart_id: usize);
             }
