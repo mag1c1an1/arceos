@@ -1,6 +1,9 @@
 //! Task APIs for multi-task configuration.
 
 use alloc::{string::String, sync::Arc};
+use alloc::string::ToString;
+#[cfg(feature = "hv")]
+use crate::hv::vcpu::VirtCpu;
 
 pub(crate) use crate::run_queue::{AxRunQueue, RUN_QUEUE};
 
@@ -97,6 +100,17 @@ where
     RUN_QUEUE.lock().add_task(task.clone());
     task
 }
+
+
+#[cfg(feature = "hv")]
+/// Spawns vcpu task
+pub fn spawn_vcpu(vcpu: Arc<VirtCpu>) -> AxTaskRef {
+    // TODO
+    let task = TaskInner::new_vcpu("TODO".to_string(), axconfig::TASK_STACK_SIZE, vcpu);
+    RUN_QUEUE.lock().add_task(task.clone());
+    task
+}
+
 
 /// Spawns a new task with the default parameters.
 ///

@@ -7,8 +7,14 @@ use core::{alloc::Layout, cell::UnsafeCell, fmt, ptr::NonNull};
 use core::sync::atomic::AtomicUsize;
 
 use axhal::arch::TaskContext;
-use memory_addr::{align_up_4k, VirtAddr};
+use memory_addr::{align_up_4k, PhysAddr, VirtAddr};
 
+use core::mem::ManuallyDrop;
+#[cfg(feature = "hv")]
+use hypercraft::HyperError;
+#[cfg(feature = "hv")]
+use crate::hv::vcpu::VirtCpu;
+use crate::utils::CpuSet;
 use crate::{AxRunQueue, AxTask, AxTaskRef, WaitQueue};
 
 /// A unique identifier for a thread.
@@ -25,14 +31,30 @@ pub(crate) enum TaskState {
     Exited = 4,
 }
 
+
+#[derive(Debug)]
+pub enum TaskType {
+    /// ArceOS task
+    Task { entry: Option<*mut dyn FnOnce()> },
+    #[cfg(feature = "hv")]
+    /// virtual cpu task
+    Vcpu {
+        vcpu: Arc<VirtCpu>,
+    },
+}
+
+
 /// The inner task structure.
 pub struct TaskInner {
     id: TaskId,
     name: String,
     is_idle: bool,
     is_init: bool,
+    // task should only on these phy cpus
+    // default should be full
+    cpu_affinity: CpuSet,
 
-    entry: Option<*mut dyn FnOnce()>,
+    task_type: TaskType,
     state: AtomicU8,
 
     in_wait_queue: AtomicBool,
@@ -108,13 +130,14 @@ impl TaskInner {
 
 // private methods
 impl TaskInner {
-    const fn new_common(id: TaskId, name: String) -> Self {
+    fn new_common(id: TaskId, name: String) -> Self {
         Self {
             id,
             name,
             is_idle: false,
             is_init: false,
-            entry: None,
+            cpu_affinity: CpuSet::new_full(),
+            task_type: TaskType::Task { entry: None },
             state: AtomicU8::new(TaskState::Ready as u8),
             in_wait_queue: AtomicBool::new(false),
             #[cfg(feature = "irq")]
@@ -137,7 +160,9 @@ impl TaskInner {
         let mut t = Self::new_common(TaskId::new(), name);
         debug!("new task: {}", t.id_name());
         let kstack = TaskStack::alloc(align_up_4k(stack_size));
-        t.entry = Some(Box::into_raw(Box::new(entry)));
+        t.task_type = TaskType::Task {
+            entry: Some(Box::into_raw(Box::new(entry)))
+        };
         t.ctx.get_mut().init(task_entry as usize, kstack.top());
         t.kstack = Some(kstack);
         if t.name == "idle" {
@@ -262,6 +287,28 @@ impl TaskInner {
     }
 }
 
+
+#[cfg(feature = "hv")]
+impl TaskInner {
+    pub fn new_vcpu(name: String, stack_size: usize, vcpu: Arc<VirtCpu>) -> AxTaskRef {
+        let mut t = Self::new_common(TaskId::new(), name);
+        debug!("new task: {}", t.id_name());
+        let kstack = TaskStack::alloc(align_up_4k(stack_size));
+        t.task_type = TaskType::Vcpu {
+            vcpu,
+        };
+        t.ctx
+            .get_mut()
+            .init(task_entry as usize, kstack.top());
+        t.kstack = Some(kstack);
+        if t.name == "idle" {
+            t.is_idle = true;
+        }
+        Arc::new(AxTask::new(t))
+    }
+}
+
+
 impl fmt::Debug for TaskInner {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("TaskInner")
@@ -303,7 +350,6 @@ impl Drop for TaskStack {
     }
 }
 
-use core::mem::ManuallyDrop;
 
 /// A wrapper of [`AxTaskRef`] as the current task.
 pub struct CurrentTask(ManuallyDrop<AxTaskRef>);
@@ -361,8 +407,48 @@ extern "C" fn task_entry() -> ! {
     #[cfg(feature = "irq")]
     axhal::arch::enable_irqs();
     let task = crate::current();
-    if let Some(entry) = task.entry {
-        unsafe { Box::from_raw(entry)() };
+
+    match &task.task_type {
+        TaskType::Task { entry } => {
+            if let Some(entry) = entry {
+                unsafe { Box::from_raw(*entry)() };
+            }
+        }
+        #[cfg(feature = "hv")]
+        TaskType::Vcpu { vcpu } => {
+            vcpu_entry(vcpu.clone());
+        }
     }
+
     crate::exit(0);
 }
+
+#[cfg(feature = "hv")]
+fn vcpu_entry(vcpu: Arc<VirtCpu>) {
+    // FIXME
+    vcpu.bind_curr_cpu().unwrap();
+
+    loop {
+        match vcpu.run() {
+            None => {}
+            Some(_) => {
+                match crate::hv::vmx::vmexit_handler(vcpu.vmx_cpu_mut()) {
+                    Ok(_) => { continue }
+                    Err(e) => {
+                        if matches!(e, HyperError::Shutdown) {
+                            debug!("shutdown");
+                            break;
+                        } else {
+                            panic!("hyper error{:?}", e);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    vcpu.bind_curr_cpu().unwrap();
+    vcpu.run();
+}
+
+

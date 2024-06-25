@@ -5,18 +5,14 @@ extern crate alloc;
 #[macro_use]
 extern crate libax;
 
-use core::time::Duration;
 #[cfg(not(target_arch = "aarch64"))]
 use libax::{
     hv::{
         GuestPageTableTrait,
     },
 };
-use libax::hv::vm::{create_vm, nimbos_config};
-use libax::thread::sleep;
-
-// #[cfg(target_arch = "x86_64")]
-// mod x64;
+use libax::hv::prelude::{init, vmcs_revision_id};
+use libax::hv::vm::{boot_vm, arceos_config};
 
 mod smp;
 
@@ -24,22 +20,10 @@ mod smp;
 fn main(hart_id: usize) {
     println!("Hello, hv!");
     println!("into main [hart_id: {}]", hart_id);
-    // let y = libax::thread::spawn(|| {
-    //     loop {
-    //         println!("xxx");
-    //         sleep(Duration::from_millis(100));
-    //     }
-    // });
+    init();
+    let config = arceos_config();
+    boot_vm(config);
 
-    let x = libax::thread::spawn(|| {
-        let config = nimbos_config();
-        create_vm(config).unwrap()
-    });
-    let id = x.join().unwrap();
-
-    println!("id is {}", id);
-
-    // y.join().unwrap();
     // init_virt_ipi(hart_id, libax::prelude::num_cpus());
     //
     // let mut p = PerCpu::<HyperCraftHalImpl>::new(hart_id);

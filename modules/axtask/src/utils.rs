@@ -13,7 +13,7 @@ impl CpuSet {
     pub fn new_full() -> Self {
         let num_cpus = axconfig::SMP;
         let mut bitset = BitVec::with_capacity(num_cpus);
-        bitset.resize(num_cpus as usize, true);
+        bitset.resize(num_cpus, true);
         Self { bitset }
     }
 

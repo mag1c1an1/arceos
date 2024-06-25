@@ -7,9 +7,14 @@ use page_table_entry::MappingFlags;
 use crate::utils::CpuSet;
 use crate::hv::mm::GuestMemoryRegion;
 
+
+pub const MAX_VCPUS: usize = 4;
+pub const BSP_CPU_ID: usize = 0;
+
+
 pub struct VmConfig {
     pub name: String,
-    pub cpu_affinity: Vec<CpuSet>,
+    pub cpu_affinities: Vec<CpuSet>,
     pub bios_entry: GuestPhysAddr,
     pub bios_paddr: HostPhysAddr,
     pub bios_size: usize,
@@ -21,7 +26,7 @@ pub struct VmConfig {
     pub guest_memory_region: Vec<GuestMemoryRegion>,
 }
 
-pub fn nimbos_config() -> VmConfig {
+pub fn arceos_config() -> VmConfig {
     let cpu_affinity = vec![CpuSet::new_full(); SMP];
 
     let guest_memory_region = vec![
@@ -49,8 +54,8 @@ pub fn nimbos_config() -> VmConfig {
     ];
 
     VmConfig {
-        name: "nimbos".to_string(),
-        cpu_affinity,
+        name: String::from("ArceOS"),
+        cpu_affinities: cpu_affinity,
         bios_entry: 0x8000,
         bios_paddr: 0x400_0000,
         bios_size: 0x1000,

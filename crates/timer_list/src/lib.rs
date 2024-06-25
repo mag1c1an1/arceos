@@ -37,7 +37,7 @@ use core::time::Duration;
 
 /// The type of the time value.
 ///
-/// Currently it is just an alias of [`core::time::Duration`].
+/// Current it is just an alias of [`core::time::Duration`].
 pub type TimeValue = Duration;
 
 /// A trait that all timed events must implement.

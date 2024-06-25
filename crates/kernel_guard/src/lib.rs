@@ -1,11 +1,11 @@
 //! RAII wrappers to create a critical section with local IRQs or preemption
-//! disabled, used to implement spin locks in kernel.
+//! disabled, used to implement spin locks in kernel.
 //!
 //! The critical section is created after the guard struct is created, and is
 //! ended when the guard falls out of scope.
 //!
 //! The crate user must implement the [`KernelGuardIf`] trait using
-//! [`crate_interface::impl_interface`] to provide the low-level implementantion
+//! [`crate_interface::impl_interface`] to provide the low-level implementation
 //! of how to enable/disable kernel preemption, if the feature `preempt` is
 //! enabled.
 //!
@@ -21,7 +21,7 @@
 //! # Crate features
 //!
 //! - `preempt`: Use in the preemptive system. If this feature is enabled, you
-//!    need to implement the [`KernelGuardIf`] trait in other crates. Otherwise
+//!    need to implement the [`KernelGuardIf`] trait in other crates. Otherwise,
 //!    the preemption enable/disable operations will be no-ops. This feature is
 //!    disabled by default.
 //!

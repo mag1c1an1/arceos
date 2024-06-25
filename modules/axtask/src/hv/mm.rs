@@ -109,6 +109,12 @@ pub struct GuestPhysMemorySet {
     npt: GuestPageTable,
 }
 
+impl Default for GuestPhysMemorySet {
+    fn default() -> Self {
+        Self::new().unwrap()
+    }
+}
+
 impl GuestPhysMemorySet {
     pub fn new() -> HyperResult<Self> {
         Ok(Self {
@@ -186,5 +192,5 @@ pub fn load_guest_image(slice: &mut [u8], hpa: HostPhysAddr, load_gpa: GuestPhys
         load_gpa,
         size
     );
-    slice[load_gpa..load_gpa+size].copy_from_slice(image);
+    slice[load_gpa..load_gpa + size].copy_from_slice(image);
 }

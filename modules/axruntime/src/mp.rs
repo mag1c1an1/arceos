@@ -38,7 +38,7 @@ pub extern "C" fn rust_main_secondary(cpu_id: usize) -> ! {
     info!("Secondary CPU {} started.", cpu_id);
 
     #[cfg(feature = "hv")]
-    axtask::init_hv_runtime();
+    axtask::hv::pcpu::phy_cpu_init();
 
     #[cfg(not(feature = "hv"))]
     {

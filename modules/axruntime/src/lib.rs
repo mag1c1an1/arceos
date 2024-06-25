@@ -199,6 +199,7 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
 
     #[cfg(feature = "hv")]
     unsafe {
+        axtask::hv::pcpu::phy_cpu_init();
         main(cpu_id)
     };
 

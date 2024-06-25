@@ -12,6 +12,7 @@ pub mod mm;
 pub mod pcpu;
 pub mod gpm;
 
+pub mod prelude;
 
 
 /// An empty struct to implement of `HyperCraftHal`

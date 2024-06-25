@@ -6,7 +6,7 @@ use crate::BaseScheduler;
 
 /// A task wrapper for the [`RRScheduler`].
 ///
-/// It add a time slice counter to use in round-robin scheduling.
+/// It adds a time slice counter to use in round-robin scheduling.
 pub struct RRTask<T, const MAX_TIME_SLICE: usize> {
     inner: T,
     time_slice: AtomicIsize,
