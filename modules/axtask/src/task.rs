@@ -43,6 +43,18 @@ pub enum TaskType {
     },
 }
 
+#[cfg(feature = "hv")]
+impl TaskType {
+    pub fn get_vcpu(&self) -> Option<&Arc<VirtCpu>> {
+        match self {
+            TaskType::Task { .. } => { None }
+            TaskType::Vcpu { vcpu } => {
+                Some(vcpu)
+            }
+        }
+    }
+}
+
 
 /// The inner task structure.
 pub struct TaskInner {
@@ -306,6 +318,19 @@ impl TaskInner {
         }
         Arc::new(AxTask::new(t))
     }
+    pub fn vcpu_switch_in(&self) {
+        if let Some(vcpu) = self.task_type.get_vcpu() {
+            error!("{} switch in", vcpu);
+            vcpu.prepare().unwrap();
+        }
+    }
+    pub fn vcpu_switch_out(&self) {
+        if let Some(vcpu) = self.task_type.get_vcpu() {
+            error!("{} switch out", vcpu);
+            vcpu.set_launched(false);
+            vcpu.unbind_curr_cpu().unwrap();
+        }
+    }
 }
 
 
@@ -425,14 +450,11 @@ extern "C" fn task_entry() -> ! {
 
 #[cfg(feature = "hv")]
 fn vcpu_entry(vcpu: Arc<VirtCpu>) {
-    // FIXME
-    vcpu.bind_curr_cpu().unwrap();
-
     loop {
         match vcpu.run() {
             None => {}
             Some(_) => {
-                match crate::hv::vmx::vmexit_handler(vcpu.vmx_cpu_mut()) {
+                match crate::hv::vmx::vmexit_handler(&vcpu) {
                     Ok(_) => { continue }
                     Err(e) => {
                         if matches!(e, HyperError::Shutdown) {
@@ -446,9 +468,6 @@ fn vcpu_entry(vcpu: Arc<VirtCpu>) {
             }
         }
     }
-
-    vcpu.bind_curr_cpu().unwrap();
-    vcpu.run();
 }
 
 

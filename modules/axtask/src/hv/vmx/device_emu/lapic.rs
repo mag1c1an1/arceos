@@ -2,6 +2,7 @@
 
 #![allow(dead_code)]
 
+use alloc::sync::Arc;
 use alloc::vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 use cfg_if::cfg_if;
@@ -11,6 +12,7 @@ use axconfig::SMP;
 use crate::hv::vmx::smp::{DeliveryMode, Icr};
 use hypercraft::{HyperError, HyperResult, VCpu as HVCpu};
 use hypercraft::smp::{broadcast_message, Message, Signal};
+use crate::hv::vcpu::VirtCpu;
 use crate::hv::vmx::HV_IPI;
 
 
@@ -56,18 +58,18 @@ impl VirtLocalApic {
         0x800..0x840
     }
 
-    pub fn rdmsr(VCpu: &mut VCpu, msr: u32) -> HyperResult<u64> {
-        Self::read(VCpu, msr - 0x800)
+    pub fn rdmsr(vcpu: &Arc<VirtCpu>, msr: u32) -> HyperResult<u64> {
+        Self::read(vcpu, msr - 0x800)
     }
 
-    pub fn wrmsr(VCpu: &mut VCpu, msr: u32, value: u64) -> HyperResult {
-        Self::write(VCpu, msr - 0x800, value)
+    pub fn wrmsr(vcpu: &Arc<VirtCpu>, msr: u32, value: u64) -> HyperResult {
+        Self::write(vcpu, msr - 0x800, value)
     }
 }
 
 impl VirtLocalApic {
-    fn read(VCpu: &mut VCpu, offset: u32) -> HyperResult<u64> {
-        let apic_timer = VCpu.apic_timer_mut();
+    fn read(vcpu: &Arc<VirtCpu>, offset: u32) -> HyperResult<u64> {
+        let apic_timer = vcpu.vmx_vcpu_mut().apic_timer_mut();
         match offset {
             SIVR => Ok(0x1ff), // SDM Vol. 3A, Section 10.9, Figure 10-23 (with Software Enable bit)
             LVT_THERMAL | LVT_PMI | LVT_LINT0 | LVT_LINT1 | LVT_ERR => {
@@ -81,11 +83,11 @@ impl VirtLocalApic {
         }
     }
 
-    fn write(VCpu: &mut VCpu, offset: u32, value: u64) -> HyperResult {
+    fn write(vcpu: &Arc<VirtCpu>, offset: u32, value: u64) -> HyperResult {
         if offset != ICR && (value >> 32) != 0 {
             return Err(HyperError::InvalidParam); // all registers except ICR are 32-bits
         }
-        let apic_timer = VCpu.apic_timer_mut();
+        let apic_timer = vcpu.vmx_vcpu_mut().apic_timer_mut();
         match offset {
             EOI => {
                 if value != 0 {
@@ -98,14 +100,8 @@ impl VirtLocalApic {
                 Ok(()) // ignore these register writes
             }
             ICR => {
-                cfg_if! {
-                    if #[cfg(feature = "smp")] {
-                        send_ipi(value)
-                    }else {
-                        Err(HyperError::NotSupported)
-                    }
-                }
-            } // FIXME:
+                handle_ap_events(vcpu,value)
+            }
             LVT_TIMER => apic_timer.set_lvt_timer(value as u32),
             INIT_COUNT => apic_timer.set_initial_count(value as u32),
             DIV_CONF => apic_timer.set_divide(value as u32),
@@ -114,37 +110,28 @@ impl VirtLocalApic {
     }
 }
 
-fn send_ipi(value: u64) -> HyperResult {
-    unsafe {
-        let icr = Icr(value);
-        debug!("icr: {:?}", icr);
-        debug!("in icr value:  {:X}H", value);
-        let mode = DeliveryMode::try_from(icr.delivery_mode()).unwrap();
-        match mode {
-            DeliveryMode::Fixed => todo!(),
-            DeliveryMode::LowPriority => todo!(),
-            DeliveryMode::SMI => todo!(),
-            DeliveryMode::NMI => todo!(),
-            DeliveryMode::INIT => {
-                debug!("ignore INIT IPI");
-                Ok(())
-            }
-            DeliveryMode::StartUp => {
-                debug!("send start up ipi");
-                // FIXME
-                // just send a ipi to others
-                let msg = Message {
-                    dest: 0,
-                    signal: Signal::Start,
-                    args: vec![icr.vector() as usize],
-                };
-                if !BOOT_VEC.load(Ordering::Relaxed) {
-                    broadcast_message(msg);
-                    axhal::mp::send_ipi_all(HV_IPI as u8, AllExcludingSelf);
-                    BOOT_VEC.store(true, Ordering::Relaxed);
-                }
-                Ok(())
-            }
+fn handle_ap_events(vcpu: &Arc<VirtCpu>, value: u64) -> HyperResult {
+    let icr = Icr(value);
+    debug!("icr: {:?}", icr);
+    debug!("in icr value:  {:X}H", value);
+    let mode = DeliveryMode::try_from(icr.delivery_mode()).unwrap();
+    match mode {
+        DeliveryMode::Fixed => todo!(),
+        DeliveryMode::LowPriority => todo!(),
+        DeliveryMode::SMI => todo!(),
+        DeliveryMode::NMI => todo!(),
+        DeliveryMode::INIT => {
+            debug!("vm send init ipi");
+            let vm = vcpu.vm().ok_or(HyperError::Internal)?;
+            vm.lock().send_init_to_aps();
+            Ok(())
+        }
+        DeliveryMode::StartUp => {
+            debug!("vm start aps");
+            let entry = (icr.vector() as usize) << 12;
+            let vm = vcpu.vm().ok_or(HyperError::Internal)?;
+            vm.lock().start_aps(entry);
+            Ok(())
         }
     }
 }

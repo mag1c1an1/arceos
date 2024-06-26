@@ -31,6 +31,6 @@ pci-bus-end = "0xff"
 # PCI device memory ranges (not used on x86).
 pci-ranges = []
 
-# Timer interrupt frequencyin Hz.
-timer-frequency = "4_000_000_000"   # 4.0GHz
+# Timer interrupt frequency in Hz.
+timer-frequency = "3_000_000_000"   # 4.0GHz
 

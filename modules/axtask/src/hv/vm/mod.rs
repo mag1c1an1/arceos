@@ -21,9 +21,9 @@ use hypercraft::{GuestPhysAddr, HostPhysAddr, HostVirtAddr, HyperError, HyperRes
 use page_table_entry::MappingFlags;
 use spinlock::SpinNoIrq;
 use crate::hv::{HyperCraftHalImpl, vmx};
-use crate::hv::vcpu::VirtCpu;
+use crate::hv::vcpu::{VirtCpu, VirtCpuState};
 use crate::hv::vm::config::BSP_CPU_ID;
-use crate::{AxTaskRef, spawn_vcpu};
+use crate::{AxTaskRef, spawn_vcpu, spawn_vcpus};
 use crate::utils::CpuSet;
 
 
@@ -92,7 +92,7 @@ impl VirtMach {
         let ntr = guest_phys_memory_set.nest_page_table_root();
         let vm = Arc::new(Mutex::new(VirtMach {
             vm_id,
-            name,
+            name: name.clone(),
             vcpus: vec![],
             phy_mem,
             guest_phys_memory_set,
@@ -100,40 +100,72 @@ impl VirtMach {
         }));
 
         let len = cpu_affinities.len();
+        error!("len is {}",len);
         let mut vcpus = Vec::with_capacity(len);
         let mut iter = cpu_affinities.into_iter();
         for i in 0..len {
             if i == BSP_CPU_ID {
                 vcpus.push(VirtCpu::new_bsp(
+                    name.clone(),
                     iter.next().ok_or(HyperError::Internal)?,
                     Arc::downgrade(&vm),
                     entry,
                     ntr,
                 )?);
             } else {
-                todo!()
-                // vcpus.push(VirtCpu::new_ap())
+                vcpus.push(VirtCpu::new_ap(
+                    name.clone(),
+                    i,
+                    iter.next().ok_or(HyperError::Internal)?,
+                    Arc::downgrade(&vm),
+                    ntr,
+                )?);
             }
         }
 
+        error!("vcpus len{}", vcpus.len());
         vm.lock().set_vcpus(vcpus);
 
         Ok(vm)
     }
-    pub fn name(&self) -> &str {
-        self.name.as_str()
+    pub fn name(&self) -> String {
+        self.name.clone()
     }
     pub fn vm_id(&self) -> usize {
         self.vm_id
     }
     pub fn start_bsp(&self) -> AxTaskRef {
+        info!("{} start bsp",self);
         let bsp = self.vcpus[BSP_CPU_ID].clone();
         spawn_vcpu(bsp)
     }
+    /// pre: only vbsp call this
     pub fn start_aps(&self, ap_start_entry: usize) {
+        let mut vcpus = Vec::new();
         for (idx, ap) in self.vcpus.iter().enumerate() {
-            if !idx == BSP_CPU_ID {
-                spawn_vcpu(ap.clone());
+            let sipi = ap.sipi_num();
+            if idx != BSP_CPU_ID && ap.state() == VirtCpuState::Init && sipi != 0 {
+                ap.set_sipi_num(sipi - 1);
+                if ap.sipi_num() <= 0 {
+                    ap.set_start_up_entry(ap_start_entry);
+                    vcpus.push(ap.clone());
+                }
+            }
+        }
+        if !vcpus.is_empty() {
+            spawn_vcpus(vcpus);
+        }
+    }
+    /// pre: only vbsp call this
+    /// pre: aps not in task queue
+    pub fn send_init_to_aps(&self) {
+        for (idx, ap) in self.vcpus.iter().enumerate() {
+            if idx != BSP_CPU_ID {
+                if ap.state() != VirtCpuState::Init {
+                    // todo vcpu reset
+                    unimplemented!()
+                }
+                ap.set_sipi_num(1);
             }
         }
     }
@@ -150,8 +182,6 @@ impl Display for VirtMach {
 /// create vm and start its bsp vcpu
 /// should close irq and disable preempt
 pub fn boot_vm(conf: VmConfig) {
-    let no_preempt_irq = SpinNoIrq::new(());
-    let _guard = no_preempt_irq.lock();
     debug!("0");
     let VmConfig {
         name,
@@ -180,7 +210,6 @@ pub fn boot_vm(conf: VmConfig) {
     });
 
     let mut gpm = GuestPhysMemorySet::new().unwrap();
-    let root = gpm.nest_page_table_root();
     for r in guest_memory_region.into_iter() {
         gpm.map_region(r.into()).unwrap();
     }
@@ -190,9 +219,6 @@ pub fn boot_vm(conf: VmConfig) {
     let vm = VirtMach::new(vm_id, name, phy_mem, gpm, bios_entry, cpu_affinities).unwrap();
     table_insert_vm(vm_id, vm.clone());
 
-    let guard = vm.lock();
-    info!("boot {}", *guard);
-
-    let tx = guard.start_bsp();
+    let tx = vm.lock().start_bsp();
     tx.join();
 }

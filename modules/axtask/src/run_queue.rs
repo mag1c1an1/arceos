@@ -5,7 +5,7 @@ use scheduler::BaseScheduler;
 use spinlock::SpinNoIrq;
 
 use crate::task::{CurrentTask, TaskState};
-use crate::{AxTaskRef, Scheduler, TaskInner, WaitQueue};
+use crate::{AxTaskRef, current, Scheduler, TaskInner, WaitQueue};
 
 // TODO: per-CPU
 pub(crate) static RUN_QUEUE: LazyInit<SpinNoIrq<AxRunQueue>> = LazyInit::new();
@@ -176,7 +176,11 @@ impl AxRunQueue {
             return;
         }
 
-        // TODO
+        #[cfg(feature = "hv")]
+        {
+            current().vcpu_switch_out();
+            next_task.vcpu_switch_in();
+        }
 
         unsafe {
             let prev_ctx_ptr = prev_task.ctx_mut_ptr();

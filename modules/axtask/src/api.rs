@@ -1,7 +1,10 @@
 //! Task APIs for multi-task configuration.
 
-use alloc::{string::String, sync::Arc};
+use alloc::{format, string::String, sync::Arc};
+use alloc::fmt::format;
 use alloc::string::ToString;
+use alloc::vec::Vec;
+use log::error;
 #[cfg(feature = "hv")]
 use crate::hv::vcpu::VirtCpu;
 
@@ -85,6 +88,7 @@ pub fn init_scheduler_secondary() {
 #[cfg(feature = "irq")]
 #[doc(cfg(feature = "irq"))]
 pub fn on_timer_tick() {
+    error!("tick");
     crate::timers::check_events();
     RUN_QUEUE.lock().scheduler_timer_tick();
 }
@@ -106,11 +110,21 @@ where
 /// Spawns vcpu task
 pub fn spawn_vcpu(vcpu: Arc<VirtCpu>) -> AxTaskRef {
     // TODO
-    let task = TaskInner::new_vcpu("TODO".to_string(), axconfig::TASK_STACK_SIZE, vcpu);
+    let name = format!("{}", &vcpu);
+    let task = TaskInner::new_vcpu(name, axconfig::TASK_STACK_SIZE, vcpu);
     RUN_QUEUE.lock().add_task(task.clone());
     task
 }
 
+#[cfg(feature = "hv")]
+pub fn spawn_vcpus(vcpus: Vec<Arc<VirtCpu>>) {
+    let mut guard = RUN_QUEUE.lock();
+
+    for vcpu in vcpus {
+        error!("vcpu {} add in rq", vcpu.vcpu_id());
+        guard.add_task(TaskInner::new_vcpu("TODO".to_string(), axconfig::TASK_STACK_SIZE, vcpu));
+    }
+}
 
 /// Spawns a new task with the default parameters.
 ///

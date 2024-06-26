@@ -21,7 +21,7 @@ preempt = ["irq", "percpu?/preempt", "kernel_guard/preempt"]
 sched_fifo = ["multitask"]
 sched_rr = ["multitask", "preempt"]
 sched_cfs = ["multitask", "preempt"]
-default = ["sched_fifo"]
+default = ["sched_rr"]
 hv = ["dep:axalloc", "dep:hypercraft", "axhal/hv", "dep:page_table", "dep:page_table_entry", "dep:hashbrown"]
 
 [dependencies]

@@ -27,7 +27,7 @@ pub struct VmConfig {
 }
 
 pub fn arceos_config() -> VmConfig {
-    let cpu_affinity = vec![CpuSet::new_full(); SMP];
+    let cpu_affinity = vec![CpuSet::new_full(); 2];
 
     let guest_memory_region = vec![
         GuestMemoryRegion {

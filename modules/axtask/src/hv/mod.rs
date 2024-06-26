@@ -41,11 +41,6 @@ impl HyperCraftHal for HyperCraftHalImpl {
     }
 
     #[cfg(target_arch = "x86_64")]
-    fn vmexit_handler(vcpu: &mut VCpu<Self>) -> HyperResult {
-        vmx::vmexit_handler(vcpu)
-    }
-
-    #[cfg(target_arch = "x86_64")]
     fn current_time_nanos() -> u64 {
         axhal::time::current_time_nanos()
     }

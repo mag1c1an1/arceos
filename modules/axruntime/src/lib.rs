@@ -297,16 +297,16 @@ fn init_interrupt() {
         axtask::on_timer_tick();
     });
 
-    #[cfg(all(feature = "hv", target_arch = "x86_64", feature = "smp"))]
-    {
-        debug!("hv virt ipi register");
-        axhal::irq::register_handler(233, || unsafe {
-            extern "Rust" {
-                fn hv_virt_ipi_handler(hart_id: usize);
-            }
-            hv_virt_ipi_handler(axhal::cpu::this_cpu_id())
-        });
-    }
+    // #[cfg(all(feature = "hv", target_arch = "x86_64", feature = "smp"))]
+    // {
+    //     debug!("hv virt ipi register");
+    //     axhal::irq::register_handler(233, || unsafe {
+    //         extern "Rust" {
+    //             fn hv_virt_ipi_handler(hart_id: usize);
+    //         }
+    //         hv_virt_ipi_handler(axhal::cpu::this_cpu_id())
+    //     });
+    // }
     // Enable IRQs before starting app
     axhal::arch::enable_irqs();
 }
