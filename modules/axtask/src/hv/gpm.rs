@@ -49,11 +49,11 @@ impl GuestPageTableTrait for GuestPageTable {
                     PhysAddr::from(hpa),
                     page_table::PageSize::Size4K,
                     flags,
-                )
-                .map_err(|paging_err| {
-                    error!("paging error: {:?}", paging_err);
-                    HyperError::Internal
-                })?;
+                ).unwrap();
+            // .map_err(|paging_err| {
+            //     error!("paging error: {:?}", paging_err);
+            //     HyperError::Internal
+            // })?;
             Ok(())
         }
         #[cfg(not(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64")))]
@@ -72,11 +72,11 @@ impl GuestPageTableTrait for GuestPageTable {
         #[cfg(any(target_arch = "riscv64", target_arch = "x86_64"))]
         {
             self.0
-                .map_region(VirtAddr::from(gpa), PhysAddr::from(hpa), size, flags, true)
-                .map_err(|err| {
-                    error!("paging error: {:?}", err);
-                    HyperError::Internal
-                })?;
+                .map_region(VirtAddr::from(gpa), PhysAddr::from(hpa), size, flags, true).unwrap();
+            // .map_err(|err| {
+            //     error!("paging error: {:?}", err);
+            //     HyperError::Internal
+            // })?;
             Ok(())
         }
         #[cfg(target_arch = "aarch64")]
@@ -98,10 +98,11 @@ impl GuestPageTableTrait for GuestPageTable {
     fn unmap(&mut self, gpa: GuestPhysAddr) -> HyperResult<()> {
         #[cfg(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64"))]
         {
-            let (_, _) = self.0.unmap(VirtAddr::from(gpa)).map_err(|paging_err| {
-                error!("paging error: {:?}", paging_err);
-                return HyperError::Internal;
-            })?;
+            let (_, _) = self.0.unmap(VirtAddr::from(gpa)).unwrap();
+            // let (_, _) = self.0.unmap(VirtAddr::from(gpa)).map_err(|paging_err| {
+            //     error!("paging error: {:?}", paging_err);
+            //     return HyperError::Internal;
+            // })?;
             Ok(())
         }
         #[cfg(not(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64")))]
@@ -113,10 +114,10 @@ impl GuestPageTableTrait for GuestPageTable {
     fn translate(&self, gpa: GuestPhysAddr) -> HyperResult<hypercraft::HostPhysAddr> {
         #[cfg(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64"))]
         {
-            let (addr, _, _) = self.0.query(VirtAddr::from(gpa)).map_err(|paging_err| {
-                error!("paging error: {:?}", paging_err);
-                HyperError::Internal
-            })?;
+            let (addr, _, _) = self.0.query(VirtAddr::from(gpa)).unwrap();
+            // let (addr, _, _) = self.0.query(VirtAddr::from(gpa)).map_err(|paging_err| {
+            //     error!("paging error: {:?}", paging_err);
+            //     HyperError::Internal })?;
             Ok(addr.into())
         }
         #[cfg(not(any(target_arch = "riscv64", target_arch = "x86_64", target_arch = "aarch64")))]

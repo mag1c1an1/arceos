@@ -7,6 +7,8 @@ core::arch::global_asm!(include_str!("trap.S"));
 const IRQ_VECTOR_START: u8 = 0x20;
 const IRQ_VECTOR_END: u8 = 0xff;
 
+const NMI_VECTOR: u8 = 0x2;
+
 #[no_mangle]
 fn x86_trap_handler(tf: &mut TrapFrame) {
     match tf.vector as u8 {
@@ -29,6 +31,9 @@ fn x86_trap_handler(tf: &mut TrapFrame) {
             }
         }
         BREAKPOINT_VECTOR => debug!("#BP @ {:#x} ", tf.rip),
+        NMI_VECTOR => {
+            crate::trap::handle_irq_extern(233);
+        }
         GENERAL_PROTECTION_FAULT_VECTOR => {
             panic!(
                 "#GP @ {:#x}, error_code={:#x}:\n{:#x?}",

@@ -1,7 +1,6 @@
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-use axconfig::SMP;
 use hypercraft::{GuestPhysAddr, HostPhysAddr};
 use page_table_entry::MappingFlags;
 use crate::utils::CpuSet;
@@ -27,7 +26,12 @@ pub struct VmConfig {
 }
 
 pub fn arceos_config() -> VmConfig {
-    let cpu_affinity = vec![CpuSet::new_full(); 3];
+    let mut cpu_affinities = Vec::new();
+    for i in 0..4 {
+        let mut affinity = CpuSet::new_empty();
+        affinity.add(i % 2);
+        cpu_affinities.push(affinity);
+    }
 
     let guest_memory_region = vec![
         GuestMemoryRegion {
@@ -55,15 +59,15 @@ pub fn arceos_config() -> VmConfig {
 
     VmConfig {
         name: String::from("ArceOS"),
-        cpu_affinities: cpu_affinity,
+        cpu_affinities,
         bios_entry: 0x8000,
-        bios_paddr: 0x400_0000,
+        bios_paddr: 0x7400_0000,
         bios_size: 0x1000,
         guest_entry: 0x20_0000,
-        guest_image_paddr: 0x400_1000,
+        guest_image_paddr: 0x7400_1000,
         guest_image_size: 0x10_0000, // 1M
         guest_phys_memory_base: 0,
-        guest_phys_memory_size: 0x100_0000, // 16M
+        guest_phys_memory_size: 0x800_0000, // 16M
         guest_memory_region,
     }
 }

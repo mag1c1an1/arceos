@@ -123,8 +123,12 @@ pub(super) fn init_secondary() {
     unsafe { local_apic().enable() };
 }
 
-pub unsafe fn send_ipi_to(vector: u8, dest: u32) {
-    local_apic().send_ipi(vector,dest)
-}
 
+/// send ipi
+pub fn send_nmi_to(target: usize) {
+    let lapic = local_apic();
+    unsafe {
+        lapic.send_nmi(target as u32);
+    }
+}
 

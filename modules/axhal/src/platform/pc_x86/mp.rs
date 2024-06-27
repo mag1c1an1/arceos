@@ -46,12 +46,3 @@ pub fn start_secondary_cpu(apic_id: usize, stack_top: PhysAddr) {
     busy_wait(Duration::from_micros(200)); // 200us
     unsafe { lapic.send_sipi(START_PAGE_IDX, apic_id) };
 }
-
-/// send ipi to all
-pub fn send_ipi_all(vector: u8, who: IpiAllShorthand) {
-    let lapic = super::apic::local_apic();
-    unsafe {
-        lapic.send_ipi_all(vector, who);
-    }
-
-}

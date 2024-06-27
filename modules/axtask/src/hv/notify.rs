@@ -18,7 +18,7 @@ pub fn init_mgs_lists(cap: usize) {
 }
 
 /// fn get
-pub fn receive_message(hart_id: usize) -> Message {
+pub fn receive_message(hart_id: usize) -> Option<Message> {
     HV_MSG_LISTS
         .get()
         .unwrap()
@@ -36,8 +36,8 @@ pub fn broadcast_message(msg: Message) {
     HV_MSG_LISTS.get().unwrap().lock().broadcast_message(msg)
 }
 
-pub fn busy_wait_on_reply(msg: Message) {
-    while !HV_MSG_LISTS.get().unwrap().lock().wait_reply(&msg) {}
+pub fn wait_on_reply(msg: &Message) -> bool {
+    !HV_MSG_LISTS.get().unwrap().lock().wait_reply(&msg)
 }
 
 
@@ -59,8 +59,8 @@ impl MsgLists {
         }
     }
     /// get_message
-    pub fn receive_message(&mut self, hart_id: usize) -> Message {
-        self.messages[hart_id].pop_front().unwrap()
+    pub fn receive_message(&mut self, hart_id: usize) -> Option<Message> {
+        self.messages[hart_id].pop_front()
     }
     /// push
     pub fn send_message(&mut self, msg: Message) {
@@ -128,27 +128,25 @@ pub enum Signal {
     Ok,
 }
 
+#[no_mangle]
 pub fn hv_msg_handler(hart_id: usize) {
-    let msg = receive_message(hart_id);
-    match msg.signal {
-        Signal::Clear => {
-            let addr = msg.args[0];
-            unsafe {
-                info!("{} vmclear {}",hart_id, addr);
-                vmclear(addr as u64).unwrap();
+    error!("in hv msg handler, hart_id {}",hart_id);
+    let mut guard = HV_MSG_LISTS.get().unwrap().lock();
+    if let Some(msg) = guard.receive_message(hart_id) {
+        match msg.signal {
+            Signal::Clear => {
+                let addr = msg.args[0];
+                unsafe {
+                    error!("{} vmclear {}", hart_id, addr);
+                    vmclear(addr as u64).unwrap();
+                }
+                // reply
+                let reply = Message::new_reply(&msg);
+                guard.send_message(reply);
             }
-            // reply
-            let reply = Message {
-                id: msg.id,
-                dest: msg.src,
-                src: msg.dest,
-                signal: Signal::Ok,
-                args: vec![],
-            };
-            send_message(reply);
-        }
-        _ => {
-            panic!("unknown msg");
+            _ => {
+                panic!("unknown msg");
+            }
         }
     }
 }

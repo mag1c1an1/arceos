@@ -1,8 +1,8 @@
 app_path := "apps/task/" + app_name
 app_name := "parallel"
 
-hv-smp := "3"
-guest-smp := "3"
+hv-smp := "2"
+guest-smp := "4"
 
 hv-log := "debug"
 guest-log := "debug"
@@ -28,7 +28,7 @@ build:
   make ARCH=x86_64 A=apps/hv HV=y PLATFORM=pc-x86-hv LOG={{hv-log}} GUEST=nimbos MODE={{mode}} SMP={{hv-smp}} build
 
 run *flags: guest build
-  qemu-system-x86_64 -m 3G -smp {{hv-smp}} -machine q35 -kernel apps/hv/hv_pc-x86-hv.elf -device loader,addr=0x4000000,file=apps/hv/guest/nimbos/rvm-bios.bin,force-raw=on -device loader,addr=0x4001000,file={{GUEST_BIN}},force-raw=on -nographic -no-reboot -cpu host -accel kvm {{flags}}
+  qemu-system-x86_64 -m 3G -smp {{hv-smp}} -machine q35 -kernel apps/hv/hv_pc-x86-hv.elf -device loader,addr=0x74000000,file=apps/hv/guest/nimbos/rvm-bios.bin,force-raw=on -device loader,addr=0x74001000,file={{GUEST_BIN}},force-raw=on -nographic -no-reboot -cpu host -accel kvm {{flags}}
 
 gdb:
 	gdb-multiarch {{HV_ELF}} \

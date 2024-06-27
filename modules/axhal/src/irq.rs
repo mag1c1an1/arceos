@@ -4,7 +4,7 @@ use handler_table::HandlerTable;
 
 use crate::platform::irq::MAX_IRQ_COUNT;
 
-pub use crate::platform::irq::{dispatch_irq, register_handler, set_enable};
+pub use crate::platform::irq::{dispatch_irq, register_handler, set_enable, send_nmi_to};
 
 /// The type if an IRQ handler.
 pub type IrqHandler = handler_table::Handler;

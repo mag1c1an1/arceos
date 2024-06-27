@@ -95,11 +95,11 @@ impl<const S: usize> BaseScheduler for HVScheduler<S> {
     }
 
     fn pick_next_task(&mut self) -> Option<Self::SchedItem> {
-        self.ready_queue.pop_front()
-        // self.ready_queue
-        //     .iter()
-        //     .position(|t| t.bind_on_curr_cpu())
-        //     .and_then(|idx| self.ready_queue.remove(idx))
+        // self.ready_queue.pop_front()
+        self.ready_queue
+            .iter()
+            .position(|t| t.bind_on_curr_cpu())
+            .and_then(|idx| self.ready_queue.remove(idx))
     }
 
     fn put_prev_task(&mut self, prev: Self::SchedItem, preempt: bool) {

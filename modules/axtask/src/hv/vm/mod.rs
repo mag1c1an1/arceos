@@ -122,7 +122,7 @@ impl VirtMach {
             }
         }
 
-        error!("{} with {} vcpus", name, vcpus.len());
+        error!("VM created {} with {} vcpus", name, vcpus.len());
         vm.lock().set_vcpus(vcpus);
 
         Ok(vm)
@@ -138,34 +138,30 @@ impl VirtMach {
         spawn_vcpu(bsp)
     }
     /// pre: only vbsp call this
-    pub fn start_aps(&self, ap_start_entry: usize) {
-        let mut vcpus = Vec::new();
-        for (idx, ap) in self.vcpus.iter().enumerate() {
-            let sipi = ap.sipi_num();
-            if idx != BSP_CPU_ID && ap.state() == VirtCpuState::Init && sipi != 0 {
-                ap.set_sipi_num(sipi - 1);
-                if ap.sipi_num() <= 0 {
-                    ap.set_start_up_entry(ap_start_entry);
-                    vcpus.push(ap.clone());
-                }
+    pub fn start_ap(&self, ap_start_entry: usize, target_vcpu: usize) {
+        assert_ne!(target_vcpu, BSP_CPU_ID);
+        let ap = &self.vcpus[target_vcpu];
+        let sipi = ap.sipi_num();
+        if ap.state() == VirtCpuState::Init && sipi != 0 {
+            error!("send start ipi to {}",target_vcpu);
+            ap.set_sipi_num(sipi - 1);
+            if ap.sipi_num() <= 0 {
+                ap.set_start_up_entry(ap_start_entry);
+                spawn_vcpu(ap.clone());
             }
-        }
-        if !vcpus.is_empty() {
-            spawn_vcpus(vcpus);
         }
     }
     /// pre: only vbsp call this
     /// pre: aps not in task queue
-    pub fn send_init_to_aps(&self) {
-        for (idx, ap) in self.vcpus.iter().enumerate() {
-            if idx != BSP_CPU_ID {
-                if ap.state() != VirtCpuState::Init {
-                    // todo vcpu reset
-                    unimplemented!()
-                }
-                ap.set_sipi_num(1);
-            }
+    pub fn send_init_to_ap(&self, target_vcpu: usize) {
+        assert_ne!(target_vcpu, BSP_CPU_ID);
+        let ap = &self.vcpus[target_vcpu];
+        if ap.state() != VirtCpuState::Init {
+            // todo vcpu reset
+            unimplemented!("{} state {:?}", ap, ap.state());
         }
+        error!("send init ipi to {}",target_vcpu);
+        ap.set_sipi_num(1);
     }
 
     /// remove all the vcpus
@@ -188,7 +184,6 @@ impl Display for VirtMach {
 /// create vm and start its bsp vcpu
 /// should close irq and disable preempt
 pub fn boot_vm(conf: VmConfig) {
-    debug!("0");
     let VmConfig {
         name,
         cpu_affinities,
@@ -205,6 +200,7 @@ pub fn boot_vm(conf: VmConfig) {
 
     // memory
     let mut phy_mem = vec![0; guest_phys_memory_size];
+
     load_guest_image(phy_mem.as_mut_slice(), bios_paddr, bios_entry, bios_size);
     load_guest_image(phy_mem.as_mut_slice(), guest_image_paddr, guest_entry, guest_image_size);
 

@@ -3,11 +3,13 @@ use alloc::sync::{Arc, Weak};
 use alloc::vec;
 use core::cell::UnsafeCell;
 use core::fmt::{Display, Formatter};
+use core::time::Duration;
 use spin::{Mutex, Once};
 use axhal::cpu::this_cpu_id;
+use axhal::time::busy_wait;
 use hypercraft::{GuestPhysAddr, HostPhysAddr, HyperError, HyperResult, VCpu, VmCpuMode, VmExitInfo, VmxExitReason};
 use crate::hv::HyperCraftHalImpl;
-use crate::hv::notify::{busy_wait_on_reply, Message, send_message, Signal};
+use crate::hv::notify::{hv_msg_handler, Message, send_message, Signal, wait_on_reply};
 use crate::hv::prelude::vmcs_revision_id;
 use crate::hv::vm::config::BSP_CPU_ID;
 use crate::hv::vm::VirtMach;
@@ -86,8 +88,32 @@ impl VirtCpu {
                 if prev != this_cpu_id() {
                     let msg = Message::new(this_cpu_id(), prev, Signal::Clear, vec![self.vmcs_addr()]);
                     let reply = Message::new_reply(&msg);
-                    send_message(msg);
-                    busy_wait_on_reply(reply);
+                    loop {
+                        send_message(msg.clone());
+                        error!("{} send nmi to {}",this_cpu_id(),prev);
+                        axhal::irq::send_nmi_to(prev);
+                        error!("{} begin busy wait",self);
+                        if wait_on_reply(&reply) {
+                            break;
+                        } else {
+                            busy_wait(Duration::from_millis(100));
+                        }
+                    }
+                    error!("{} finish busy wait",self);
+                    // loop {
+                    //     let msg = Message::new(this_cpu_id(), prev, Signal::Clear, vec![self.vmcs_addr()]);
+                    //     let reply = Message::new_reply(&msg);
+                    //     send_message(msg);
+                    //     error!("{} send nmi to {}",this_cpu_id(),prev);
+                    //     axhal::irq::send_nmi_to(prev);
+                    //     error!("{} begin busy wait",self);
+                    //     if wait_on_reply(reply) {
+                    //         break;
+                    //     } else {
+                    //         busy_wait(Duration::from_millis(100));
+                    //     }
+                    // }
+                    // error!("{} finish busy wait",self);
                     self.set_launched(false);
                 }
             }
@@ -206,6 +232,7 @@ impl VirtCpu {
     }
     pub fn start(&self) {
         while self.state() != VirtCpuState::Offline {
+            // error!("{} exec",self);
             match self.run() {
                 None => {}
                 Some(_) => {
@@ -238,6 +265,11 @@ impl VirtCpu {
             VmxExitReason::MSR_WRITE => handle_msr_write(self),
             VmxExitReason::PREEMPTION_TIMER => self.handle_vmx_preemption_timer(),
             VmxExitReason::SIPI => todo!("todo sipi"),
+            VmxExitReason::EXCEPTION_NMI => {
+                // panic!("vm nmi exit");
+                hv_msg_handler(this_cpu_id());
+                Ok(())
+            }
             // VmxExitReason::EPT_VIOLATION => ,
             _ => panic!(
                 "[{}] vmexit reason not supported {:?}:\n",

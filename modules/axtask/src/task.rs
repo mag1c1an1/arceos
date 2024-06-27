@@ -12,7 +12,6 @@ use memory_addr::{align_up_4k, PhysAddr, VirtAddr};
 use core::mem::ManuallyDrop;
 use axhal::cpu::this_cpu_id;
 use axhal::mem::virt_to_phys;
-use axhal::mp::send_ipi_all;
 #[cfg(feature = "hv")]
 use hypercraft::HyperError;
 #[cfg(feature = "hv")]
@@ -75,7 +74,6 @@ pub struct TaskInner {
     in_wait_queue: AtomicBool,
     #[cfg(feature = "irq")]
     in_timer_list: AtomicBool,
-
     #[cfg(feature = "preempt")]
     need_resched: AtomicBool,
     #[cfg(feature = "preempt")]
@@ -324,13 +322,13 @@ impl TaskInner {
     }
     pub fn vcpu_switch_in(&self) {
         if let Some(vcpu) = self.task_type.get_vcpu() {
-            error!("{} switch in", vcpu);
+            error!("{} switch in pcpu {}", vcpu, this_cpu_id());
             vcpu.prepare().unwrap();
         }
     }
     pub fn vcpu_switch_out(&self) {
         if let Some(vcpu) = self.task_type.get_vcpu() {
-            error!("{} switch out", vcpu);
+            error!("{} switch out pcpu {}", vcpu, this_cpu_id());
             vcpu.set_prev_pcpu(this_cpu_id());
         }
     }

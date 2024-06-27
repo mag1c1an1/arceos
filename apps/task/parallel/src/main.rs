@@ -13,9 +13,8 @@ use core::time::Duration;
 use libax::{rand, thread};
 use libax::sync::WaitQueue;
 
-// const NUM_DATA: usize = 2_000_000;
-const NUM_DATA: usize = 2_000;
-const NUM_TASKS: usize = 4;
+const NUM_DATA: usize = 2_00_000;
+const NUM_TASKS: usize = 8;
 
 fn barrier() {
     static BARRIER_WQ: WaitQueue = WaitQueue::new();

@@ -13,7 +13,7 @@ fn main() {
         }
     }
     println!("cargo:rerun-if-changed=src/defconfig.toml");
-    println!("cargo:rerun-if-env-changed=SMP");
+    // println!("cargo:rerun-if-env-changed=SMP");
 }
 
 fn add_config(config: &mut Table, key: &str, item: Item, comments: Option<&str>) {

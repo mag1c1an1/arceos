@@ -5,6 +5,7 @@
 use alloc::sync::Arc;
 use alloc::vec;
 use core::sync::atomic::{AtomicBool, Ordering};
+use bitvec::macros::internal::funty::Fundamental;
 use cfg_if::cfg_if;
 use spin::once::Once;
 use x2apic::lapic::IpiAllShorthand::AllExcludingSelf;
@@ -98,7 +99,7 @@ impl VirtLocalApic {
                 Ok(()) // ignore these register writes
             }
             ICR => {
-                handle_ap_events(vcpu,value)
+                handle_ap_events(vcpu, value)
             }
             LVT_TIMER => apic_timer.set_lvt_timer(value as u32),
             INIT_COUNT => apic_timer.set_initial_count(value as u32),
@@ -119,16 +120,16 @@ fn handle_ap_events(vcpu: &VirtCpu, value: u64) -> HyperResult {
         DeliveryMode::SMI => todo!(),
         DeliveryMode::NMI => todo!(),
         DeliveryMode::INIT => {
-            debug!("vm send init ipi");
-            let vm = vcpu.vm().ok_or(HyperError::Internal)?;
-            vm.lock().send_init_to_aps();
+            let target = icr.high().as_usize();
+            let vm = vcpu.vm().unwrap();
+            vm.lock().send_init_to_ap(target);
             Ok(())
         }
         DeliveryMode::StartUp => {
-            debug!("vm start aps");
+            let target = icr.high().as_usize();
             let entry = (icr.vector() as usize) << 12;
-            let vm = vcpu.vm().ok_or(HyperError::Internal)?;
-            vm.lock().start_aps(entry);
+            let vm = vcpu.vm().unwrap();
+            vm.lock().start_ap(entry, target);
             Ok(())
         }
     }
