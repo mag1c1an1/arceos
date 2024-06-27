@@ -53,4 +53,5 @@ pub fn send_ipi_all(vector: u8, who: IpiAllShorthand) {
     unsafe {
         lapic.send_ipi_all(vector, who);
     }
+
 }

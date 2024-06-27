@@ -11,9 +11,7 @@ use x2apic::lapic::IpiAllShorthand::AllExcludingSelf;
 use axconfig::SMP;
 use crate::hv::vmx::smp::{DeliveryMode, Icr};
 use hypercraft::{HyperError, HyperResult, VCpu as HVCpu};
-use hypercraft::smp::{broadcast_message, Message, Signal};
 use crate::hv::vcpu::VirtCpu;
-use crate::hv::vmx::HV_IPI;
 
 
 pub static BOOT_VEC: AtomicBool = AtomicBool::new(false);
@@ -58,17 +56,17 @@ impl VirtLocalApic {
         0x800..0x840
     }
 
-    pub fn rdmsr(vcpu: &Arc<VirtCpu>, msr: u32) -> HyperResult<u64> {
+    pub fn rdmsr(vcpu: &VirtCpu, msr: u32) -> HyperResult<u64> {
         Self::read(vcpu, msr - 0x800)
     }
 
-    pub fn wrmsr(vcpu: &Arc<VirtCpu>, msr: u32, value: u64) -> HyperResult {
+    pub fn wrmsr(vcpu: &VirtCpu, msr: u32, value: u64) -> HyperResult {
         Self::write(vcpu, msr - 0x800, value)
     }
 }
 
 impl VirtLocalApic {
-    fn read(vcpu: &Arc<VirtCpu>, offset: u32) -> HyperResult<u64> {
+    fn read(vcpu: &VirtCpu, offset: u32) -> HyperResult<u64> {
         let apic_timer = vcpu.vmx_vcpu_mut().apic_timer_mut();
         match offset {
             SIVR => Ok(0x1ff), // SDM Vol. 3A, Section 10.9, Figure 10-23 (with Software Enable bit)
@@ -83,7 +81,7 @@ impl VirtLocalApic {
         }
     }
 
-    fn write(vcpu: &Arc<VirtCpu>, offset: u32, value: u64) -> HyperResult {
+    fn write(vcpu: &VirtCpu, offset: u32, value: u64) -> HyperResult {
         if offset != ICR && (value >> 32) != 0 {
             return Err(HyperError::InvalidParam); // all registers except ICR are 32-bits
         }
@@ -110,7 +108,7 @@ impl VirtLocalApic {
     }
 }
 
-fn handle_ap_events(vcpu: &Arc<VirtCpu>, value: u64) -> HyperResult {
+fn handle_ap_events(vcpu: &VirtCpu, value: u64) -> HyperResult {
     let icr = Icr(value);
     debug!("icr: {:?}", icr);
     debug!("in icr value:  {:X}H", value);

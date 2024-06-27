@@ -55,7 +55,8 @@ macro_rules! ax_println {
 
 macro_rules! with_color {
     ($color_code:expr, $($arg:tt)*) => {{
-        format_args!("\u{1B}[{}m{}\u{1B}[m", $color_code as u8, format_args!($($arg)*))
+        // format_args!("\u{1B}[{}m{}\u{1B}[m", $color_code as u8, format_args!($($arg)*))
+        format_args!("{}", format_args!($($arg)*))
     }};
 }
 

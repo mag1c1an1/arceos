@@ -1,0 +1,1531 @@
+    [92;1mBuilding[0m App: parallel, Arch: x86_64, Platform: pc-x86, Language: rust
+cargo rustc --target x86_64-unknown-none --target-dir /home/maji/hv-related/hv/arceos/target   --features "libax/platform-pc-x86 libax/smp libax/log-level-debug libax/bus-pci "  --manifest-path apps/task/parallel/Cargo.toml -- -Clink-args="-T/home/maji/hv-related/hv/arceos/modules/axhal/linker_pc-x86.lds -no-pie"
+'/home/maji/hv-related/hv/arceos/target/x86_64-unknown-none/debug/arceos-parallel' -> 'apps/task/parallel/parallel_pc-x86.elf'
+rust-objcopy --binary-architecture=x86_64 apps/task/parallel/parallel_pc-x86.elf --strip-all -O binary apps/task/parallel/parallel_pc-x86.bin
+    [92;1mBuilding[0m App: hv, Arch: x86_64, Platform: pc-x86-hv, Language: rust
+cargo rustc --target x86_64-unknown-none --target-dir /home/maji/hv-related/hv/arceos/target   --features "libax/platform-pc-x86-hv libax/smp libax/log-level-debug libax/hv  libax/irq libax/bus-pci "  --manifest-path apps/hv/Cargo.toml -- -Clink-args="-T/home/maji/hv-related/hv/arceos/modules/axhal/linker_pc-x86-hv_hv.lds -no-pie"
+'/home/maji/hv-related/hv/arceos/target/x86_64-unknown-none/debug/arceos-hv' -> 'apps/hv/hv_pc-x86-hv.elf'
+rust-objcopy --binary-architecture=x86_64 apps/hv/hv_pc-x86-hv.elf --strip-all -O binary apps/hv/hv_pc-x86-hv.bin
+c[?7l[2J[0mSeaBIOS (version rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org)
+
+
+iPXE (http://ipxe.org) 00:02.0 CA00 PCI2.10 PnP PMM+7EFD0AF0+7EF30AF0 CA00
+Press Ctrl-B to configure iPXE (PCI 00:02.0)...                                                                               
+
+
+Booting from ROM..
+Initialize IDT & GDT...
+
+       d8888                            .d88888b.   .d8888b.
+      d88888                           d88P" "Y88b d88P  Y88b
+     d88P888                           888     888 Y88b.
+    d88P 888 888d888  .d8888b  .d88b.  888     888  "Y888b.
+   d88P  888 888P"   d88P"    d8P  Y8b 888     888     "Y88b.
+  d88P   888 888     888      88888888 888     888       "888
+ d8888888888 888     Y88b.    Y8b.     Y88b. .d88P Y88b  d88P
+d88P     888 888      "Y8888P  "Y8888   "Y88888P"   "Y8888P"
+
+arch = x86_64
+platform = pc-x86
+smp = 3
+build_mode = debug
+log_level = debug
+
+[  0.007839 axruntime:131] Logging is enabled.
+[  0.008400 axruntime:132] Primary CPU 0 started, dtb = 0x0.
+[  0.009121 axruntime:137] Found physical memory regions:
+[  0.009815 axruntime:139]   [PA:0x0, PA:0x9f000) low memory (READ | WRITE | RESERVED)
+[  0.010843 axruntime:139]   [PA:0x200000, PA:0x287000) .text (READ | EXECUTE | RESERVED)
+[  0.011816 axruntime:139]   [PA:0x287000, PA:0x292000) .rodata (READ | RESERVED)
+[  0.012702 axruntime:139]   [PA:0x292000, PA:0x2a4000) .data (READ | WRITE | RESERVED)
+[  0.013646 axruntime:139]   [PA:0x2a4000, PA:0x2a7000) .percpu (READ | WRITE | RESERVED)
+[  0.014612 axruntime:139]   [PA:0x2a7000, PA:0x367000) boot stack (READ | WRITE | RESERVED)
+[  0.015635 axruntime:139]   [PA:0x367000, PA:0x38b000) .bss (READ | WRITE | RESERVED)
+[  0.016573 axruntime:139]   [PA:0xb0000000, PA:0xc0000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[  0.017643 axruntime:139]   [PA:0xfe000000, PA:0xfec00000) mmio (READ | WRITE | DEVICE | RESERVED)
+[  0.018717 axruntime:139]   [PA:0xfec00000, PA:0xfec01000) mmio (READ | WRITE | DEVICE | RESERVED)
+[  0.019703 axruntime:139]   [PA:0xfed00000, PA:0xfed01000) mmio (READ | WRITE | DEVICE | RESERVED)
+[  0.020685 axruntime:139]   [PA:0xfee00000, PA:0xfee01000) mmio (READ | WRITE | DEVICE | RESERVED)
+[  0.021673 axhal::platform::pc_x86::mem:30] start(ekernel) PA:0x38b000
+[  0.022387 axhal::platform::pc_x86::mem:31] phy mem size 0x20000000
+[  0.023051 axhal::platform::pc_x86::mem:33] end PA:0x20000000
+[  0.023657 axruntime:139]   [PA:0x38b000, PA:0x20000000) free memory (READ | WRITE | FREE)
+[  0.024541 axruntime:150] Initialize global memory allocator...
+[  0.025173 axhal::platform::pc_x86::mem:30] start(ekernel) PA:0x38b000
+[  0.026262 axhal::platform::pc_x86::mem:31] phy mem size 0x20000000
+[  0.026923 axhal::platform::pc_x86::mem:33] end PA:0x20000000
+[  0.027528 axhal::platform::pc_x86::mem:30] start(ekernel) PA:0x38b000
+[  0.028237 axhal::platform::pc_x86::mem:31] phy mem size 0x20000000
+[  0.028898 axhal::platform::pc_x86::mem:33] end PA:0x20000000
+[  0.029504 axalloc:185] initialize global allocator at: [0xffffff800038b000, 0xffffff8020000000)
+[  0.030993 axhal::platform::pc_x86::mem:30] start(ekernel) PA:0x38b000
+[  0.031686 axhal::platform::pc_x86::mem:31] phy mem size 0x20000000
+[  0.032348 axhal::platform::pc_x86::mem:33] end PA:0x20000000
+[  0.032954 axruntime:163] Initialize platform devices...
+[  0.033513 axhal::platform::pc_x86::apic:87] Initialize Local APIC...
+[  0.034363 axhal::platform::pc_x86::apic:102] Using x2APIC.
+[  0.035231 axhal::platform::pc_x86::apic:116] Initialize IO APIC...
+[  0.035968 axtask::api:79] Initialize scheduling...
+[  0.036508 axtask::task:176] new task: Task(1, "idle")
+[  0.037073 axalloc:90] expand heap memory: [0xffffff8000393000, 0xffffff80003a3000) size: 65536
+[  0.038024 axalloc:90] expand heap memory: [0xffffff80003a3000, 0xffffff80003c3000) size: 131072
+[  0.038993 axalloc:90] expand heap memory: [0xffffff80003c3000, 0xffffff8000403000) size: 262144
+[  0.040473 axalloc:90] expand heap memory: [0xffffff8000403000, 0xffffff8000483000) size: 524288
+[  0.041458 axtask::task:176] new task: Task(3, "gc")
+[  0.042137 axalloc:90] expand heap memory: [0xffffff8000483000, 0xffffff8000683000) size: 2097152
+[  0.043592 axtask::api:85]   use HV Specific scheduler.
+[  0.044167 axruntime::mp:12] start secondary cpus
+[  0.044670 axruntime::mp:13] smp is 3
+[  0.045058 axruntime::mp:21] starting CPU 1...
+[  0.045532 axhal::platform::pc_x86::mp:23] ap start addr PA:0x6000
+[  0.056417 axruntime::mp:38] Secondary CPU 1 started.
+[  0.056434 axruntime::mp:21] starting CPU 2...
+[  0.058027 hypercraft::arch::percpu:31] VMX enabled on cpu 1.
+[  0.060593 axruntime::mp:56] Secondary CPU 1 init OK.
+[  0.058426 axhal::platform::pc_x86::mp:23] ap start addr PA:0x6000
+[  0.074129 axruntime::mp:38] Secondary CPU 2 started.
+[  0.074208 axruntime:189] Initialize interrupt handlers...
+[  0.075719 hypercraft::arch::percpu:31] VMX enabled on cpu 2.
+[  0.076763 axruntime:302] hv msg irq register
+[  0.078526 axruntime::mp:56] Secondary CPU 2 init OK.
+[  0.079114 axruntime:193] Primary CPU 0 init OK.
+[  0.081264 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.081305 0:2 hypercraft::arch::percpu:31] VMX enabled on cpu 0.
+[  0.082811 2:3 axtask::run_queue:118] task block: Task(3, "gc")
+Hello, hv!
+[  0.085011 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.085006 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.086477 1:4 axtask::api:198] idle task: waiting for IRQs...
+into main [hart_id: 0]
+[  0.089266 0:2 axtask::hv::vm:191] 0
+[  0.090850 0:2 axalloc:90] expand heap memory: [0xffffff8000687000, 0xffffff8001687000) size: 16777216
+[  0.097249 0:2 axalloc:90] expand heap memory: [0xffffff8001687000, 0xffffff8003687000) size: 33554432
+[  0.101618 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.103757 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.103767 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.106628 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.108269 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.109561 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.114525 0:2 axtask::hv::vm:125] ArceOS with 3 vcpus
+[  0.114873 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.117216 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.115306 0:2 axtask::api:121] ArceOS[0] add in rq
+[  0.118277 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.121086 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.121089 0:2 axtask::run_queue:83] current task is to be preempted: Task(2, "main"), allow=true
+[  0.123772 0:2 axtask::task:311] new task: Task(6, "ArceOS[0]")
+[  0.124417 0:2 axtask::run_queue:34] task spawn: Task(6, "ArceOS[0]")
+[  0.125116 0:2 axtask::run_queue:118] task block: Task(2, "main")
+[  0.125783 0:2 axtask::task:327] ArceOS[0] switch in
+[  0.126340 0:2 axtask::hv::vcpu:97] vcpu 0 in prepare
+[  0.127004 0:2 hypercraft::arch::vmx::vmcs:576] set PINBASED_EXEC_CONTROLS: 0x16 (+0x49, -0x0)
+[  0.127953 0:2 hypercraft::arch::vmx::vmcs:576] set PRIMARY_PROCBASED_EXEC_CONTROLS: 0x401e172 (+0x91000000, -0x18000)
+[  0.129135 0:2 hypercraft::arch::vmx::vmcs:576] set SECONDARY_PROCBASED_EXEC_CONTROLS: 0x0 (+0x108a, -0x0)
+[  0.130194 0:2 hypercraft::arch::vmx::vmcs:576] set VMEXIT_CONTROLS: 0x36dff (+0x3c8200, -0x0)
+[  0.131138 0:2 hypercraft::arch::vmx::vmcs:576] set VMENTRY_CONTROLS: 0x11ff (+0xc000, -0x0)
+[  0.132093 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.133899 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.133912 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.135072 0:6 hypercraft::arch::vmx::vcpu:607] set cpu id as vcpu id 0
+[  0.137268 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.138018 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+
+Initialize IDT & GDT...
+[  0.142433 0:6 hypercraft::arch::vmx::vcpu:648] handle_cpuid: Failed to get TSC frequency by CPUID, default to 3000 MHz
+Got TSC frequency by CPUID: 30[ 0 00.1 44M93H9 z2:5 
+axta
+sk :: ru n_ qu eu e: 61d] 8ta8sk8 y8ie ld :  Ta sk (5 ,  "idle")
+[  0.147208 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[   0 .1 47 43 8  2: 5  ax ta sk :: ap i: 19 8]  i dl e  ta sk : .wadit8in8g f8or8 I8RQbs.... 
+[    0..14d858048 18:48 abxt.ask:
+:r un _q ue ue :6 1]d t8as8k 8yi8el8d:  T as k( 4,  " id le ") 
+[    0. 15 40 94  1 :4  a xt as k: :a pi :1 98 ]  id led t8as8k:P w"ai ti"ngY f8or8 IbRQ s.d..8
+[  0.154786 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.156548 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.158330 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[8  P0. 15 82Y178 28:5b axt
+as k: :a pi :1 98d] 8id8leP t8as8k:8 w ai ti ng  f or  I RQ s. .. 
+[    0. 16 22 22  1 :4  a xt as k: :a pi :1 98 ]  id8le8 t8as k:  w ai ti ng8 f8or8 I RQYs.8..
+[  0.166757 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.164716 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.169073 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.169079 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+[ 8 0b.1.7148
+1  1: 4  ax tadsk8::8ruPn_ qu8eu8e:861 ] 8ta8sk8 ydie8ld8: 8Ta sk (4., d"i8dl8e"8)
+8[ b 0 .1 73.66d8 81:84 bax.ta sk ::8ap8i:819 8]  i dl e  ta8sk8: 8wa it in"g Yfo8r 8IR8Qsb....
+[ 
+ 0 .1 74 72d2 82:85 Pax ta sk8::8run_queue:61] task yield: Task(5, "idle")
+[  0.176396 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ 8 0 .187783786 P2:"5  ax ta skd::8ap8i:P19"8]  i dl e  tadsk8: Pwa it inYg 8fobr  IR8Qs8..8.
+ [   0 .1 78 2582 81:84  ax ta sk :: ru"n_Yqu8eu8e:b61.] ta
+sk  y iedld8: 8TaPsk (4 ,  "i8dl8e"8)
+ [ 8 08.1881 96 2  1: 4  ax8ta8sk8:: ap i: 19 8]  i dl8e 8ta8sk8: 8wa8it8in8g  fo8r 8IR8Qs .. .
+   888       "888
+ d8888888[ 8 08.1884 7480 82:85  ax ta sk :: ruYn_8qu8eube:.61 ]  ta sk  yYie8ld: Task(5, "idle")
+[  0.186527 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ b 0..1 87 08 6  2: 5 Yax8ta8skb::.ap i:.19d8]8 i8dlPe  taYsk8: 8wabit in g dfo8r 8IRPQs..
+.
+d[ 8 08.1P88 245  1: 4  ax ta8sk8::8ru n_8qu8eu8e: 61 ]  ta sk  y ie"ldY: 8Ta8sk(48, 8"iPdl e" )
+"[ Y 08.189187786  1: 4  ax"taYsk8::8ap8i:81988]P i"dl e  ta sk": Ywa8it8in8g 8foPr "IRQs
+...
+
+arch = x86_64
+platform = [ p 0c.1-94x7480 62:5 
+axstamskp:: ru=n_ qu3eue:
+61b] utaiskl ydie_ld: Task(5, "idle")
+[  0.196468 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[m  o0.d19e69 30= 2 :5d aextbasuk:g:api
+:1l98o] gid_lel teasvk:e wlai ti=ng  fdore IbRQus.g..
+[
+  0.
+198[25 1  1:04 .ax0ta5sk4::5ru7n_0qu euae:x61r] utanskt yiiemlde: :Ta1sk3(41, ]"i dlLe"o)
+g[ g 0i.2n02g13 1 i1:s4  axetanska::bapli:e19d8]. idl
+e [ta sk : 0wa.it0in5g 7fo7r 2IR8Qs ..a.
+xruntime:132][   0P.2r04i74m6 a2:r5 yax taCskP::Uru n_0qu euse:t61a] rtatske yield: Task(5, "idle")
+[  0.206414 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ d 0,.2 07d07t4 b2: 5 =ax ta0skx::0ap.i:19
+8][ i dl e 0ta.sk0: 6wa3it3in1g 6fo r aIRxQsr..u.
+n[ t 0i.2m08e26:4 11:34 7ax]ta skF::oruun_nqudeu e:p61h] ytasski yciealdl:  Tamske(4m, o"irdlye" )
+r[ e 0g.2i12o38n9 1:4 axstask:::api:19
+8] id[le t ask:  wai0ting. for0 IRQs...
+[  0.214735 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.216533 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.218515 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.218529 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.223806 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.223817 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+[  0.227572 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+69824 axruntime:139]   [PA:0x0, PA:0x[ 9 0f.203404707 )1: 4 laxotawsk ::mruen_mquoeure:y61 ] (tasRk EyiAelDd:  Ta|sk (4W, R"iIdlTe"E)
+ [  0.236873 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.236908 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.236915 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.239495 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.2|3949 3 2:R5 axEtaskS::apEi:19R8] iVdle EtaskD: wa)iting fo
+r IR[Qs.. .
+[   0.204177.2 1:04 ax9task7::ap8i:1928] i9dle  taska: waxitinrg four IRnQs..t.
+[i  0.m2452e30 2::5 a1xtas3k::r9un_q]ueue :61]  tas k yi[eld: Task(5, "idle")
+[  0.247225 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.247546 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.248305 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.P2503A60 1::4 a0xtasxk::a2pi:1098] 0idle0 tas0k: w0aiti,ng f or IPRQs.A..
+:0x252000) .text (READ | EXECUTE | RESERVED)[
+  0.[2548 39 2 :5 a0xtas.k::r1un_q0ueue9:61]3 tas7k yi1eld:  Tasak(5,x "idrle")u
+[  0.256692 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0n.256t706 i2:5 maxtaesk:::api:1198]3 idl9e ta]sk:  wait ing  for [IRQsP...
+A[  :0.2508254x 1:42 axta5sk::run2_queue0:61] 0task y0ield: ,Task(4 , "idlPe")
+A[  0.2:61173 01:4 xaxta2sk::5api:a198]0 idl0e ta0sk: )wait ing .for rIRQso...
+data (READ | RESERVED)
+[  0.118[ 5 05.2624737  2:a5 xaxtrasku::runn_qtueuie:m61]e ta:sk y1iel3d: 9Task](5,  "i dl e")
+[  0.266543 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.266597 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.267627 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+[[ P 0A.2:69098x5 21:54 aax0ta0sk0::,ru n_PquAeu:e:061x] 2ta6sk6 y0ie0ld0: )Ta sk.(4d, a"itdlae" )
+([ R 0E.2A72D17 2 |1: 4 WaxRtaIskT::Eap i:|19 8]R iEdlSe EtaRskV: EwaDit)ing 
+fo[r  IR Qs0....
+128275 axrun[ t 0i.2m74e72:9 12:35 9ax]ta sk :: ru[n_PquAeu:e:061x] 2ta6sk6 y0ie0ld0: ,Ta skP(5, "idle")
+[  0.276431 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ A 0:.2076x6724 62:95 0ax0ta0sk):: ap.i:p19e8]r icdlpe uta sk(: RwaEitAinDg for IRQs...
+[  0.2 78|25 5 W1:R4 IaxTtaEsk ::|ru n_RquEeuSe:E61R] VtaEskD y)ield
+: [Ta sk (40, ."i1dl3e"5)
+5[ 3 04.2 81a69x1 r1:u4 naxttaiskm::eap:i:11938]9 i]dl e  ta sk[: PwaAit:in0g xfo2r 6IR9Qs0..0.
+0, PA:0x329000) boot stack[   (0.R28E47A44D 2 :5| a xtWasRk:I:rTunE_q ue|ue :6R1]E tSasEk yield: Task(5, "idle")
+[  0.286376 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ R 0V.2E87D04)1 2:
+5 [ax ta sk0::.ap1i:41928]6 i9dl3e  taaskx: rwauitnintg ifomr eIR:Qs1..3.
+9[ ] 0 .2 88 25[9 P1:A4 :ax0taxsk3::2ru9n_0qu0eu0e:,61 ] PtaAsk: y0iexld3: 4Tadsk0(40, 0"i)dl e".)
+b[ s 0s.2 92(25R6 E1:A4 Dax ta| WRskI::TapEi: 19|8]  iRdlEe StaEskR: VwaEitDin)g fo
+r [IR Qs ..0.
+.[ 1 04.299439194 22: 5 aaxxtarsku::run_queue:61] task yield: Task(5, "idle")
+[  0.296462 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.298273 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[n  t0.i29m76e14: 21:53 a9xt]as k: :a pi[:1P98A] :id0lex tbas0k: 0wa0it0in0g 0fo0r ,IR QsP..A.
+:[ 0 0x.3c0001400 01:04 0ax0ta0sk):: apmi:m19i8]o i dl(e RtaEskA: Dwa it|in g WfoRr IIRTQsE.. .
+|[   0D.3E04V77I9 C2:E5  ax|ta skR::EruSn_queue:61] task yield: Task(5, "idle")
+[  0.306591 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[E  R0.V30E75D09) 2:5
+ a[xt as k:0:a.pi1:16983] 2id2le7 t asak:x wraiutinngt fiorm IeRQ:s.1..3
+[9  ]0. 30 82 65[ 1P:4A a:xt0asxk:f:reun0_q0ue0ue0:601]0 t,as k PyiAel:d:0 Txasfk(e4,c "0id0le0")0
+[0  0.313315 1:4 axtask::ap)i:19 8] imdle mtaski: waoitin g fo(r IRRQs..E.
+[A  0.D3147 37 2|:5 a xtasWk::run_queue:61] task yield: Task(5, "idle")
+[  0.316622 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.317593 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.318263 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.322450 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.322461 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+[  0.327040 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.327056 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.328393 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.328406 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[R  I0.T33E27 96| 1 :4D aExtVasIk:C:aEpi :1|98 ] RidEleS tEasRk:V wEaiDti)ng f
+or[ I RQ s.0...
+[1  80.9336478195 2 :5a axxtrasuk:n:rutn_queuie:m61e] task yield: Task(5, "idle")
+[  0.336946 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.338266 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[ : 01.3337944]0  2: 5  ax[taPskA:::ap0i:x19f8]e icdl0e 0ta0sk0: 0wa,it inPg Afo:r 0IRxQsf..e.
+c[ 0 01.303907402 )1: 4 maxmtaisko:: ap(i:R19E8]A iDdl e |ta skW: RwaIitTinEg  fo|r  IRDQsE..V.
+ICE | RESERVED)
+[[   0 .3044.7210 92:95 0ax9ta9sk ::aruxn_rquueune:t61i] mtaesk: y1ie3ld9: ]Ta sk (5 , ["iPdlAe")
+[  0.346611 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ : 00.3x46f69e4 d2:05 0ax0ta0sk0::,ap i:P19A8]: i0dlxe ftaeskd: 0wa1it0in0g 0fo)r  IRmQsm..i.
+o[   0(.3R48E26A6 D1: 4 |ax taWskR::IruTn_Equ eu|e: 61]D tEasVk IyiCelEd:  T|as k(R4,E "SidEleR")V
+[E  D0.)3515
+90[ 1: 4  ax0ta.sk2::0ap6317 axruntimi:e19:8]1 i3dl9e ]ta sk :  wa[itPinAg :fo0r xIRfQse..e.
+00[ 0 00.3054,73 0 P2:A5 :ax0taxskf::eruen_0qu1eu0e:0610] )ta skm ymield: Task(5, "idle")
+[  0.356373 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[i  o0. 35(69R43E 2A:5D a xt|as k:W:aRpiI:1T98E]  id|le  tDasEk:V wIaiCtiEng  f|or  IRRQEs.S..E
+[R  V0.E35D82)60 1
+:4[ a xt as0k:.:r2un1_q5ue0ue5:621]  taasxk hyiaelld:: T:aspk(l4,a "tidfleo")r
+[m  :0.:36p26c68_ 1x:48 a6xt:as:k:m:aepim:1:983] 0id]le  tsastk:a wraitti(nge fkore IrRQns.e..l
+[)   0.P36A47:410 2x:53 a4xtaskd::0ru0n_0queue:61] task yield: Task(5, "idle")
+[  0.366435 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.368287 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.368018 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.370543 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+[  
+0.[37 05 390 1.:42 a2xt7as7k:7:a3pi :1a98x] hidalel t:as:k:p wlaiatitngf foorr IRQs...
+[  0.374743 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.380679 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.378058 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+m::pc_x86::mem:[  30.3814719] 2:5  axtpask:h:runy_qu eue:m61] etaskm yie ld: sTaski(5, z"idlee")
+ [ 0 0x.388607703 02:05 0ax0task
+::a[pi:198] idle task: waiting for IRQs...
+[  0.388276 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.387809 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[    0.039.042034 12:40 a5xt7as k:a:axpih:1a98l] :id:lep tlasak:t wfaiotirngm f:or: IpRQcs._..x
+86:[ : 0m.3e94m73:1 32:35 ]ax taeskn::dru n_PquAeu:e:061x] 8ta0sk0 y0ie0ld0: 0Task
+(5[,  "i dl0e".)
+2[  0.397333 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.398270 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.397354 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.403288 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.404735 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.408763 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.408771 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.408882 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.54117100 12:4 a7xtas7k::a pi:1a98] xidler tasuk: wnaititng fior ImRQs.e..
+:[ 1 03.4914]74 7  2: 5 [axtPasAk:::ru0n_xqueu3e:461d] 0ta0sk0 y,ie ld:P TAask(5, "idle")
+[  0.417798 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.418248 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.418194 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.420769 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.420779 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+[  :0.4250509 x2:5 8axta0sk::0run_0queu0e:610] ta0sk y)ield: Task(5, "idle")
+[  0.426972 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.428249 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[   f0.r42e73e56  2:m5 eaxmtaoskr::yap i:(19R8]E iAdlDe t as|k:  wWaiRtiIngT fEor  IR|Qs ..F.
+R[ E 0E.4)2944
+1 1[:4  a xt0as.k:2:a8pi6:13984] 3id lea txasrk:u wanittinig mfoer :IR1Qs5..0.
+] Initialize glo[b  a0.l43 47m17e 2m:5o axrtaysk ::arunl_qlueoue:c61a] ttaoskr y.ie.ld.: Ta
+sk([5,  "i dl0e".)
+[  0.436635 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.436647 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.438266 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[2  90.0446009310 1 :4a axxthasak:l:a:pi::1p98l] aidlet tfasok:r wmai:ti:ngp fcor_ IxRQ8s.6..:
+:mem:30] start(ekernel) PA:0x34d000
+[  0.298284 axhal::[p  l0.a44t47f26o 2r:5m a:xtas:k:p:rcun__qxue8ue6:6:1]: tmasek myi:eld3: 1Ta]sk (5, "idle")
+[  0.447582 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.448266 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.447684 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ p 0.4h5114y2 1: 4 axmtaske::apmi:19 8] isdle itaskz: waeitin g fo0r IRxQs..8.
+[0  0.04547063 02:5 0axta0sk::run_
+queu[e:61 ] ta sk y0ield.: Tas3k(5, "idle")
+[  0.457791 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.458275 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[ 1 01.415891390  2:a5 xaxhtaaskl:::ap:i:p19l8]a itdlfe otarskm: :wa:itpincg _foxr 8IR6Qs:..:.
+m[ e 0m.46:13935 13:4 ]axt aske::anpi:d198 ] iPdleA ta:sk:0 waxiting for IRQs...
+[  0.467041 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.468239 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.469907 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.469914 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+8000000
+[  0.327048 axhal::platform::pc_x86::mem:[ 3 00.4]74 89s0 t2:a5 raxtta(ske::kruen_rquneuee:l61)]  taPskA y:ield: Task(5, "idle")
+[  0.476691 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ 0 0x3.4747280d 2:50 axt0ask:0:api:198
+] id[le t ask:  wai0ting. for3 IRQ3s...4
+[3  0.74788228 1 :4 aaxtasxk::rhun_qaueuel:61]: tas:k yipeld:l Tasak(4t, "ifdle"o)
+[ r 0.4m8411:9 1::4 axptaskc::ap_i:19x8] i8dle 6task:: wa:itinmg foer IRmQs...
+[  0.484776 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.486523 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.488488 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  :0.348184]76  2p:5h ayxt asmk:e:ampi :1s98i] zidele  t0asxk:8 w0ai0ti0ng0 f0or0 IRQ
+s.[.. 
+[   00..49138948 91:04 9ax8ta ska::xaphi:a19l8]: i:dlpe ltaska: twafitoing for IRQs...
+[  0.497068 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.498304 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[ r 0m.4:99:84p8 c1:_4 xax8ta6sk::::apmi:e19m8]: i3dl3e ]ta ske: nwadit inPg Afo:r 0IRxQs8..0.
+00000
+[  0.356629 axalloc:185] initialize global al[ l 0o.5c04a78t0 o2:r5  axatatsk::: ru[n_0quxeufe:f61f] ftafskf y8ie0ld: Task(5, "idle")
+[  0.506668 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ 0 00.5307421d4 02:05 0ax,ta sk0::xapfi:f19f8]f ifdlfe 8ta0sk0: 8wa0it0in0g 0fo0r 0IR)Qs..
+.
+[  0[.5 08 2808 .1:34 6ax4ta8sk2::7ru n_aquxeuhe:a61l] :ta:skp yliealdt: fTaoskr(4m, :"i:dlpe"c)
+_[ x 08.5612:52:5 m1:e4 max:ta3sk0::]ap i:s19t8]a irdlte (taeskk: ewaritnineg lfo)r  IRPQsA..:.
+0x34[ d 00.50140742 
+2:[5  ax ta0sk.::3ru6n_9qu6eu6e:761 ] ataxskh yaield: Task(5, "idle")
+[  0.516487 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.517052 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.517751 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+l[ : 0:.5p21l14a3 t1:f4 oaxrtamsk::::rupn_cqu_euxe:8616] :ta:skm yeiemld:: 3Ta1sk](4 , p"ihdlye" )
+m[ e 0m.5 23s56i3 z1:e4  ax0taxsk8::0ap0i:01908]0 i0dle 
+ta[sk :  wa0it.in3g 7fo9r 4IR1Qs1.. .
+a[ x 0h.5a24l73:8 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.526457 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.528276 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[:  p0.l52a77t51f 2o:5r amxt:as:k:p:acpi_:1x988] 6id:le: tmasek:m w:ai3ti3ng] f ore InRQds. ..P
+[  0.53A02:640 1:4x axt8ask:0:api0:1980] id0le t0ask:0 waiting
+ for[ IRQ s... 
+[  0.536679 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.534717 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  00.539.787 32:5 9axta0sk::5api:8198]2 idl e taask: xwaitring ufor nIRQst...
+i[  m0.53e9802: 1:41 axt5ask:8:run]_que ue:6I1] tnask iyieltd: iTaaskl(4i, z"iedl e"k)
+e[ r 0n.5e44l82 5 p1:a4 gaxeta skt::aapbi:l19e8] .idle. tas.k: waiting for IRQs...
+[  0.546688 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.544834 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.5
+49599 2:5 axtask::api:198] id[le t ask:  wai0ting. for4 IRQ0s...4
+[6  0.35496209 1 :4 aaxtasxk::rhun_qaueuel:61]: tas:k yipelld:a Ttasfk(o4,r "mid:le:")p
+[c  _0.x55833647: 1::4m aextmas:k::a3pi:0198]] id le tsaskt: waaitringt fo(r IeRQsk...e
+[r  0n.55e474l0 2):5  axtPaskA::r:un_0quexue:361]4 tadsk 0yie0ld:0 Task(5, "idle")
+[  0.556656 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0
+.556[849  2: 5 a0xta.sk:4:ap1i:1298]3 id4le 4tas k: awaixtinhg faor lIRQ:s..:.
+p[ l 0.a5582t52 f1:4o arxtmas:k:::rpunc_q_uexue8:661]: t:asmk eyimel:d:3 T1as]k( 4,p "hidyle ")m
+[e  m0. 56s13i53z 1e:4  a0xtxas8k:0:a0pi0:10980] 0idle
+ t[as k:  w0ai.ti4ng1 f6or7 I7RQ2s. ..a
+xhal::platform::pc_x86::mem:33][   e0.n56d49 86P 2A:5: a0xtxas8k:0:r0un0_q0ue0ue0:61]
+ task [yi el d:0 Task(5, "idle")
+[  0.566482 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.566720 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.567416 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+[.  40.2560936253 17:4  aaxtxasrk:u:rnunt_qiuemuee:6:1]1 t6as3k ]yi elId:n Tiastk(i4,a "lidilez")e
+[   p0.l57a14t06f 1o:4r amxt asdk:e:avpii:1c98e] sid.le. t.ask:
+ w[ai ti ng0 f.or4 I2RQ7s.1..5
+6 axhal::platform::pc_x86::apic:8[ 7 0].5 74I78n8 i2:t5 aixtaaskl::iruzn_equ euLe:o61c] atalsk  yAield: Task(5, "idle")
+[  0.576398 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ P 0I.5C76.86.8 .2:5 
+axtask::api:198] idle task: waiting for IRQs...
+[  0.578268 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.578308 0:6 hypercraft::arch::vmx::vcpu:607] set cpu id as vcpu id 0
+[ [ 0 .5 81013.2 41:34 6ax2ta6sk6:: apai:x19h8]a ildl:e :tapskl: awatitfinog rfomr :IR:Qsp..c.
+_x86::apic:102] [U  s0.i58n47g67  2x:52 aAxtPasIk:C:r.un_q
+ueue:61] task yield: Task(5, "idle")
+[  0.586100 0:6 hypercraft::arch::vmx::vcpu:607] set cpu id as vcpu id 0
+[  0.587052 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.587779 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.588268 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.591622[ 1 :4  a0xt.as4k:4:a6pi2:13983]  idalex thasak:l w:ai:tipngl faort IfRQos.r..m
+::pc_x86::apic:116] Initia[ l 0i.5z94e75 1 I2:O5  axAtaPskI::Cru.n_.qu.eue:
+61] t[as k  yi0el.d:4 T5ask0(5, "idle")
+[  0.597059 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ 7 04.5397 41a0 x2:t5 aaxstaksk::::apai:p19i8]: i7dle task: waiting for IRQs...
+[  0.598273 1:4 axt9ask]:: ruIn_nquieute:i61a] ltaiskz yeie lds: cTahske(4d, u"ildlie"n)
+g[ . 0..6.0413
+2 1:4[ a xt as0k:.:a4pi5:19980] 0id1le  taasxk:t waaistikng: f:ort IaRQss.k..:
+[  0.604738 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.606537 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.608327 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[1  70.661]05 76n 1e:4w a xttasak:s:akpi::1 98T] aidslek t(as1k:, w aiting for IRQs...
+[  0.608314 2:5 axtask::"apii:d19l8]e i"dl)e ta
+sk:[ w ai ti0ng. f4or6 I8RQ2s.3..0
+ axalloc:90] expand heap memory: [0xffffff8[  0.616767 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.617596 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+[0  00.061388517f 10:40 a0xt,as k:0:run_quexuef:61] taskf yifelfd:f Tfas8k(04,0 "0id3le6")f
+[0  00.062)20 36s 1i:4z aext:as k:6:a5pi5:13986] id
+le t[as k:  w0ai.ti4ng7 f7or8 I8RQ8s. ..a
+xal[l  o0.c62:479310 2]:5  aextxaspk:a:rnund_q uehuee:6a1]p t asmk eyield: Task(5, "idle")
+[  0.626441 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ m 0o.6r27y05:7  2:[5 0axxtafskf::fapfi:f19f8]8 i0dl0e 0ta3sk6: fwa0it0in0g ,fo r 0IRxQsf..f.
+f[ f 0.f62f828740 10:40 a3xt8asfk:0:r0un0_q)ue ues:6i1]z teas:k  yi1el3d:1 T0as7k(24, "
+idle[") 
+[   00..634338817 15:47 a9xt asak:x:aapil:1l98o] cid:le9 t0as]k:  weaixtipnga fnord I RQhs.e..a
+[p   0.m63e47m45o 2r:5y axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.636468 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.637812 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.638277 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[:   0.[64022x18f 1f:4f afxtfasfk:8:a0pi0:10983] 8idfle0 t0as0k:,  wa0itxinfg ffofr fIRfQsf..8.
+0[ 0 00.6344c74f0 02:05 0ax)ta sks::iruzn_equ:eu e:2616] 2ta1sk4 y4ield
+: Tas[k(5, "idle")
+[  0.646684 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[    0.064.695780 20:59 a8xt7as k:a:axpia:1l98l] oidcle: t9as0k:] w aietixngp faorn IdRQ s.h..e
+[a  p0. 64m82e68m 1o:4r ayxt:as k:[:r0unx_qfuefuef:6f1]f tfas8k 0yi0el0d:3 Tcasfk(04,0 "0id,le ")0
+[x  f0.f65f25f62f f1:84 0ax0ta0sk4::4apfi:01908]0 i)dl e staiskz: ewa:it in5g 2fo4r 2IR8Qs8...
+
+[  0.654736[ 2 :5  a0xt.as5k:0:r9un7_q3ue4ue :6a1]x ttasak syield: Task(5, "idle")
+[  0.656442 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[ k 0:.6:56t93a3 s2:k5 :ax1ta7sk6::]ap i:n19e8]w i dlte atasskk: :wa itTinag sfokr (IR3Qs,.. .
+"[ g 0c.6"58)251 
+1:4 axtask[:: ru n_0qu.eu5e:1614] 8ta3sk5 y iealdx: aTalskl(4o, c"i:dl9e"0)
+][   0e.6x61p94a0 n1:d4  axhtaeska::pap i:m19e8]m iodlre yta:sk : [wa0itxinfg ffofr fIfRQfs.8..0
+0044f000, 0xfffff[ f 08.606407405 62:45 fax0ta0sk0::)ru n_squieuze:e61:]  ta2sk0 y9ield: Task(5, "idle")
+[  0.666448 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.667035 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.667731 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+[7  10.56720432
+ 1:4[ a xt as0k:.:5ru2n_5qu2eu7e:061 ] ataxskt yaiesldk: :Ta:ska(4p, i"i:dl8e"5)
+][   0 .6 72u53s9 e1: 4 FaxItaFskO:: apsi:c19h8]e iddlue ltaeskr: .wait
+in[g  fo r 0IR.Qs5..2.
+9[ 7 07.6074 731 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.676437 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.678273 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[ a 0x.6r77u97n0 t2:i5 maxeta:sk:::mappi::1918]2 i]dl e statska: rwatit insg efocr oIRnQsd..a.
+r[ y 0 .6c80p48u3 s1:4 
+ax[ta sk ::0ap.i:51938]7 i7dl3e 2ta ska: xwarituinng tfoir mIReQs:..:.
+m[ p 0:.6184372]6  2:s5 maxpta ski::sru n_3queu
+e:[61 ]  task yield: Task(5, "idle")
+[  0.686812 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.687813 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.688257 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.06923.79 15:4 a4xtas0k::a8pi:1098] 0idle  tasak: wxaitirng fuor InRQs.t..
+im[  e0.69:4752 :2:5 maxtaspk::r:un_q2ueue1:61]] tas k yiseld:t Tasak(5,r "idtle")i
+[ n 0.696827 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.696926 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.698247 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0g.700 384 C1:4 PaxtaUsk:: api:1198]. idl.e ta.sk: wait
+ing [for  IRQs ...
+0.556138 axhal::platform::pc_x86::mp:23[]   0.a70p47 49s 2t:5a arxttas k:a:rdund_qrue ueP:6A1]: t0asxk 6yield: Task(5, "idle")
+[  0.708381 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.708392 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.706815 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.712598 1:4 axtask::api:198] idle0 t0as0k: wa
+iting for IRQs...
+[  0.714768 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.714745 0:6 axtask::hv::vmx::device_emu::lapic:113] icr: Icr { .0: 4294984960, vector: 0, delivery_mode: 5, destination_mode: 0, delivery_status: 0, level: 1, trigger_mode: 0, destination_shorthand: 0, destination_field: 0, low: 17664, high: 1 }
+[  0.718287 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.719454 0:6 axtask::hv::vmx::device_emu::lapic:114] in icr value:  100004500H
+[  0.717034 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.721273 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.722065 0:6 axtask::hv::vmx::device_emu::lapic:122] vm send init ipi
+[  0.724744 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.725921 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.727368 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.728069 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+[  0.730459 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.730460 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.732502 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.734747 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.736077 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.737241 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.738264 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.739505 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.742515 0:6 axtask::hv::vmx::device_emu::lapic:113] icr: Icr { .0: 4294985222, vector: 6, delivery_mode: 6, destination_mode: 0, delivery_status: 0, level: 1, trigger_mode: 0, destination_shorthand: 0, destination_field: 0, low: 17926, high: 1 }
+[  0.744732 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.745152 0:6 axtask::hv::vmx::device_emu::lapic:114] in icr value:  100004606H
+[  0.746987 2:5 axtask::api:198] idle task: waiting for IRQs...
+[  0.747783 0:6 axtask::hv::vmx::device_emu::lapic:128] vm start aps
+[  0.748278 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.751978 1:4 axtask::api:198] idle task: waiting for IRQs...
+[  0.751980 0:6 axtask::api:133] ArceOS[1] add in rq
+[  0.754654 0:6 axtask::task:311] new task: Task(7, "ArceOS[1]")
+[  0.755305 0:6 axtask::run_queue:34] task spawn: Task(7, "ArceOS[1]")
+[  0.756006 0:6 axtask::api:133] ArceOS[2] add in rq
+[  0.756530 0:6 axtask::task:311] new task: Task(8, "ArceOS[2]")
+[  0.757178 0:6 axtask::run_queue:34] task spawn: Task(8, "ArceOS[2]")
+[  0.757885 2:5 axtask::run_queue:61] task yield: Task(5, "idle")
+[  0.757886 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.759709 2:5 axtask::task:327] ArceOS[1] switch in
+[  0.761652 2:5 axtask::hv::vcpu:97] vcpu 1 in prepare
+[  0.762828 2:5 hypercraft::arch::vmx::vmcs:576] set PINBASED_EXEC_CONTROLS: 0x16 (+0x49, -0x0)
+[  0.764543 2:5 hypercraft::arch::vmx::vmcs:576] set PRIMARY_PROCBASED_EXEC_CONTROLS: 0x401e172 (+0x91000000, -0x18000)
+[  0.766686 2:5 hypercraft::arch::vmx::vmcs:576] set SECONDARY_PROCBASED_EXEC_CONTROLS: 0x0 (+0x108a, -0x0)
+[  0.769017 2:5 hypercraft::arch::vmx::vmcs:576] set VMEXIT_CONTROLS: 0x36dff (+0x3c8200, -0x0)
+[  0.770611 2:5 hypercraft::arch::vmx::vmcs:576] set VMENTRY_CONTROLS: 0x11ff (+0xc000, -0x0)
+[  0.772491 1:4 axtask::run_queue:61] task yield: Task(4, "idle")
+[  0.772533 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.774737 1:4 axtask::task:327] ArceOS[2] switch in
+[  0.772612 2:7 hypercraft::arch::vmx::vcpu:607] set cpu id as vcpu id 1
+[  0.778146 1:4 axtask::hv::vcpu:97] vcpu 2 in prepare
+[  0.780195 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.781849 1:4 hypercraft::arch::vmx::vmcs:576] set PINBASED_EXEC_CONTROLS: 0x16 (+0x49, -0x0)
+[  0.785307 1:4 hypercraft::arch::vmx::vmcs:576] set PRIMARY_PROCBASED_EXEC_CONTROLS: 0x401e172 (+0x91000000, -0x18000)
+[  0.787641 1:4 hypercraft::arch::vmx::vmcs:576] set SECONDARY_PROCBASED_EXEC_CONTROLS: 0x0 (+0x108a, -0x0)
+[  0.789750 1:4 hypercraft::arch::vmx::vmcs:576] set VMEXIT_CONTROLS: 0x36dff (+0x3c8200, -0x0)
+[  0.791573 1:4 hypercraft::arch::vmx::vmcs:576] set VMENTRY_CONTROLS: 0x11ff (+0xc000, -0x0)
+[  0.792836 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.79[2953  1:8  hyp0ercr.aft:6:arc4h::v8mx::2vcpu7:6072] se t cpau idx as rvcpuu id n2
+[t  0.i7928m55 0e:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+[  0.799811 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.795385 1:8 axruntime::lang_items:5] panicked at modules/axtask/src/hv/vcpu.rs:242:18:
+[2] vmexit reason not supported EPT_VIOLATION:
+
+[  0.801329 0:6 axtask::run_queue:83] current task is to be preempted: Task(6, "ArceOS[0]"), allow=true
+::mp:[  0.806396 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.806427 0:6 axtask::hv::vmx::device_emu::lapic:113] icr: Icr { .0: 4294985222, vector: 6, delivery_mode: 6, destination_mode: 0, delivery_status: 0, level: 1, trigger_mode: 0, destination_shorthand: 0, destination_field: 0, low: 17926, high: 1 }
+[  0.807100 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[3  80.]81 37S24e 0c:6o anxtask::hv::vmx::device_emu::lapic:114] in icr value:  100004606H
+[  0.815261 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[ d 0a.8r16y42 0 C0:P6 Uax ta2sk2::7hv3::1vm8x:7:d5ev1ic3e_7em3u:4:l1ap8ic1:13287] 9vm  sstatrta arpst
+e[ d 0..819
+182 0:6 axtask::h[v: :v mx0:2.6]6 A7rc4eO1S[20]2 h anadlxe rexutenrntali imrqe 2:40:
+mp:5[6  ]0. 82S12e66c 0o:6n adxtaasrk:y:h v:C:vPmxU:2 6]2 A2rc7eO3S[10]8 h7an5dl1e 3ex7te3rn4al1 i8rq1 23407
+9 init OK.
+[  0.675512 axruntime::mp:21][   0.82s5240t 2:7a axtrask:t:hv:i:vmxn:26] g CArceOS[1] handle exPternUal  irq 2240.
+..
+[  0.681326 axhal::platform::pc_x86::mp:23] ap start ad[  0.829404 0:6 axtask::hv::vmx:26] ArceOS[0] handle external irq 240
+dr PA:0x6000
+[  0.830764 0:6 axtask::hv::vmx::device_emu::lapic:113] icr: Icr { .0: 8589952256, vector: 0, delivery_mode: 5, destination_mode: 0, delivery_status: 0, level: 1, trigger_mode: 0, destination_shorthand: 0, destination_field: 0, low: 17664, high: 2 }
+[  0.833190 0:6 axtask::hv::vmx::device_emu::lapic:114] in icr value:  200004500H
+[  0.833986 0:6 axtask::hv::vmx::device_emu::lapic:122] vm send init ipi
+[  0.834699 0:6 axruntime::lang_items:5] panicked at modules/axtask/src/hv/vm/mod.rs:164:21:
+not implemented
+[  0.835151 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.845098 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.854929 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.855629 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  0.864888 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.874877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.884877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.894916 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.905194 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.907426 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  0.915320 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.925155 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.935153 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.945465 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.955273 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.956668 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  0.965133 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.974937 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.984891 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  0.994883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.004879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.005575 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.014876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.024874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.035028 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.045110 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.054998 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.055705 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.065016 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.075220 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.085224 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.095266 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.105071 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.105780 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.114923 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.124888 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.134979 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.145210 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.155185 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.156107 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.165000 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.174903 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.184882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.194876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.204874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.205568 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.214968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.225205 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.235212 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.245260 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.255149 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.256077 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.264994 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.274903 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.284883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.294881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.304878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.305579 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.314877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.324876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.334876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.344875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.354874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.355581 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.364877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.374893 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.384885 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.394995 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.405216 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.406847 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.415179 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.425060 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.434948 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.444978 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.455207 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.456404 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.465073 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.474926 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.484887 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.494879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.504881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.505595 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.514881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.524963 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.535209 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.545176 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.555007 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.555707 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.564906 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.574882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.584876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.594879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.604880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.605582 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.614878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.624876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.634876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.644876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.654875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.655580 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.664876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.674895 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.684883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.694882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.704912 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.705617 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.714885 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.724878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.734876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.744878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.754885 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.755882 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.764949 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.774966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.784968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.794968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.804968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.805974 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.814971 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.824968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.834968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.844970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.854970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.855965 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.864969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.874967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.884970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.894968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.904968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.905959 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.914968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.924970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.934968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.944967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.954968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.955968 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  1.964969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.974968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.984967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  1.994969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.004970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.005963 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.014968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.024968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.034970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.044969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.054968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.055964 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.064968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.074974 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.084974 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.094973 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.104973 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.105976 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.115006 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.125208 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.135150 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.145003 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.155252 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.157210 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.165273 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.175276 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.185023 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.194909 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.204882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.205754 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.214920 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.224907 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.234916 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.244886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.254878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.255583 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.264877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.274875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.284876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.294944 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.304893 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.305601 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.314897 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.324881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.334908 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.344884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.354880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.355581 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.364881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.374888 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.384896 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.394885 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.404895 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.405938 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.414974 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.424908 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.434884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.444880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.454947 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.455936 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.464961 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.474965 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.484968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.494967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.504966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.505956 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.514967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.524968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.534967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.544967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.554969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.555957 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.564967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.574966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.584966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.594968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.604967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.605954 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.614966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.624966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.634969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.644967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.654966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.655962 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.664968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.674968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.684967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.694967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.704968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.705964 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.714969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.724967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.734967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.744968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.754967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.755955 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.764966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.774966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.784968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.794967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.804966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.805961 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.814968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.824970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.834967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.844967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.854968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.855956 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.864967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.874966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.884967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.894968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.904966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.905955 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.914966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.924967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.934968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.944967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.954966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.955963 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  2.964968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.974966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.984966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  2.994967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.004968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.005958 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.014967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.024967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.034966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.044969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.054967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.055956 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.064967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.075039 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.084994 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.094972 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.104968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.105965 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.114968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.124967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.134966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.144966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.154970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.155960 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.164969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.174968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.184967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.194970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.204967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.205957 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.214967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.224968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.234970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.244967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.254966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.255963 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.264968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.274967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.284967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.294966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.304969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.305959 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.314967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.324967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.334967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.344969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.354967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.355956 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.364967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.374972 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.384968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.394967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.404967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.405963 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.414968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.424967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.434966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.444967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.454969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.455959 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.464967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.474966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.484968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.494968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.504966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.505952 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.514965 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.524968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.534967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.544967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.554967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.555964 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.564969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.574967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.584967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.594967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.604973 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.605967 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.614969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.624967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.634969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.644970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.654967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.655956 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.664966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.674969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.684968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.694967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.704966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.705967 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.714969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.724967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.734967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.744966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.754969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.755959 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.764967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.774967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.784969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.794967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.805005 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.806991 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.815217 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.825125 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.835008 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.844917 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.854891 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.855612 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.864884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.874878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.884875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.894876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.904881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.905582 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.914879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.924882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.934923 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.945227 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.955280 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.956636 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  3.965127 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.974980 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.984912 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  3.994888 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.004880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.006165 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.015015 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.024908 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.034885 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.044890 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.055147 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.055835 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.064940 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.074900 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.084935 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.094886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.104874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.105557 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.114871 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.124873 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.134874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.144873 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.154873 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.155566 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.164875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.174872 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.184871 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.194870 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.204889 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.205598 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.222547 2:7 hypercraft::arch::vmx::vcpu:578] reset vmx timer
+[  4.223215 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.226836 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.235340 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.244999 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.245705 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.254911 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.264893 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.274904 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.284891 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.294881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.295581 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.304947 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.314901 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.324886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.334879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.344884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.345578 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.354884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.364879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.374884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.384884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.394884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.395595 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.404883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.414879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.424883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.434888 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.444877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.445562 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.457211 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.465430 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.475037 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.484919 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.494894 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.495607 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.505482 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.515019 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.524912 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.534892 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.544895 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.545607 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.554886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.564880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.574902 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.584884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.594969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.596057 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.604989 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.614927 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.624959 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.634965 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.644968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.645959 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.654967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.664968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.674967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.684970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.694969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.695958 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.704969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.714971 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.724971 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.734969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.744969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.745967 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.754970 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.764972 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.774972 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.784968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.794969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.795955 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.804966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.814968 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.824899 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.834907 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.844885 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.845570 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.855945 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.865130 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.874934 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.884888 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.894876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.895563 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.904873 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.914872 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.924875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.934871 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.944888 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.945592 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  4.954880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.964883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.975198 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.984966 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.994896 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  4.995591 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.004883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.014908 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.024887 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.034880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.044873 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.047259 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.055274 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.064967 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.074895 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.084878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.094879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.095574 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.104877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.114875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.134026 2:7 hypercraft::arch::vmx::vcpu:578] reset vmx timer
+[  5.134686 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.137178 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.137870 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.145417 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.154999 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.164903 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.174932 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.184885 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.185569 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.194874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.204884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.214880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.224911 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.234932 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.235622 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.244888 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.254904 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.264876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.278078 2:7 hypercraft::arch::vmx::vcpu:578] reset vmx timer
+[  5.279085 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.279785 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.285866 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.295110 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.306481 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.315568 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.325202 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.326131 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.335023 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.344914 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.354941 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.364941 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.374892 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.375591 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.384879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.394887 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.404877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.414874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.424965 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.425668 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.435040 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.445254 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.455131 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.465001 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.474902 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.475596 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.484882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.494874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.504895 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.514969 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.524894 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.525996 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.534975 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.544896 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.554878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.564872 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.574871 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.575551 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.584878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.594882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.604887 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.614917 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.624885 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.625567 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.634874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.644892 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.654878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.664874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.674873 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.675555 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.684872 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.694874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.704871 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.714872 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.724882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.725589 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.734884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.744886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.754880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.764884 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.774875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.775555 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.784870 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.794873 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.804874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.814878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.824879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.825574 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.835250 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.844999 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.855006 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.864938 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.874976 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.875702 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.885914 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.895125 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.904996 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.914918 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.924889 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.925601 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.934883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.944880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.954885 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.964890 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.974999 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.975690 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  5.984906 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  5.995847 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.005147 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.014940 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.024898 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.025608 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.034886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.044881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.054880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.064886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.074876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.075688 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.084902 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.094883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.104875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.114872 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.124873 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.125560 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.134873 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.144891 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.154990 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.165014 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.175019 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.176097 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.185018 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.195018 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.205027 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.214924 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.224887 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.225571 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.234877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.244874 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.254880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.264873 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.274972 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.276935 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.285206 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.295122 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.305010 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.314908 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.324887 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.325587 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.334878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.344877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.354932 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.364898 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.374882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.375581 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.384880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.394878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.404876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.414875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.424999 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.425709 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.442528 2:7 hypercraft::arch::vmx::vcpu:578] reset vmx timer
+[  6.443180 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.446831 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.455337 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.464986 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.465690 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.474903 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.484882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.494878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.504876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.514879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.515581 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.524877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.534877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.544878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.554877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.564876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.565575 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.574876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.584878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.594877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.604877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.614877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.615581 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.624877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.634875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.644876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.654878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.664879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.665580 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.674877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.684876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.694877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.704877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.714876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.715574 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.724875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.735379 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.744996 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.754907 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.764915 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.765794 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.774927 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.784888 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.794879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.804878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.814878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.815582 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.824878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.834877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.844878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.854877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.864877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.865575 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.874875 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.884876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.895046 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.904918 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.915188 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.915931 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.924962 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.934947 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.944893 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.954881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.964893 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.965605 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  6.974901 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.984891 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  6.994886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.004886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.014878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.015598 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.024882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.034885 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.044880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.054879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.064882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.065595 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.074881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.084878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.094876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.104878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.114883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.115592 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.124880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.134880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.144913 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.154891 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.164899 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.165887 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.174958 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.184906 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.194886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.204886 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.214888 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.215598 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.224893 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.234881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.244878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.254880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.265387 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.266092 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.274998 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.284909 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.294890 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.304880 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.314878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.315598 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.324882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.334879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.344878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.354945 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.364907 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.366500 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.375094 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.384931 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.394891 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.404899 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.414890 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.415591 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.432271 2:7 hypercraft::arch::vmx::vcpu:578] reset vmx timer
+[  7.433097 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.436808 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.445332 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.454992 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.455713 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.464911 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.474887 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.484883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.494879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.504879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.505596 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.514881 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.524879 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.534883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.544878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.554883 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.555728 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.564912 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.574898 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.584882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.595197 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.604985 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.605685 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.614901 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.624882 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.634877 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.644876 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.654878 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.687383 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.695031 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.704645 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.714553 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.724531 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.734539 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.735271 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.744536 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.754529 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.764526 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.774526 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.784528 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.785234 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.794527 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.804542 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.814820 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.824596 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.834591 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.835294 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.844540 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.854529 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.864525 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.874524 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.884538 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.885251 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.894541 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.904565 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.914548 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.924529 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.934532 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.935246 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.944531 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.954543 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.964620 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.974557 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.984536 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  7.985243 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  7.994528 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.004548 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.014532 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.024526 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.034543 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.035260 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.044631 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.055011 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.064758 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.074627 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.084548 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.085268 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.094533 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.104529 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.114530 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.124529 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.134544 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.135254 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.144531 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.154622 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.164755 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.174642 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.184666 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.185387 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.194565 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.204554 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.214567 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.224549 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.234531 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.235236 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.244527 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.254525 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.264527 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.274670 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.284560 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.287834 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.295138 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.304668 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.314558 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.324531 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.334525 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.335234 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.347702 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.370721 2:7 hypercraft::arch::vmx::vcpu:578] reset vmx timer
+[  8.371424 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.379776 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.389405 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.390147 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.399314 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.409282 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.419276 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.429381 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.439302 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.440010 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.449277 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.459270 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.469280 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.479279 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.489273 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.489983 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.499272 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.512169 2:7 hypercraft::arch::vmx::vcpu:578] reset vmx timer
+[  8.512842 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.520109 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.529466 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.530170 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.539314 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.549280 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.559271 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.569268 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.579270 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.579986 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.589272 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.599269 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.609270 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.619269 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.629273 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.629975 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.639269 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.649273 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.659275 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.669479 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.679344 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.680051 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.689286 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.699278 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.709270 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.719268 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.729282 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.729993 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.739273 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.749271 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.759291 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.769276 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.779269 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.779972 2:7 axtask::run_queue:83] current task is to be preempted: Task(7, "ArceOS[1]"), allow=true
+[  8.789268 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+[  8.799269 2:7 axtask::hv::vmx:26] ArceOS[1] handle external irq 240
+QEMU: Terminated
+

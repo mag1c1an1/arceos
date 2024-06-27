@@ -50,7 +50,7 @@ net = ["alloc", "axruntime/net", "dep:axdriver", "dep:axnet"]
 pipe = ["alloc"]
 
 # Hypervisor
-hv = ["dep:hypercraft", "axtask/hv","axruntime/hv"]
+hv = ["dep:hypercraft", "multitask", "irq", "axtask/hv", "axruntime/hv", "smp"]
 
 # Display
 display = ["axruntime/display", "dep:axdriver", "dep:axdisplay"]
@@ -96,9 +96,9 @@ axnet = { path = "../../modules/axnet", optional = true }
 axruntime = { path = "../../modules/axruntime", default-features = false }
 axsync = { path = "../../modules/axsync", default-features = false, optional = true }
 axtask = { path = "../../modules/axtask", default-features = false, optional = true }
-hypercraft = {path = "../../crates/hypercraft", optional = true}
+hypercraft = { path = "../../crates/hypercraft", optional = true }
 
 [build-dependencies]
 cbindgen = { version = "0.24", optional = true }
-bindgen ={ version = "0.65", optional = true }
+bindgen = { version = "0.65", optional = true }
 axconfig = { path = "../../modules/axconfig" }

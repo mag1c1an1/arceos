@@ -10,10 +10,12 @@ pub mod vcpu;
 pub mod mm;
 
 pub mod pcpu;
+pub mod notify;
 pub mod gpm;
 
 pub mod prelude;
 
+pub mod scheduler;
 
 /// An empty struct to implement of `HyperCraftHal`
 pub struct HyperCraftHalImpl;

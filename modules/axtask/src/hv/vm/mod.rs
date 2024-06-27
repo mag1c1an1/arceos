@@ -100,7 +100,6 @@ impl VirtMach {
         }));
 
         let len = cpu_affinities.len();
-        error!("len is {}",len);
         let mut vcpus = Vec::with_capacity(len);
         let mut iter = cpu_affinities.into_iter();
         for i in 0..len {
@@ -123,7 +122,7 @@ impl VirtMach {
             }
         }
 
-        error!("vcpus len{}", vcpus.len());
+        error!("{} with {} vcpus", name, vcpus.len());
         vm.lock().set_vcpus(vcpus);
 
         Ok(vm)
@@ -135,7 +134,6 @@ impl VirtMach {
         self.vm_id
     }
     pub fn start_bsp(&self) -> AxTaskRef {
-        info!("{} start bsp",self);
         let bsp = self.vcpus[BSP_CPU_ID].clone();
         spawn_vcpu(bsp)
     }
@@ -168,6 +166,14 @@ impl VirtMach {
                 ap.set_sipi_num(1);
             }
         }
+    }
+
+    /// remove all the vcpus
+    pub fn shutdown(&mut self) {
+        for vcpu in self.vcpus.iter() {
+            vcpu.set_state(VirtCpuState::Offline);
+        }
+        self.vcpus = vec![]
     }
 }
 

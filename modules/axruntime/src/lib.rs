@@ -120,8 +120,8 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
         log_level = {}\n\
         ",
         option_env!("ARCH").unwrap_or(""),
-        option_env!("PLATFORM").unwrap_or(""),
-        option_env!("SMP").unwrap_or(""),
+        axconfig::PLATFORM,
+        axconfig::SMP,
         option_env!("MODE").unwrap_or(""),
         option_env!("LOG").unwrap_or(""),
     );
@@ -297,16 +297,13 @@ fn init_interrupt() {
         axtask::on_timer_tick();
     });
 
-    // #[cfg(all(feature = "hv", target_arch = "x86_64", feature = "smp"))]
-    // {
-    //     debug!("hv virt ipi register");
-    //     axhal::irq::register_handler(233, || unsafe {
-    //         extern "Rust" {
-    //             fn hv_virt_ipi_handler(hart_id: usize);
-    //         }
-    //         hv_virt_ipi_handler(axhal::cpu::this_cpu_id())
-    //     });
-    // }
+    #[cfg(all(feature = "hv", target_arch = "x86_64"))]
+    {
+        debug!("hv msg irq register");
+        axhal::irq::register_handler(axtask::hv::notify::HV_MSG, || unsafe {
+            axtask::hv::notify::hv_msg_handler(axhal::cpu::this_cpu_id())
+        });
+    }
     // Enable IRQs before starting app
     axhal::arch::enable_irqs();
 }

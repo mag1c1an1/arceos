@@ -1,4 +1,4 @@
 [submodule "crates/hypercraft"]
 	path = crates/hypercraft
 	url = https://github.com/mag1c1an1/hypercraft.git
-	branch = main
+	branch = change_all

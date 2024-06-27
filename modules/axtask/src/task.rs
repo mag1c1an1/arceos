@@ -10,6 +10,9 @@ use axhal::arch::TaskContext;
 use memory_addr::{align_up_4k, PhysAddr, VirtAddr};
 
 use core::mem::ManuallyDrop;
+use axhal::cpu::this_cpu_id;
+use axhal::mem::virt_to_phys;
+use axhal::mp::send_ipi_all;
 #[cfg(feature = "hv")]
 use hypercraft::HyperError;
 #[cfg(feature = "hv")]
@@ -304,6 +307,7 @@ impl TaskInner {
 impl TaskInner {
     pub fn new_vcpu(name: String, stack_size: usize, vcpu: Arc<VirtCpu>) -> AxTaskRef {
         let mut t = Self::new_common(TaskId::new(), name);
+        t.cpu_affinity = vcpu.cpu_affinity();
         debug!("new task: {}", t.id_name());
         let kstack = TaskStack::alloc(align_up_4k(stack_size));
         t.task_type = TaskType::Vcpu {
@@ -327,9 +331,14 @@ impl TaskInner {
     pub fn vcpu_switch_out(&self) {
         if let Some(vcpu) = self.task_type.get_vcpu() {
             error!("{} switch out", vcpu);
-            vcpu.set_launched(false);
-            vcpu.unbind_curr_cpu().unwrap();
+            vcpu.set_prev_pcpu(this_cpu_id());
         }
+    }
+    pub fn bind_on_curr_cpu(&self) -> bool {
+        self.cpu_affinity.contains(this_cpu_id())
+    }
+    pub fn is_vcpu_task(&self) -> bool {
+        matches!(self.task_type,TaskType::Vcpu {..})
     }
 }
 
@@ -441,33 +450,11 @@ extern "C" fn task_entry() -> ! {
         }
         #[cfg(feature = "hv")]
         TaskType::Vcpu { vcpu } => {
-            vcpu_entry(vcpu.clone());
+            vcpu.start()
         }
     }
 
     crate::exit(0);
-}
-
-#[cfg(feature = "hv")]
-fn vcpu_entry(vcpu: Arc<VirtCpu>) {
-    loop {
-        match vcpu.run() {
-            None => {}
-            Some(_) => {
-                match crate::hv::vmx::vmexit_handler(&vcpu) {
-                    Ok(_) => { continue }
-                    Err(e) => {
-                        if matches!(e, HyperError::Shutdown) {
-                            debug!("shutdown");
-                            break;
-                        } else {
-                            panic!("hyper error{:?}", e);
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 

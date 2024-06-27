@@ -1,13 +1,19 @@
 use alloc::string::{String, ToString};
 use alloc::sync::{Arc, Weak};
+use alloc::vec;
 use core::cell::UnsafeCell;
 use core::fmt::{Display, Formatter};
 use spin::{Mutex, Once};
-use hypercraft::{GuestPhysAddr, HostPhysAddr, HyperResult, VCpu, VmCpuMode, VmExitInfo};
+use axhal::cpu::this_cpu_id;
+use hypercraft::{GuestPhysAddr, HostPhysAddr, HyperError, HyperResult, VCpu, VmCpuMode, VmExitInfo, VmxExitReason};
 use crate::hv::HyperCraftHalImpl;
+use crate::hv::notify::{busy_wait_on_reply, Message, send_message, Signal};
 use crate::hv::prelude::vmcs_revision_id;
 use crate::hv::vm::config::BSP_CPU_ID;
 use crate::hv::vm::VirtMach;
+use crate::hv::vmx::{handle_external_interrupt, handle_msr_read, handle_msr_write, X64VirtDevices};
+use crate::on_timer_tick;
+use crate::run_queue::RUN_QUEUE;
 use crate::utils::CpuSet;
 
 
@@ -25,12 +31,14 @@ struct VirCpuInner {
     pub vcpu_id: usize,
     // vcpu only run on these cpus
     pub cpu_affinity: CpuSet,
-    pub vcpu_state: VirtCpuState,
+    pub vcpu_state: Mutex<VirtCpuState>,
     pub inner_vcpu: VCpu<HyperCraftHalImpl>,
     pub entry: Option<usize>,
     pub vm: Weak<Mutex<VirtMach>>,
     pub ept_root: HostPhysAddr,
     pub vm_name: String,
+    pub x64_devices: X64VirtDevices,
+    pub prev_pcpu: Option<usize>,
 }
 
 
@@ -58,9 +66,32 @@ impl VirtCpu {
         }
     }
 
+    pub fn vmcs_addr(&self) -> usize {
+        self.get_inner().inner_vcpu.vmcs.phys_addr()
+    }
+
+    pub fn cpu_affinity(&self) -> CpuSet {
+        self.get_inner().cpu_affinity.clone()
+    }
+
+
     /// pre: Call this function only in switch context
     pub fn prepare(&self) -> HyperResult {
         // todo change is_launched
+        match self.prev_pcpu() {
+            None => {
+                self.unbind_curr_cpu()?
+            }
+            Some(prev) => {
+                if prev != this_cpu_id() {
+                    let msg = Message::new(this_cpu_id(), prev, Signal::Clear, vec![self.vmcs_addr()]);
+                    let reply = Message::new_reply(&msg);
+                    send_message(msg);
+                    busy_wait_on_reply(reply);
+                    self.set_launched(false);
+                }
+            }
+        }
         self.bind_curr_cpu()?;
         if self.state() == VirtCpuState::Init {
             error!("vcpu {} in prepare", self.vcpu_id());
@@ -81,12 +112,14 @@ impl VirtCpu {
                 inner: UnsafeCell::new(VirCpuInner {
                     vcpu_id: 0,
                     cpu_affinity,
-                    vcpu_state: VirtCpuState::Init,
+                    vcpu_state: Mutex::new(VirtCpuState::Init),
                     inner_vcpu: VCpu::new_common(vmcs_revision_id(), 0)?,
                     entry: Some(entry),
                     vm: weak,
                     ept_root,
                     vm_name,
+                    x64_devices: X64VirtDevices::new()?,
+                    prev_pcpu: None,
                 })
             }
         ))
@@ -98,15 +131,25 @@ impl VirtCpu {
                 inner: UnsafeCell::new(VirCpuInner {
                     vcpu_id,
                     cpu_affinity,
-                    vcpu_state: VirtCpuState::Init,
+                    vcpu_state: Mutex::new(VirtCpuState::Init),
                     inner_vcpu: VCpu::new_common(vmcs_revision_id(), vcpu_id)?,
                     entry: None,
                     vm: weak,
                     ept_root,
                     vm_name,
+                    x64_devices: X64VirtDevices::new()?,
+                    prev_pcpu: None,
                 })
             }
         ))
+    }
+
+    pub fn set_prev_pcpu(&self, cpu_id: usize) {
+        self.get_inner_mut().prev_pcpu = Some(cpu_id);
+    }
+
+    pub fn prev_pcpu(&self) -> Option<usize> {
+        self.get_inner().prev_pcpu
     }
 
     pub fn is_bsp(&self) -> bool {
@@ -128,12 +171,6 @@ impl VirtCpu {
     pub fn run(&self) -> Option<VmExitInfo> {
         self.get_inner_mut().inner_vcpu.run()
     }
-    pub fn offline(&self) {
-        self.get_inner_mut().vcpu_state = VirtCpuState::Offline;
-    }
-    pub fn start(&self) {
-        self.get_inner_mut().vcpu_state = VirtCpuState::Running
-    }
     pub fn vcpu_id(&self) -> usize {
         self.get_inner().vcpu_id
     }
@@ -152,10 +189,10 @@ impl VirtCpu {
         self.get_inner_mut().inner_vcpu.nr_sipi
     }
     pub fn state(&self) -> VirtCpuState {
-        self.get_inner().vcpu_state
+        *self.get_inner().vcpu_state.lock()
     }
     pub fn set_state(&self, state: VirtCpuState) {
-        self.get_inner_mut().vcpu_state = state;
+        *self.get_inner_mut().vcpu_state.lock() = state;
     }
 
     pub fn vm(&self) -> Option<Arc<Mutex<VirtMach>>> {
@@ -166,5 +203,54 @@ impl VirtCpu {
     }
     pub fn reset_vmx_preemption_timer(&self) -> HyperResult {
         self.get_inner_mut().inner_vcpu.reset_timer()
+    }
+    pub fn start(&self) {
+        while self.state() != VirtCpuState::Offline {
+            match self.run() {
+                None => {}
+                Some(_) => {
+                    match self.vmexit_handler() {
+                        Ok(_) => { continue }
+                        Err(e) => {
+                            if matches!(e, HyperError::Shutdown) {
+                                debug!("shutdown");
+                                self.vm().unwrap().lock().shutdown();
+                                break;
+                            } else {
+                                panic!("hyper error{:?}", e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        error!("{} shutdown",self);
+    }
+
+    fn vmexit_handler(&self) -> HyperResult {
+        let vmx_vcpu = self.vmx_vcpu_mut();
+        let exit_info = vmx_vcpu.exit_info()?;
+
+        match exit_info.exit_reason {
+            VmxExitReason::EXTERNAL_INTERRUPT => handle_external_interrupt(self),
+            VmxExitReason::IO_INSTRUCTION => self.get_inner_mut().x64_devices.handle_io_instruction(vmx_vcpu, &exit_info),
+            VmxExitReason::MSR_READ => handle_msr_read(self),
+            VmxExitReason::MSR_WRITE => handle_msr_write(self),
+            VmxExitReason::PREEMPTION_TIMER => self.handle_vmx_preemption_timer(),
+            VmxExitReason::SIPI => todo!("todo sipi"),
+            // VmxExitReason::EPT_VIOLATION => ,
+            _ => panic!(
+                "[{}] vmexit reason not supported {:?}:\n",
+                self.vcpu_id(),
+                exit_info.exit_reason
+            ),
+        }
+    }
+
+    fn handle_vmx_preemption_timer(&self) -> HyperResult {
+        // error!("vmx preemption timer");
+        // RUN_QUEUE.lock().hv_scheduler_timer_tick();
+        on_timer_tick();
+        self.reset_vmx_preemption_timer()
     }
 }

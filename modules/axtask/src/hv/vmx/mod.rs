@@ -8,6 +8,8 @@ use hypercraft::{HyperError, HyperResult, VCpu as HVCpu, VmxExitInfo, VmxExitRea
 use crate::hv::vcpu::VirtCpu;
 use crate::on_timer_tick;
 
+pub use device_emu::X64VirtDevices;
+
 type VCpu = HVCpu<super::HyperCraftHalImpl>;
 
 const VM_EXIT_INSTR_LEN_CPUID: u8 = 2;
@@ -15,13 +17,13 @@ const VM_EXIT_INSTR_LEN_RDMSR: u8 = 2;
 const VM_EXIT_INSTR_LEN_WRMSR: u8 = 2;
 const VM_EXIT_INSTR_LEN_VMCALL: u8 = 3;
 
-fn handle_external_interrupt(vcpu: &Arc<VirtCpu>) -> HyperResult {
+pub fn handle_external_interrupt(vcpu: &VirtCpu) -> HyperResult {
     #[cfg(feature = "irq")]
     {
-        error!("{} handle external irq ",vcpu);
         let int_info = vcpu.vmx_vcpu_mut().interrupt_exit_info()?;
         trace!("VM-exit: external interrupt: {:#x?}", int_info);
         assert!(int_info.valid);
+        error!("{} handle external irq {}",vcpu,int_info.vector as usize);
         axhal::irq::dispatch_irq(int_info.vector as usize);
         Ok(())
     }
@@ -82,59 +84,7 @@ fn handle_cpuid(vcpu: &Arc<VirtCpu>) -> HyperResult {
     Ok(())
 }
 
-fn handle_io_instruction(vcpu: &Arc<VirtCpu>, exit_info: &VmxExitInfo) -> HyperResult<> {
-    let io_info = vcpu.vmx_vcpu_mut().io_exit_info()?;
-    trace!(
-        "VM exit: I/O instruction @ {:#x}: {:#x?}",
-        exit_info.guest_rip,
-        io_info,
-    );
-    if io_info.is_string {
-        error!("INS/OUTS instructions are not supported!");
-        return Err(HyperError::NotSupported);
-    }
-    if io_info.is_repeat {
-        error!("REP prefixed I/O instructions are not supported!");
-        return Err(HyperError::NotSupported);
-    }
-
-    if let Some(dev) = device_emu::all_virt_devices().find_port_io_device(io_info.port) {
-        if io_info.is_in {
-            let value = dev.read(io_info.port, io_info.access_size)?;
-            let rax = &mut vcpu.vmx_vcpu_mut().regs_mut().rax;
-            // SDM Vol. 1, Section 3.4.1.1:
-            // * 32-bit operands generate a 32-bit result, zero-extended to a 64-bit result in the
-            //   destination general-purpose register.
-            // * 8-bit and 16-bit operands generate an 8-bit or 16-bit result. The upper 56 bits or
-            //   48 bits (respectively) of the destination general-purpose register are not modified
-            //   by the operation.
-            match io_info.access_size {
-                1 => *rax = (*rax & !0xff) | (value & 0xff) as u64,
-                2 => *rax = (*rax & !0xffff) | (value & 0xffff) as u64,
-                4 => *rax = value as u64,
-                _ => unreachable!(),
-            }
-        } else {
-            let rax = vcpu.vmx_vcpu_mut().regs().rax;
-            let value = match io_info.access_size {
-                1 => rax & 0xff,
-                2 => rax & 0xffff,
-                4 => rax,
-                _ => unreachable!(),
-            } as u32;
-            dev.write(io_info.port, io_info.access_size, value)?;
-        }
-    } else {
-        panic!(
-            "Unsupported I/O port {:#x} access: {:#x?}",
-            io_info.port, io_info
-        )
-    }
-    vcpu.vmx_vcpu_mut().advance_rip(exit_info.exit_instruction_length as _)?;
-    Ok(())
-}
-
-fn handle_msr_read(vcpu: &Arc<VirtCpu>) -> HyperResult {
+pub fn handle_msr_read(vcpu: &VirtCpu) -> HyperResult {
     let msr = vcpu.vmx_vcpu_mut().regs().rcx as u32;
 
     use x86::msr::*;
@@ -159,7 +109,7 @@ fn handle_msr_read(vcpu: &Arc<VirtCpu>) -> HyperResult {
     Ok(())
 }
 
-fn handle_msr_write(vcpu: &Arc<VirtCpu>) -> HyperResult {
+pub fn handle_msr_write(vcpu: &VirtCpu) -> HyperResult {
     let msr = vcpu.vmx_vcpu_mut().regs().rcx as u32;
     let value = (vcpu.vmx_vcpu_mut().regs().rax & 0xffff_ffff) | (vcpu.vmx_vcpu_mut().regs().rdx << 32);
     trace!("VM exit: WRMSR({:#x}) <- {:#x}", msr, value);
@@ -182,34 +132,3 @@ fn handle_msr_write(vcpu: &Arc<VirtCpu>) -> HyperResult {
     vcpu.vmx_vcpu_mut().advance_rip(VM_EXIT_INSTR_LEN_WRMSR)?;
     Ok(())
 }
-
-fn handle_vmx_preemption_timer(vcpu: &Arc<VirtCpu>) -> HyperResult {
-    error!("vmx preemption timer");
-    on_timer_tick();
-    vcpu.reset_vmx_preemption_timer()
-}
-
-
-pub fn vmexit_handler(vcpu: &Arc<VirtCpu>) -> HyperResult {
-    let vmx_vcpu = vcpu.vmx_vcpu_mut();
-    let exit_info = vmx_vcpu.exit_info()?;
-
-    match exit_info.exit_reason {
-        VmxExitReason::EXTERNAL_INTERRUPT => handle_external_interrupt(vcpu),
-        VmxExitReason::IO_INSTRUCTION => handle_io_instruction(vcpu, &exit_info),
-        VmxExitReason::MSR_READ => handle_msr_read(vcpu),
-        VmxExitReason::MSR_WRITE => handle_msr_write(vcpu),
-        VmxExitReason::PREEMPTION_TIMER => handle_vmx_preemption_timer(vcpu),
-        VmxExitReason::SIPI => todo!("todo sipi"),
-        // VmxExitReason::EPT_VIOLATION => ,
-        _ => panic!(
-            "[{}] vmexit reason not supported {:?}:\n",
-            vcpu.vcpu_id(),
-            exit_info.exit_reason
-        ),
-    }
-}
-
-
-/// ipi irq
-pub const HV_IPI: usize = 233;

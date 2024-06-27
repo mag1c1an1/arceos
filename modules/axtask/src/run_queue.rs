@@ -45,6 +45,17 @@ impl AxRunQueue {
         }
     }
 
+    #[cfg(feature = "hv")]
+    pub fn hv_scheduler_timer_tick(&mut self) {
+        let curr = crate::current();
+        if !curr.is_idle() && self.scheduler.vcpu_task_tick(curr.as_task_ref()) {
+            #[cfg(feature = "preempt")]
+            curr.set_preempt_pending(true);
+        }
+    }
+
+
+
     pub fn yield_current(&mut self) {
         let curr = crate::current();
         debug!("task yield: {}", curr.id_name());

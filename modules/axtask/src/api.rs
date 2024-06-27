@@ -4,7 +4,10 @@ use alloc::{format, string::String, sync::Arc};
 use alloc::fmt::format;
 use alloc::string::ToString;
 use alloc::vec::Vec;
-use log::error;
+use log::{error, info};
+use axhal::cpu::this_cpu_id;
+#[cfg(feature = "hv")]
+use crate::hv::scheduler::{HVScheduler, HVTask};
 #[cfg(feature = "hv")]
 use crate::hv::vcpu::VirtCpu;
 
@@ -29,7 +32,12 @@ cfg_if::cfg_if! {
     } else if #[cfg(feature = "sched_cfs")] {
         pub(crate) type AxTask = scheduler::CFSTask<TaskInner>;
         pub(crate) type Scheduler = scheduler::CFScheduler<TaskInner>;
+    } else if #[cfg(feature = "hv")] {
+        const MAX_TIME_SLICE: usize = 5;
+        pub(crate) type AxTask = HVTask<MAX_TIME_SLICE>;
+        pub(crate) type Scheduler = HVScheduler<MAX_TIME_SLICE>;
     }
+
 }
 
 #[cfg(feature = "preempt")]
@@ -88,7 +96,7 @@ pub fn init_scheduler_secondary() {
 #[cfg(feature = "irq")]
 #[doc(cfg(feature = "irq"))]
 pub fn on_timer_tick() {
-    error!("tick");
+    // error!("phy {} time tick ",this_cpu_id());
     crate::timers::check_events();
     RUN_QUEUE.lock().scheduler_timer_tick();
 }
@@ -109,8 +117,8 @@ where
 #[cfg(feature = "hv")]
 /// Spawns vcpu task
 pub fn spawn_vcpu(vcpu: Arc<VirtCpu>) -> AxTaskRef {
-    // TODO
     let name = format!("{}", &vcpu);
+    error!("{} add in rq", &name);
     let task = TaskInner::new_vcpu(name, axconfig::TASK_STACK_SIZE, vcpu);
     RUN_QUEUE.lock().add_task(task.clone());
     task
@@ -121,8 +129,9 @@ pub fn spawn_vcpus(vcpus: Vec<Arc<VirtCpu>>) {
     let mut guard = RUN_QUEUE.lock();
 
     for vcpu in vcpus {
-        error!("vcpu {} add in rq", vcpu.vcpu_id());
-        guard.add_task(TaskInner::new_vcpu("TODO".to_string(), axconfig::TASK_STACK_SIZE, vcpu));
+        let name = format!("{}", &vcpu);
+        error!("{} add in rq", &name);
+        guard.add_task(TaskInner::new_vcpu(name, axconfig::TASK_STACK_SIZE, vcpu));
     }
 }
 

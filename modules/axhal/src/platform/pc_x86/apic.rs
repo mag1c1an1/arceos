@@ -122,3 +122,9 @@ pub(super) fn init_primary() {
 pub(super) fn init_secondary() {
     unsafe { local_apic().enable() };
 }
+
+pub unsafe fn send_ipi_to(vector: u8, dest: u32) {
+    local_apic().send_ipi(vector,dest)
+}
+
+

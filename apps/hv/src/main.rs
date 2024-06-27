@@ -15,7 +15,6 @@ use libax::hv::prelude::{init, vmcs_revision_id};
 use libax::hv::vm::{boot_vm, arceos_config};
 use libax::thread::spawn;
 
-mod smp;
 
 #[no_mangle]
 fn main(hart_id: usize) {

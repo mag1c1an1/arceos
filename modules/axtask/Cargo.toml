@@ -22,7 +22,7 @@ sched_fifo = ["multitask"]
 sched_rr = ["multitask", "preempt"]
 sched_cfs = ["multitask", "preempt"]
 default = ["sched_rr"]
-hv = ["dep:axalloc", "dep:hypercraft", "axhal/hv", "dep:page_table", "dep:page_table_entry", "dep:hashbrown"]
+hv = ["multitask","preempt","dep:axalloc", "dep:hypercraft", "axhal/hv", "dep:page_table", "dep:page_table_entry", "dep:hashbrown"]
 
 [dependencies]
 cfg-if = "1.0"
@@ -41,6 +41,7 @@ hypercraft = { path = "../../crates/hypercraft", optional = true }
 page_table = { path = "../../crates/page_table", optional = true }
 page_table_entry = { path = "../../crates/page_table_entry", features = ["hv"], optional = true }
 bitvec = { version = "1.0", default-features = false, features = ["alloc"] }
+bit_field = "0.10"
 hashbrown = { version = "0.14", optional = true }
 axalloc = { path = "../axalloc", optional = true }
 bitflags = "1.3"

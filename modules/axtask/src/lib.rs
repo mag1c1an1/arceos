@@ -27,6 +27,7 @@
 #![cfg_attr(not(test), no_std)]
 #![feature(doc_cfg)]
 #![feature(doc_auto_cfg)]
+#![feature(extract_if)]
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "multitask")] {

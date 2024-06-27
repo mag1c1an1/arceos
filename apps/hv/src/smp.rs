@@ -1,15 +1,4 @@
-use libax::hv::{HyperCraftHalImpl, PerCpu, receive_message};
 
-#[no_mangle]
-fn hv_virt_ipi_handler(hart_id: usize) {
-    let msg = receive_message(hart_id);
-    match msg.signal {
-        libax::hv::Signal::Start => {
-            let start_addr = msg.args[0];
-            // ap_start(hart_id, start_addr);
-        }
-    }
-}
 
 
 // fn ap_start(hart_id: usize, start_addr: usize) {
