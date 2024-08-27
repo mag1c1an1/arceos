@@ -1,5 +1,4 @@
-use alloc::collections::VecDeque;
-use alloc::sync::Arc;
+use alloc::collections::VecDeque;use alloc::sync::Arc;
 use lazy_init::LazyInit;
 use scheduler::BaseScheduler;
 use spinlock::SpinNoIrq;

@@ -5,6 +5,7 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 use spin::{Mutex, Once};
 use x86::current::vmx::vmclear;
 use x86::segmentation::ds;
+use axhal::irq::send_nmi_to;
 use crate::hv::vm::config::BSP_CPU_ID;
 
 pub const HV_MSG: usize = 233;

@@ -5,6 +5,7 @@ use core::cell::UnsafeCell;
 use core::fmt::{Display, Formatter};
 use core::time::Duration;
 use spin::{Mutex, Once};
+use axhal::arch::wait_for_irqs;
 use axhal::cpu::this_cpu_id;
 use axhal::time::busy_wait;
 use hypercraft::{GuestPhysAddr, HostPhysAddr, HyperError, HyperResult, VCpu, VmCpuMode, VmExitInfo, VmxExitReason};
@@ -88,15 +89,13 @@ impl VirtCpu {
                 if prev != this_cpu_id() {
                     let msg = Message::new(this_cpu_id(), prev, Signal::Clear, vec![self.vmcs_addr()]);
                     let reply = Message::new_reply(&msg);
+                    send_message(msg.clone());
+                    error!("{} send nmi to {}",this_cpu_id(),prev);
+                    axhal::irq::send_nmi_to(prev);
+                    error!("{} begin busy wait",self);
                     loop {
-                        send_message(msg.clone());
-                        error!("{} send nmi to {}",this_cpu_id(),prev);
-                        axhal::irq::send_nmi_to(prev);
-                        error!("{} begin busy wait",self);
                         if wait_on_reply(&reply) {
                             break;
-                        } else {
-                            busy_wait(Duration::from_millis(100));
                         }
                     }
                     error!("{} finish busy wait",self);
@@ -115,6 +114,7 @@ impl VirtCpu {
                     // }
                     // error!("{} finish busy wait",self);
                     self.set_launched(false);
+                    // self.unbind_curr_cpu()?;
                 }
             }
         }
